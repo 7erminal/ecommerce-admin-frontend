@@ -31,7 +31,7 @@ jobs:
 
             APP_DIR="/usr/app/ecommerce/ecommerce-admin-frontend"
             REPO_URL="https://github.com/${REPOSITORY}.git"
-            AUTH_HEADER="Authorization: basic $(printf '%s:%s' "$GIT_USERNAME" "$GIT_PASSWORD" | base64 -w 0)"
+            AUTH_HEADER="Authorization: Basic $(printf '%s:%s' "$GIT_USERNAME" "$GIT_PASSWORD" | base64 -w 0)"
 
             mkdir -p "$(dirname "$APP_DIR")"
 

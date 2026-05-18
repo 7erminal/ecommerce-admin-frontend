@@ -1,6 +1,5 @@
 import React from "react";
 import { Route, Routes, Navigate, BrowserRouter as Router } from "react-router-dom";
-import App from "./App.tsx";
 import { ApplicationProvider } from "../resources/providers/ApplicationProvider.tsx";
 import { useTokenExpiry } from './hooks/useAuth';
 import Menu from "./pages/loggedIn/Menu.tsx";
@@ -17,13 +16,13 @@ const ARoutes: React.FC = () => {
     return <ApplicationProvider>
               <Router>
                 <Routes>
-                    <Route path='/' element={<App />} />
+                    {/* <Route path='/' element={<App />} /> */}
                     <Route path='/about' element={<AboutPage />} />
                     <Route path='/login' element={<LoginPage />} />
                     <Route path='/signup' element={<SignUpPage />} />
                     {/* <Route path='/learn/*' element={<ProtectedRoute><Menu /></ProtectedRoute>} /> */}
                     <Route path='/admin/*' element={<Menu />} />
-                    <Route path="*" element={<Navigate replace to="/" />} />
+                    <Route path="*" element={<Navigate replace to="/admin/home" />} />
                 </Routes>
               </Router>
             </ApplicationProvider>

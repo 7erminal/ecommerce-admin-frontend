@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useEffect, useContext } from "react";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
 import CategoryRoutes from "./CategoryRoutes";
 import { Link } from "react-router-dom";
 
 const CategoriesPage: React.FC = () => {
     const applicationContext = useContext(ApplicationContext);
-    const [loading, setLoading] = useState(false);
 
     useEffect(()=>{
         document.title = "Home"
@@ -14,15 +13,11 @@ const CategoriesPage: React.FC = () => {
     }, [])
 
     const getCategories = async () => {
-        setLoading(true);
         await applicationContext!.fetchCategories();
-        setLoading(false);
     }
 
     const getCourses = async () => {
-        setLoading(true);
         await applicationContext!.getCourses();
-        setLoading(false);
     }
 
     return <div className="flex flex-col whitespace-normal p-4">

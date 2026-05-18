@@ -12,7 +12,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
-
+    environment: ecommerce
     steps:
       - name: Deploy on remote server over SSH
         uses: appleboy/ssh-action@v1.2.0

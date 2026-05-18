@@ -1,12 +1,8 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useEffect, useContext } from "react";
 import ApplicationContext from "../../../resources/providers/ApplicationContext";
-import VideoTile from "../../widgets/VideoTile";
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
 
 const CustomizePage: React.FC = () => {
     const applicationContext = useContext(ApplicationContext);
-    const [loading, setLoading] = useState(false);
 
     useEffect(()=>{
         document.title = "Home"
@@ -15,15 +11,11 @@ const CustomizePage: React.FC = () => {
     }, [])
 
     const getCategories = async () => {
-        setLoading(true);
         await applicationContext!.fetchCategories();
-        setLoading(false);
     }
 
     const getCourses = async () => {
-        setLoading(true);
         await applicationContext!.getCourses();
-        setLoading(false);
     }
 
     return <div className="flex flex-col whitespace-normal p-4">

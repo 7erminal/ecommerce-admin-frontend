@@ -1,11 +1,7 @@
 import React, { useContext } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
-import HomePage from "../Home";
 import LoadingOverlay from "../../../components/LoadingOverlay";
-import CategoriesPage from "../categories/Categories";
-import ItemsPage from "../Items";
-import CustomizePage from "../Customize";
 import CategoriesSection from "./CategoriesSection";
 import FeaturesSection from "./FeaturesSection";
 import PurposesSection from "./PurposesSection";

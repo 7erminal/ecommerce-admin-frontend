@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useEffect, useContext } from "react";
 import ApplicationContext from "../../../resources/providers/ApplicationContext";
 
 const HomePage: React.FC = () => {
     const applicationContext = useContext(ApplicationContext);
-    const [loading, setLoading] = useState(false);
 
     useEffect(()=>{
         document.title = "Home"
@@ -11,9 +10,7 @@ const HomePage: React.FC = () => {
     }, [])
 
     const getCategories = async () => {
-        setLoading(true);
         await applicationContext!.fetchCategories();
-        setLoading(false);
     }
 
 

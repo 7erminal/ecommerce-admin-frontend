@@ -9,7 +9,8 @@ on:
 
 jobs:
   deploy:
-    permissions: {}
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +23,7 @@ jobs:
           BRANCH: ${{ github.ref_name }}
         with:
           host: ${{ vars.SSH_SERVER }}
-          username: root
+          username: ${{ vars.SSH_USER || 'root' }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: true
           envs: GIT_USERNAME,GIT_PASSWORD,REPOSITORY,BRANCH
@@ -31,17 +32,26 @@ jobs:
 
             APP_DIR="/usr/app/ecommerce/ecommerce-admin-frontend"
             REPO_URL="https://github.com/${REPOSITORY}.git"
-            AUTH_HEADER="Authorization: Basic $(printf '%s:%s' "$GIT_USERNAME" "$GIT_PASSWORD" | base64 -w 0)"
+            NETRC_PATH="$HOME/.netrc"
+
+            trap 'rm -f "$NETRC_PATH"' EXIT
+
+            cat > "$NETRC_PATH" <<EOF
+            machine github.com
+            login ${GIT_USERNAME}
+            password ${GIT_PASSWORD}
+            EOF
+            chmod 600 "$NETRC_PATH"
 
             mkdir -p "$(dirname "$APP_DIR")"
 
             if [ ! -d "$APP_DIR/.git" ]; then
               rm -rf "$APP_DIR"
-              git -c http.https://github.com/.extraheader="$AUTH_HEADER" clone "$REPO_URL" "$APP_DIR"
+              git clone "$REPO_URL" "$APP_DIR"
             fi
 
             cd "$APP_DIR"
-            git -c http.https://github.com/.extraheader="$AUTH_HEADER" fetch origin "$BRANCH"
+            git fetch origin "$BRANCH"
             git checkout "$BRANCH"
             git reset --hard "origin/$BRANCH"
 

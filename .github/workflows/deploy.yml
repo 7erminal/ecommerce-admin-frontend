@@ -36,6 +36,11 @@ jobs:
 
             trap 'rm -f "$NETRC_PATH"' EXIT
 
+            if [ -z "$GIT_USERNAME" ] || [ -z "$GIT_PASSWORD" ]; then
+              echo "GIT_USERNAME and GIT_PASSWORD secrets must be set."
+              exit 1
+            fi
+
             cat > "$NETRC_PATH" <<EOF
             machine github.com
             login ${GIT_USERNAME}

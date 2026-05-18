@@ -1,0 +1,72 @@
+name: Deploy React Admin Frontend
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy on remote server over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+          GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        with:
+          host: ${{ vars.SSH_SERVER }}
+          username: ${{ vars.SSH_USER || 'root' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true
+          envs: GIT_USERNAME,GIT_PASSWORD,REPOSITORY,BRANCH
+          script: |
+            set -e
+
+            APP_DIR="/usr/app/ecommerce/ecommerce-admin-frontend"
+            REPO_URL="https://github.com/${REPOSITORY}.git"
+            NETRC_PATH="$HOME/.netrc"
+
+            trap 'rm -f "$NETRC_PATH"' EXIT
+
+            if [ -z "$GIT_USERNAME" ] || [ -z "$GIT_PASSWORD" ]; then
+              echo "GIT_USERNAME and GIT_PASSWORD secrets must be set."
+              exit 1
+            fi
+
+            cat > "$NETRC_PATH" <<EOF
+            machine github.com
+            login ${GIT_USERNAME}
+            password ${GIT_PASSWORD}
+            EOF
+            chmod 600 "$NETRC_PATH"
+
+            mkdir -p "$(dirname "$APP_DIR")"
+
+            if [ ! -d "$APP_DIR/.git" ]; then
+              if [ -d "$APP_DIR" ] && [ -n "$(ls -A "$APP_DIR" 2>/dev/null)" ]; then
+                echo "Deployment directory exists but is not a git repository: $APP_DIR"
+                exit 1
+              fi
+              git clone "$REPO_URL" "$APP_DIR"
+            fi
+
+            cd "$APP_DIR"
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH"
+            git reset --hard "origin/$BRANCH"
+
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              npm install
+            fi
+
+            npm run build

@@ -41,6 +41,7 @@ jobs:
               exit 1
             fi
 
+            set +x
             cat > "$NETRC_PATH" <<EOF
             machine github.com
             login ${GIT_USERNAME}

@@ -1,0 +1,53 @@
+name: Deploy React Admin Frontend
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy on remote server over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+          GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        with:
+          host: ${{ vars.SSH_SERVER }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true
+          envs: GIT_USERNAME,GIT_PASSWORD,REPOSITORY,BRANCH
+          script: |
+            set -e
+
+            APP_DIR="/usr/app/ecommerce/ecommerce-admin-frontend"
+            REPO_URL="https://github.com/${REPOSITORY}.git"
+            AUTH_HEADER="AUTHORIZATION: basic $(printf '%s:%s' "$GIT_USERNAME" "$GIT_PASSWORD" | base64 -w 0)"
+
+            mkdir -p "$(dirname "$APP_DIR")"
+
+            if [ ! -d "$APP_DIR/.git" ]; then
+              rm -rf "$APP_DIR"
+              git -c http.https://github.com/.extraheader="$AUTH_HEADER" clone "$REPO_URL" "$APP_DIR"
+            fi
+
+            cd "$APP_DIR"
+            git -c http.https://github.com/.extraheader="$AUTH_HEADER" fetch origin "$BRANCH"
+            git checkout "$BRANCH"
+            git reset --hard "origin/$BRANCH"
+
+            if [ -f package-lock.json ]; then
+              npm ci
+            else
+              npm install
+            fi
+
+            npm run build

@@ -51,7 +51,10 @@ jobs:
             mkdir -p "$(dirname "$APP_DIR")"
 
             if [ ! -d "$APP_DIR/.git" ]; then
-              rm -rf "$APP_DIR"
+              if [ -d "$APP_DIR" ] && [ -n "$(ls -A "$APP_DIR" 2>/dev/null)" ]; then
+                echo "Deployment directory exists but is not a git repository: $APP_DIR"
+                exit 1
+              fi
               git clone "$REPO_URL" "$APP_DIR"
             fi
 

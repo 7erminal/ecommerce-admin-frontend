@@ -1,19 +1,26 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import ApplicationContext from "../../resources/providers/ApplicationContext";
+import AuthContext from "../../resources/providers/AuthContext";
 
 interface SignupFormInputs {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phoneNumber: string;
   dateOfBirth: string;
   gender: "male" | "female" | "other";
   password: string;
   confirmPassword: string;
+  roleId: string;
 }
 
 const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
+  const applicationContext = useContext(ApplicationContext);
+  const authContext = useContext(AuthContext);
+
   const {
     register,
     handleSubmit,
@@ -21,23 +28,53 @@ const SignUpPage: React.FC = () => {
     watch,
   } = useForm<SignupFormInputs>({
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       phoneNumber: "",
       dateOfBirth: "",
-      gender: "male",
       password: "",
       confirmPassword: "",
+      roleId: "",
     },
   });
 
   const password = watch("password");
 
+  useEffect(() => {
+    // Fetch roles when component mounts
+    if (applicationContext?.fetchRoles) {
+      applicationContext.fetchRoles();
+    }
+  }, []);
+
   const onSubmit = async (data: SignupFormInputs) => {
     console.log("Signup Data:", data);
-    // TODO: Call signup API endpoint
-    // For now, just navigate to login
-    navigate("/login");
+    
+    if (!authContext?.register) {
+      console.error("Register function not available");
+      return;
+    }
+
+    const registerData = {
+      Email: data.email,
+      FirstName: data.firstName,
+      LastName: data.lastName,
+      PhoneNumber: data.phoneNumber,
+      Password: data.password,
+      Dob: data.dateOfBirth,
+      RoleId: data.roleId,
+    };
+
+    const response = await authContext.register(registerData);
+    
+    if (response.Success === true) {
+      console.log("Registration successful");
+      // Store token or user data if needed, then navigate
+      navigate("/login");
+    } else {
+      console.error("Registration failed:", response.StatusDesc);
+    }
   };
 
   return (
@@ -86,22 +123,45 @@ const SignUpPage: React.FC = () => {
             <p className="mt-2 text-sm text-[#9f3a3a]">Start your ecommerce journey today</p>
           </div>
 
+          {authContext?.errorMessage && (
+            <div className="mb-4 rounded-xl border border-[#f8b4b4] bg-[#fff1f1] p-3 text-sm text-[#9f1d1d]">
+              {authContext.errorMessage}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium text-[#7f1d1d]">Full Name</label>
+              <label className="mb-2 block text-sm font-medium text-[#7f1d1d]">First Name</label>
               <input
                 type="text"
-                placeholder="Enter your full name"
+                placeholder="Enter your first name"
                 className="w-full rounded-xl border border-[#f0baba] bg-[#fffafa] px-4 py-3 text-[#7f1d1d] outline-none transition placeholder:text-[#d08484] focus:border-[#c53030] focus:ring-4 focus:ring-[#f9caca]"
-                {...register("name", {
-                  required: "Full name is required",
+                {...register("firstName", {
+                  required: "First name is required",
                   minLength: {
                     value: 2,
-                    message: "Name must be at least 2 characters",
+                    message: "First name must be at least 2 characters",
                   },
                 })}
               />
-              {errors.name && <p className="mt-2 text-xs text-[#c53030]">{errors.name.message}</p>}
+              {errors.firstName && <p className="mt-2 text-xs text-[#c53030]">{errors.firstName.message}</p>}
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[#7f1d1d]">Last Name</label>
+              <input
+                type="text"
+                placeholder="Enter your last name"
+                className="w-full rounded-xl border border-[#f0baba] bg-[#fffafa] px-4 py-3 text-[#7f1d1d] outline-none transition placeholder:text-[#d08484] focus:border-[#c53030] focus:ring-4 focus:ring-[#f9caca]"
+                {...register("lastName", {
+                  required: "Last name is required",
+                  minLength: {
+                    value: 2,
+                    message: "Last name must be at least 2 characters",
+                  },
+                })}
+              />
+              {errors.lastName && <p className="mt-2 text-xs text-[#c53030]">{errors.lastName.message}</p>}
             </div>
 
             <div>
@@ -172,6 +232,24 @@ const SignUpPage: React.FC = () => {
             </div>
 
             <div>
+              <label className="mb-2 block text-sm font-medium text-[#7f1d1d]">Role</label>
+              <select
+                className="w-full rounded-xl border border-[#f0baba] bg-[#fffafa] px-4 py-3 text-[#7f1d1d] outline-none transition focus:border-[#c53030] focus:ring-4 focus:ring-[#f9caca]"
+                {...register("roleId", {
+                  required: "Role is required",
+                })}
+              >
+                <option value="">Select a role</option>
+                {applicationContext?.roles && applicationContext.roles.map((role) => (
+                  <option key={role.RoleId} value={role.RoleId}>
+                    {role.Role}
+                  </option>
+                ))}
+              </select>
+              {errors.roleId && <p className="mt-2 text-xs text-[#c53030]">{errors.roleId.message}</p>}
+            </div>
+
+            <div>
               <label className="mb-2 block text-sm font-medium text-[#7f1d1d]">Password</label>
               <input
                 type="password"
@@ -204,9 +282,10 @@ const SignUpPage: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-gradient-to-r from-[#c53030] to-[#a51f1f] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(197,48,48,0.35)]"
+              disabled={authContext?.loading}
+              className="w-full rounded-xl bg-gradient-to-r from-[#c53030] to-[#a51f1f] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(197,48,48,0.35)] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Create Account
+              {authContext?.loading ? "Creating Account..." : "Create Account"}
             </button>
 
             <p className="pt-2 text-center text-sm text-[#8d3f3f]">

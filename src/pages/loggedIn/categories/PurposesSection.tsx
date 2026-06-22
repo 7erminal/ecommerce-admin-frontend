@@ -1,57 +1,61 @@
-import React, { useState } from "react";
-
-type PurposeRecord = {
-    id: string;
-    name: string;
-    description: string;
-    image: string;
-};
-
-const initialPurposes: PurposeRecord[] = [
-    { id: "pur-1", name: "Home Use", description: "Classify products intended for domestic and everyday personal use.", image: "/placeholder.png" },
-    { id: "pur-2", name: "Office Use", description: "Tag items suitable for workplace, productivity, or business settings.", image: "/placeholder.png" },
-    { id: "pur-3", name: "Travel", description: "Group products designed for portability and use while on the move.", image: "/placeholder.png" },
-    { id: "pur-4", name: "Outdoor", description: "Label products meant for field, sports, or outdoor activity scenarios.", image: "/placeholder.png" },
-];
+import React, { useContext, useState } from "react";
+import ApplicationContext from "../../../../resources/providers/ApplicationContext";
+import type { AddPurpose, Purpose } from "../../../../resources/types/applicationTypes";
+import ImageUploadWithCrop from "../../components/ImageUploadWithCrop";
 
 const PurposesSection: React.FC = () => {
-    const [purposes, setPurposes] = useState<PurposeRecord[]>(initialPurposes);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [image, setImage] = useState("");
+    const [image, setImage] = useState<File | undefined>(undefined);
+
+    const appContext = useContext(ApplicationContext);
 
     const openAdd = () => {
         setEditingId(null);
         setName("");
         setDescription("");
-        setImage("");
+        setImage(undefined);
         setShowModal(true);
     };
 
-    const openEdit = (entry: PurposeRecord) => {
-        setEditingId(entry.id);
-        setName(entry.name);
-        setDescription(entry.description);
-        setImage(entry.image);
+    const openEdit = (entry: Purpose) => {
+        setEditingId(entry.PurposeId.toString());
+        setName(entry.Purpose);
+        setDescription(entry.Description);
+        setImage(entry.ImagePath ? new File([], entry.ImagePath) : undefined);
         setShowModal(true);
     };
 
-    const handleSave = () => {
-        if (!name.trim() || !description.trim()) {
-            return;
-        }
-        const payload: PurposeRecord = {
-            id: editingId || `pur-${Date.now()}`,
-            name: name.trim(),
-            description: description.trim(),
-            image: image.trim() || "/placeholder.png",
+    const handleSave = async () => {
+            if (!name.trim() || !description.trim()) {
+                return;
+            }
+            const payload: AddPurpose = {
+                        PurposeName: name.trim(),
+                        // Description: description.trim(),
+                        PurposeImage: image,
+                        PurposeDescription: description.trim(), 
+                    };
+            
+            const resp = await appContext?.addPurpose(payload);
+            if (resp?.Success) {
+                // Handle success (e.g., show a success message, refresh the list)
+            } else {
+                // Handle error (e.g., show an error message)
+            }
+            setShowModal(false);
         };
-        if (editingId) {
-            setPurposes((prev) => prev.map((item) => (item.id === editingId ? payload : item)));
+
+    const handleDelete = async () => {
+        if (!editingId) return;
+
+        const resp = await appContext?.deleteCategory(editingId.toString());
+        if (resp?.Success) {
+            // Handle success (e.g., show a success message, refresh the list)
         } else {
-            setPurposes((prev) => [payload, ...prev]);
+            // Handle error (e.g., show an error message)
         }
         setShowModal(false);
     };
@@ -75,12 +79,12 @@ const PurposesSection: React.FC = () => {
                 </button>
             </div>
             <div className="space-y-4">
-                {purposes.map((entry, index) => (
-                    <div key={entry.id} className={`flex items-start gap-4 p-4 ${index !== purposes.length - 1 ? "border-b border-gray-200" : ""}`}>
-                        <img src={entry.image} alt={entry.name} className="w-16 h-16 rounded-lg object-cover" />
+                {appContext?.purposes.map((entry, index) => (
+                    <div key={entry.PurposeId.toLocaleString()} className={`flex items-start gap-4 p-4 ${index !== appContext.purposes.length - 1 ? "border-b border-gray-200" : ""}`}>
+                        <img src={entry.ImagePath} alt={entry.Purpose} className="w-16 h-16 rounded-lg object-cover" />
                         <div className="flex-1">
-                            <div className="text-sm font-semibold text-gray-800">{entry.name}</div>
-                            <div className="text-sm text-gray-500">{entry.description}</div>
+                            <div className="text-sm font-semibold text-gray-800">{entry.Purpose}</div>
+                            <div className="text-sm text-gray-500">{entry.Description}</div>
                         </div>
                         <button
                             onClick={() => openEdit(entry)}
@@ -105,10 +109,24 @@ const PurposesSection: React.FC = () => {
                     <div className="space-y-3">
                         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name *" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
                         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder="Description *" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-                        <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL (optional)" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                        {/* <input type="file" onChange={(e) => setImage(e.target.files?.[0])} placeholder="Image URL (optional)" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" /> */}
+                        <div>
+                            <ImageUploadWithCrop onCropComplete={(file) => setImage(file)} />
+                                {/* Preview the selected image */}
+                                {
+                                    image && (
+                                        <div className="mt-2">
+                                            <img src={URL.createObjectURL(image)} alt="Selected" className="w-32 h-32 object-cover rounded-lg" />
+                                        </div>
+                                    )
+                                }
+                            </div>
                     </div>
 
                     <div className="mt-4 flex justify-end gap-2">
+                        {editingId && (
+                            <button onClick={handleDelete} className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-red-500">Delete</button>
+                        )}
                         <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-sm">Cancel</button>
                         <button onClick={handleSave} className="px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ backgroundColor: "#c53030" }}>
                             {editingId ? "Save Changes" : "Add Purpose"}

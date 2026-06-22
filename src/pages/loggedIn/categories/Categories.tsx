@@ -8,16 +8,13 @@ const CategoriesPage: React.FC = () => {
 
     useEffect(()=>{
         document.title = "Home"
-        getCourses();
         getCategories();
     }, [])
 
     const getCategories = async () => {
         await applicationContext!.fetchCategories();
-    }
-
-    const getCourses = async () => {
-        await applicationContext!.getCourses();
+        await applicationContext!.fetchFeatures();
+        await applicationContext!.fetchPurposes();
     }
 
     return <div className="flex flex-col whitespace-normal p-4">

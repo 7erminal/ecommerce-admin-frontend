@@ -17,6 +17,10 @@
   }
 }
 
+.ReactCrop__drag-handle {
+  display: none !important;
+}
+
 .hero {
   position: relative;
 

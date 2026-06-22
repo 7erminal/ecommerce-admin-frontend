@@ -1,57 +1,61 @@
-import React, { useState } from "react";
-
-type CategoryRecord = {
-    id: string;
-    name: string;
-    description: string;
-    image: string;
-};
-
-const initialCategories: CategoryRecord[] = [
-    { id: "cat-1", name: "Bags", description: "Everyday and travel bag collections.", image: "/placeholder.png" },
-    { id: "cat-2", name: "Footwear", description: "Casual, formal and sport footwear lines.", image: "/placeholder.png" },
-    { id: "cat-3", name: "Home", description: "Home lifestyle and utility products.", image: "/placeholder.png" },
-    { id: "cat-4", name: "Accessories", description: "Complementary fashion and utility add-ons.", image: "/placeholder.png" },
-];
+import React, { useState, useContext } from "react";
+import ApplicationContext from "../../../../resources/providers/ApplicationContext";
+import type { AddCategory, Category } from "../../../../resources/types/applicationTypes";
+import ImageUploadWithCrop from "../../components/ImageUploadWithCrop";
 
 const CategoriesSection: React.FC = () => {
-    const [categories, setCategories] = useState<CategoryRecord[]>(initialCategories);
     const [showModal, setShowModal] = useState(false);
-    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editingId, setEditingId] = useState<Number | null | string>(null);
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [image, setImage] = useState("");
+    const [image, setImage] = useState<File>();
+
+    const appContext = useContext(ApplicationContext);
 
     const openAdd = () => {
         setEditingId(null);
         setName("");
         setDescription("");
-        setImage("");
+        setImage(undefined);
         setShowModal(true);
     };
 
-    const openEdit = (entry: CategoryRecord) => {
-        setEditingId(entry.id);
-        setName(entry.name);
-        setDescription(entry.description);
-        setImage(entry.image);
+    const openEdit = (entry: Category) => {
+        console.log("Editing entry:", entry);
+        setEditingId(entry.CategoryId);
+        setName(entry.CategoryName);
+        setDescription(entry.Description);
+        setImage(entry.ImagePath ? new File([], entry.ImagePath) : undefined);
         setShowModal(true);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!name.trim() || !description.trim()) {
             return;
         }
-        const payload: CategoryRecord = {
-            id: editingId || `cat-${Date.now()}`,
-            name: name.trim(),
-            description: description.trim(),
-            image: image.trim() || "/placeholder.png",
+        const payload: AddCategory = {
+            CategoryName: name.trim(),
+            CategoryImage: image,
+            CategoryDescription: description.trim(), 
         };
-        if (editingId) {
-            setCategories((prev) => prev.map((item) => (item.id === editingId ? payload : item)));
+
+        const resp = await appContext?.addCategory(payload);
+        if (resp?.Success) {
+            // Handle success (e.g., show a success message, refresh the list)
         } else {
-            setCategories((prev) => [payload, ...prev]);
+            // Handle error (e.g., show an error message)
+        }
+        setShowModal(false);
+    };
+
+    const handleDelete = async () => {
+        if (!editingId) return;
+
+        const resp = await appContext?.deleteCategory(editingId.toString());
+        if (resp?.Success) {
+            // Handle success (e.g., show a success message, refresh the list)
+        } else {
+            // Handle error (e.g., show an error message)
         }
         setShowModal(false);
     };
@@ -75,14 +79,14 @@ const CategoriesSection: React.FC = () => {
                 </button>
             </div>
             <div className="space-y-4">
-                {categories.map((entry, index) => (
-                    <div key={entry.id} className={`flex items-start gap-4 p-4 ${index !== categories.length - 1 ? "border-b border-gray-200" : ""}`}>
-                        <img src={entry.image} alt={entry.name} className="w-16 h-16 rounded-lg object-cover" />
+                { appContext?.categories.map((entry, index) => (
+                    <div key={entry.CategoryId.toString()} className={`flex items-start gap-4 p-4 ${index !== appContext.categories.length - 1 ? "border-b border-gray-200" : ""}`}>
+                        <img src={entry.ImagePath} alt={entry.CategoryName} className="w-16 h-16 rounded-lg object-cover" />
                         <div className="flex-1">
-                            <div className="text-sm font-semibold text-gray-800">{entry.name}</div>
-                            <div className="text-sm text-gray-500">{entry.description}</div>
+                            <div className="text-sm font-semibold text-gray-800">{entry.CategoryName}</div>
+                            <div className="text-sm text-gray-500">{entry.Description}</div>
                         </div>
-                        <button
+                        <button 
                             onClick={() => openEdit(entry)}
                             className="px-3 py-2 rounded-lg text-xs font-medium border"
                             style={{ borderColor: "#c53030", color: "#c53030" }}
@@ -105,10 +109,26 @@ const CategoriesSection: React.FC = () => {
                     <div className="space-y-3">
                         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name *" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
                         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} placeholder="Description *" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-                        <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="Image URL (optional)" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                        <div>
+                        <ImageUploadWithCrop onCropComplete={(file) => setImage(file)} />
+                            {/* Preview the selected image */}
+                            {
+                                image && (
+                                    <div className="mt-2">
+                                        <img src={URL.createObjectURL(image)} alt="Selected" className="w-32 h-32 object-cover rounded-lg" />
+                                    </div>
+                                )
+                            }
+                        </div>
+                        {/* <ImageUploadWithCrop onCropComplete={(file) => setImage(file)} /> */}
+                        {/* <input type="file" onChange={(e) => setImage(e.target.files?.[0])} placeholder="Image (optional)" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" /> */}
                     </div>
 
                     <div className="mt-4 flex justify-end gap-2">
+                        {/* Delete button (only show when editing) */}
+                        {editingId && (
+                            <button onClick={handleDelete} className="px-4 py-2 rounded-lg border border-gray-300 text-sm text-red-500">Delete</button>
+                        )}
                         <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-sm">Cancel</button>
                         <button onClick={handleSave} className="px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ backgroundColor: "#c53030" }}>
                             {editingId ? "Save Changes" : "Add Category"}

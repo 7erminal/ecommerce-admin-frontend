@@ -1,18 +1,17 @@
 import React, { useContext } from "react";
 import { useForm } from "react-hook-form";
-import { useLogin } from "../hooks/useAuth";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import AuthContext from "../../resources/providers/AuthContext";
 import LoadingOverlay from "../components/LoadingOverlay";
-import ApplicationContext from "../../resources/providers/ApplicationContext";
 
 interface LoginFormInputs {
-  username: string;
+  email: string;
   password: string;
 }
 
 const LoginPage: React.FC = () => {
-  const { login, loading, error } = useLogin();
-  const applicationContext = useContext(ApplicationContext);
+  const navigate = useNavigate();
+  const authContext = useContext(AuthContext);
   
   const {
     register,
@@ -20,18 +19,34 @@ const LoginPage: React.FC = () => {
     formState: { errors },
   } = useForm<LoginFormInputs>({
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
 
   const onSubmit = async (data: LoginFormInputs) => {
-    await login(data.username, data.password);
+    if (!authContext?.login) {
+      console.error("Login function not available");
+      return;
+    }
+
+    console.log("Attempting login with:", data);
+    const response = await authContext.login(data.email, data.password);
+    
+    if (response.Success == true) {
+      console.log("Login successful");
+      if (response.Result?.Token) {
+        localStorage.setItem("authToken", response.Result.Token.AccessToken);
+      }
+      navigate("/admin");
+    } else {
+      console.error("Login failed:", response.StatusDesc);
+    }
   };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#fff5f5] px-4 py-10 font-['Poppins',sans-serif] md:px-8">
-      {applicationContext?.loading ? <LoadingOverlay /> : null}
+      {authContext?.loading ? <LoadingOverlay /> : null}
       <div className="pointer-events-none absolute -left-28 -top-20 h-72 w-72 rounded-full bg-[#fbd5d5] blur-3xl" />
       <div className="pointer-events-none absolute -right-24 top-1/3 h-64 w-64 rounded-full bg-[#f8b4b4] blur-3xl" />
       <div className="pointer-events-none absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[#fecaca] blur-3xl" />
@@ -64,7 +79,6 @@ const LoginPage: React.FC = () => {
             </div>
           </div>
         </aside>
-
         <section className="p-6 sm:p-10">
           <div className="mb-8 text-center lg:text-left">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fff1f1] lg:mx-0">
@@ -79,35 +93,35 @@ const LoginPage: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {error && (
+            {authContext?.errorMessage && (
               <div className="rounded-xl border border-[#f8b4b4] bg-[#fff1f1] p-3 text-sm text-[#9f1d1d]">
-                {error}
+                {authContext.errorMessage}
               </div>
             )}
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-[#7f1d1d]">Username</label>
+              <label className="mb-2 block text-sm font-medium text-[#7f1d1d]">Email Address</label>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#d06a6a]">
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.1 19a8 8 0 0113.8 0M15 8a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </span>
                 <input
-                  type="text"
-                  placeholder="Enter your username"
+                  type="email"
+                  placeholder="Enter your email"
                   className="w-full rounded-xl border border-[#f0baba] bg-[#fffafa] py-3 pl-10 pr-3 text-[#7f1d1d] outline-none transition placeholder:text-[#d08484] focus:border-[#c53030] focus:ring-4 focus:ring-[#f9caca]"
-                  disabled={loading}
-                  {...register("username", {
-                    required: "Username is required",
-                    minLength: {
-                      value: 3,
-                      message: "Username must be at least 3 characters",
+                  disabled={authContext?.loading}
+                  {...register("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Invalid email address",
                     },
                   })}
                 />
               </div>
-              {errors.username && <p className="mt-2 text-xs text-[#c53030]">{errors.username.message}</p>}
+              {errors.email && <p className="mt-2 text-xs text-[#c53030]">{errors.email.message}</p>}
             </div>
 
             <div>
@@ -122,7 +136,7 @@ const LoginPage: React.FC = () => {
                   type="password"
                   placeholder="Enter your password"
                   className="w-full rounded-xl border border-[#f0baba] bg-[#fffafa] py-3 pl-10 pr-3 text-[#7f1d1d] outline-none transition placeholder:text-[#d08484] focus:border-[#c53030] focus:ring-4 focus:ring-[#f9caca]"
-                  disabled={loading}
+                  disabled={authContext?.loading}
                   {...register("password", {
                     required: "Password is required",
                     minLength: {
@@ -137,7 +151,7 @@ const LoginPage: React.FC = () => {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex cursor-pointer items-center gap-2 text-[#9f3a3a]">
-                <input type="checkbox" className="h-4 w-4 rounded border-[#e79f9f] text-[#c53030] focus:ring-[#f6b5b5]" disabled={loading} />
+                <input type="checkbox" className="h-4 w-4 rounded border-[#e79f9f] text-[#c53030] focus:ring-[#f6b5b5]" disabled={authContext?.loading} />
                 Remember me
               </label>
               <a href="#" className="font-medium text-[#c53030] hover:text-[#9f1d1d]">
@@ -147,10 +161,10 @@ const LoginPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={authContext?.loading}
               className="w-full rounded-xl bg-gradient-to-r from-[#c53030] to-[#a51f1f] px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(197,48,48,0.35)] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {authContext?.loading ? "Signing in..." : "Sign In"}
             </button>
 
             <p className="pt-2 text-center text-sm text-[#8d3f3f]">

@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
 import LoadingOverlay from "../../../components/LoadingOverlay";
 import CategoriesSection from "./CategoriesSection";
@@ -22,8 +22,8 @@ const CategoryRoutes: React.FC = () => {
                 <Route path='/categories' element={<CategoriesSection />} />
                 <Route path='/features' element={<FeaturesSection />} />
                 <Route path='/purposes' element={<PurposesSection />} />
-                {/* <Route path="/" element={<Navigate replace to="/admin/categories/categories" />} /> */}
-                {/* <Route path="*" element={<Navigate replace to="/" />} /> */}
+                <Route path="*" element={<Navigate replace to="/admin/categories/categories" />} />
+                {/* <Route path="*" element={<Navigate replace to="/categories" />} /> */}
             </Routes>
             {/* <Invoice showModal={showInvoice} handleClose={handleShowInvoiceModalClose} invoice={selectedInvoice} />
             <NotififcationModal notificationProps={appContext!.notificationProps!} />

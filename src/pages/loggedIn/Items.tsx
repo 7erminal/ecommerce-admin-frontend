@@ -1,22 +1,7 @@
-import React, { useMemo, useState } from "react";
-
-type ItemRecord = {
-    id: string;
-    name: string;
-    category: string;
-    purpose?: string;
-    feature?: string;
-    amount: number;
-    currency: string;
-    description: string;
-    colors: string[];
-    sizes: string[];
-    weightKg: number;
-    sku: string;
-    stockQty: number;
-    status: "Active" | "Draft" | "Archived";
-    image: string;
-};
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import ApplicationContext from "../../../resources/providers/ApplicationContext";
+import type { AddItem, Item } from "../../../resources/types/applicationTypes";
+import MultiImageUploadWithCrop from "../components/MultiImageUploadWithCrop";
 
 type ItemFormState = {
     name: string;
@@ -31,63 +16,8 @@ type ItemFormState = {
     weightKg: string;
     sku: string;
     stockQty: string;
-    status: "Active" | "Draft" | "Archived";
-    image: string;
+    status: string;
 };
-
-const initialItems: ItemRecord[] = [
-    {
-        id: "item-1",
-        name: "Urban Travel Backpack",
-        category: "Bags",
-        purpose: "Travel",
-        feature: "Waterproof",
-        amount: 79.99,
-        currency: "USD",
-        description: "Durable commuter backpack with laptop sleeve and anti-theft pocket.",
-        colors: ["Black", "Red", "Gray"],
-        sizes: ["Standard"],
-        weightKg: 0.9,
-        sku: "BAG-UTB-001",
-        stockQty: 120,
-        status: "Active",
-        image: "/placeholder.png",
-    },
-    {
-        id: "item-2",
-        name: "Performance Running Shoe",
-        category: "Footwear",
-        purpose: "Outdoor",
-        feature: "Breathable",
-        amount: 109.5,
-        currency: "USD",
-        description: "Lightweight running shoe with responsive cushioning for daily training.",
-        colors: ["White", "Red"],
-        sizes: ["40", "41", "42", "43"],
-        weightKg: 0.6,
-        sku: "SHO-PRS-042",
-        stockQty: 86,
-        status: "Active",
-        image: "/placeholder.png",
-    },
-    {
-        id: "item-3",
-        name: "Minimal Desk Lamp",
-        category: "Home",
-        purpose: "Office Use",
-        feature: "Dimmable",
-        amount: 44.0,
-        currency: "USD",
-        description: "2D-inspired matte desk lamp with adjustable neck and warm LED profile.",
-        colors: ["Red", "Cream"],
-        sizes: ["Small", "Medium"],
-        weightKg: 1.2,
-        sku: "HOM-MDL-210",
-        stockQty: 42,
-        status: "Draft",
-        image: "/placeholder.png",
-    },
-];
 
 const defaultFormState: ItemFormState = {
     name: "",
@@ -103,29 +33,49 @@ const defaultFormState: ItemFormState = {
     sku: "",
     stockQty: "",
     status: "Active",
-    image: "",
 };
 
 const ItemsPage: React.FC = () => {
-    const [items, setItems] = useState<ItemRecord[]>(initialItems);
     const [query, setQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<"All" | "Active" | "Draft" | "Archived">("All");
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formState, setFormState] = useState<ItemFormState>(defaultFormState);
+    const [images, setImages] = useState<File[]>([]);
+
+    const applicationContext = useContext(ApplicationContext);
+    const items = Array.isArray(applicationContext?.items) ? applicationContext.items : [];
+
+    useEffect(()=>{
+        document.title = "Home"
+        if (!applicationContext) {
+            return;
+        }
+        getItems();
+    }, [])
+
+    const getItems = async () => {
+        if (!applicationContext) {
+            return;
+        }
+        await applicationContext!.fetchItems();
+        applicationContext!.fetchCategories();
+        applicationContext!.fetchFeatures();
+        applicationContext!.fetchPurposes();
+    }
 
     const totalValue = useMemo(
-        () => items.reduce((sum, item) => sum + item.amount*item.stockQty, 0),
+        () => items.reduce((sum, item) => sum + item.ProductPrice*item.Quantity, 0),
         [items]
     );
 
     const filteredItems = useMemo(() => {
         return items.filter((item) => {
             const matchesQuery =
-                item.name.toLowerCase().includes(query.toLowerCase()) ||
-                item.category.toLowerCase().includes(query.toLowerCase()) ||
-                item.sku.toLowerCase().includes(query.toLowerCase());
-            const matchesStatus = statusFilter === "All" || item.status === statusFilter;
+                item.ProductName.toLowerCase().includes(query.toLowerCase()) ||
+                item.Category?.CategoryName.toLowerCase().includes(query.toLowerCase()) ||
+                item.ProductId.toString().toLowerCase().includes(query.toLowerCase());
+            const matchesStatus = statusFilter === "All" || item.Status === statusFilter;
             return matchesQuery && matchesStatus;
         });
     }, [items, query, statusFilter]);
@@ -133,66 +83,70 @@ const ItemsPage: React.FC = () => {
     const openAddModal = () => {
         setEditingId(null);
         setFormState(defaultFormState);
+        setImages([]);
         setShowModal(true);
     };
 
-    const openEditModal = (item: ItemRecord) => {
-        setEditingId(item.id);
+    const openEditModal = (item: Item) => {
+        setEditingId(item.ProductId.toString());
         setFormState({
-            name: item.name,
-            category: item.category,
-            purpose: item.purpose || "",
-            feature: item.feature || "",
-            amount: String(item.amount),
-            currency: item.currency,
-            description: item.description,
-            colors: item.colors.join(", "),
-            sizes: item.sizes.join(", "),
-            weightKg: String(item.weightKg),
-            sku: item.sku,
-            stockQty: String(item.stockQty),
-            status: item.status,
-            image: item.image,
+            name: item.ProductName,
+            category: item.Category?.CategoryId?.toString() || "",
+            purpose: item.Purposes && item.Purposes.length > 0 ? item.Purposes[0].PurposeId.toString() : "",
+            feature: item.Features && item.Features.length > 0 ? item.Features[0].FeatureId.toString() : "",
+            amount: String(item.ProductPrice),
+            currency: "GHC",
+            description: item.Description,
+            colors: item.AvailableColors?.join(", ") || "",
+            sizes: item.AvailableSizes?.join(", ") || "",
+            weightKg: item.Weight ? item.Weight.replace(" kg", "") : "",
+            sku: item.ProductId.toString(),
+            stockQty: String(item.Quantity),
+            status: item.Status,
         });
+        setImages([]);
         setShowModal(true);
     };
 
-    const handleSaveItem = () => {
+    const handleSaveItem = async () => {
         if (!formState.name.trim() || !formState.category.trim() || !formState.amount.trim() || !formState.description.trim()) {
             return;
         }
 
-        const payload: ItemRecord = {
-            id: editingId || `item-${Date.now()}`,
-            name: formState.name.trim(),
-            category: formState.category.trim(),
-            purpose: formState.purpose.trim() || undefined,
-            feature: formState.feature.trim() || undefined,
-            amount: Number(formState.amount),
-            currency: formState.currency.trim() || "USD",
-            description: formState.description.trim(),
-            colors: formState.colors
-                .split(",")
-                .map((x) => x.trim())
-                .filter(Boolean),
-            sizes: formState.sizes
-                .split(",")
-                .map((x) => x.trim())
-                .filter(Boolean),
-            weightKg: Number(formState.weightKg || 0),
-            sku: formState.sku.trim() || `SKU-${Date.now()}`,
-            stockQty: Number(formState.stockQty || 0),
-            status: formState.status,
-            image: formState.image.trim() || "/placeholder.png",
-        };
-
-        if (editingId) {
-            setItems((prev) => prev.map((item) => (item.id === editingId ? payload : item)));
-        } else {
-            setItems((prev) => [payload, ...prev]);
+        const uploadedImagePaths: string[] = [];
+        for (const imageFile of images) {
+            const uploadResp = await applicationContext?.uploadItemImage(imageFile);
+            if (uploadResp?.Success && uploadResp.Result) {
+                uploadedImagePaths.push(uploadResp.Result);
+            }
         }
 
-        setShowModal(false);
+        const payload: AddItem = {
+            ImagePath: uploadedImagePaths[0] || "",
+            ImagePaths: uploadedImagePaths.length > 0 ? uploadedImagePaths : undefined,
+            ProductName: formState.name.trim(),
+            Description: formState.description.trim(),
+            Purposes: formState.purpose ? [Number(formState.purpose)] : undefined,
+            Features: formState.feature ? [Number(formState.feature)] : undefined,
+            AvailableSizes: formState.sizes ? formState.sizes.split(",").map(s => s.trim()) : undefined,
+            AvailableColors: formState.colors ? formState.colors.split(",").map(c => c.trim()) : undefined,
+            Quantity: Number(formState.stockQty) || 0,
+            CostPrice: 0, // This can be extended to include cost price in the form
+            SellingPrice: Number(formState.amount) || 0,
+            QuantityAlert: 10, // This can be extended to include quantity alert in the form
+            Weight: formState.weightKg ? `${formState.weightKg} kg` : "0 kg",
+            CategoryId: formState.category ? Number(formState.category) : undefined,
+        };
+
+        const resp = await applicationContext?.addItem(payload);
+        if (resp?.Success) {
+            // Handle success (e.g., show a success message, refresh the list)
+            setShowModal(false);
+            getItems(); // Refresh the items list after adding/updating
+        } else {
+            // Handle error (e.g., show an error message)
+        }
+        setImages([]);
     };
 
     return <div className="flex flex-col whitespace-normal p-6 gap-6">
@@ -222,11 +176,11 @@ const ItemsPage: React.FC = () => {
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white border border-red-100 rounded-xl p-4">
                 <p className="text-xs uppercase tracking-wider text-gray-500">Total Items</p>
-                <p className="text-2xl font-bold text-gray-800 mt-2">{items.length}</p>
+                <p className="text-2xl font-bold text-gray-800 mt-2">{applicationContext?.itemCount}</p>
             </div>
             <div className="bg-white border border-red-100 rounded-xl p-4">
                 <p className="text-xs uppercase tracking-wider text-gray-500">Active Items</p>
-                <p className="text-2xl font-bold text-gray-800 mt-2">{items.filter((i) => i.status === "Active").length}</p>
+                <p className="text-2xl font-bold text-gray-800 mt-2">{items.filter((i) => i.Status === "Active").length}</p>
             </div>
             <div className="bg-white border border-red-100 rounded-xl p-4">
                 <p className="text-xs uppercase tracking-wider text-gray-500">Inventory Value</p>
@@ -257,32 +211,48 @@ const ItemsPage: React.FC = () => {
 
         <section className="space-y-4">
             {filteredItems.map((item) => (
-                <div key={item.id} className="bg-white border border-gray-200 rounded-xl p-4">
+                <div key={item.ProductId.toString()} className="bg-white border border-gray-200 rounded-xl p-4">
                     <div className="flex flex-col lg:flex-row lg:items-start gap-4">
-                        <img src={item.image} alt={item.name} className="w-24 h-24 rounded-lg object-cover border border-gray-200" />
+                        <img src={item.ImagePath} alt={item.ProductName} className="w-24 h-24 rounded-lg object-cover border border-gray-200" />
                         <div className="flex-1">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
-                                    <p className="text-xs text-gray-500">SKU: {item.sku}</p>
+                                    <h3 className="text-lg font-semibold text-gray-800">{item.ProductName}</h3>
+                                    <p className="text-xs text-gray-500">SKU: {item.ProductId.toString()}</p>
                                 </div>
                                 <span className="text-xs font-semibold px-2 py-1 rounded-md w-fit" style={{
-                                    backgroundColor: item.status === "Active" ? "#fee2e2" : item.status === "Draft" ? "#fef3c7" : "#e5e7eb",
-                                    color: item.status === "Active" ? "#b91c1c" : item.status === "Draft" ? "#92400e" : "#374151",
+                                    backgroundColor: item.Status === "Active" ? "#fee2e2" : item.Status === "Draft" ? "#fef3c7" : "#e5e7eb",
+                                    color: item.Status === "Active" ? "#b91c1c" : item.Status === "Draft" ? "#92400e" : "#374151",
                                 }}>
-                                    {item.status}
+                                    {item.Status}
                                 </span>
                             </div>
-                            <p className="text-sm text-gray-600 mt-2">{item.description}</p>
+                            <p className="text-sm text-gray-600 mt-2">{item.Description}</p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-sm">
-                                <div><span className="text-gray-500">Category:</span> <span className="font-medium text-gray-800">{item.category}</span></div>
-                                <div><span className="text-gray-500">Purpose:</span> <span className="font-medium text-gray-800">{item.purpose || "-"}</span></div>
-                                <div><span className="text-gray-500">Feature:</span> <span className="font-medium text-gray-800">{item.feature || "-"}</span></div>
-                                <div><span className="text-gray-500">Weight:</span> <span className="font-medium text-gray-800">{item.weightKg} kg</span></div>
-                                <div><span className="text-gray-500">Amount:</span> <span className="font-medium text-gray-800">{item.currency} {item.amount.toFixed(2)}</span></div>
-                                <div><span className="text-gray-500">Stock:</span> <span className="font-medium text-gray-800">{item.stockQty}</span></div>
-                                <div><span className="text-gray-500">Colors:</span> <span className="font-medium text-gray-800">{item.colors.join(", ") || "-"}</span></div>
-                                <div><span className="text-gray-500">Sizes:</span> <span className="font-medium text-gray-800">{item.sizes.join(", ") || "-"}</span></div>
+                                <div><span className="text-gray-500">Category:</span> <span className="font-medium text-gray-800">{item.Category?.CategoryName}</span></div>
+                                <div><span className="text-gray-500">Purpose:</span> 
+                                    {
+                                        item.Purposes && item.Purposes.length > 0 ? (
+                                            <span className="font-medium text-gray-800">{item.Purposes.map(p => p.Purpose).join(", ")}</span>
+                                        ) : (
+                                            <span className="font-medium text-gray-800">-</span>
+                                        )
+                                    }
+                                </div>
+                                <div><span className="text-gray-500">Feature:</span> 
+                                    {
+                                        item.Features && item.Features.length > 0 ? (
+                                            <span className="font-medium text-gray-800">{item.Features.map(f => f.FeatureName).join(", ")}</span>
+                                        ) : (
+                                            <span className="font-medium text-gray-800">-</span>
+                                        )
+                                    }
+                                </div>
+                                <div><span className="text-gray-500">Weight:</span> <span className="font-medium text-gray-800">{item.Weight} kg</span></div>
+                                <div><span className="text-gray-500">Amount:</span> <span className="font-medium text-gray-800">GHC {item.ProductPrice.toFixed(2)}</span></div>
+                                <div><span className="text-gray-500">Stock:</span> <span className="font-medium text-gray-800">{item.Quantity}</span></div>
+                                <div><span className="text-gray-500">Colors:</span> <span className="font-medium text-gray-800">{item.AvailableColors?.join(", ") || "-"}</span></div>
+                                <div><span className="text-gray-500">Sizes:</span> <span className="font-medium text-gray-800">{item.AvailableSizes?.join(", ") || "-"}</span></div>
                             </div>
                             <div className="mt-4 flex gap-2">
                                 <button
@@ -322,9 +292,30 @@ const ItemsPage: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <input value={formState.name} onChange={(e) => setFormState((prev) => ({ ...prev, name: e.target.value }))} placeholder="Name *" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-                        <input value={formState.category} onChange={(e) => setFormState((prev) => ({ ...prev, category: e.target.value }))} placeholder="Category *" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-                        <input value={formState.purpose} onChange={(e) => setFormState((prev) => ({ ...prev, purpose: e.target.value }))} placeholder="Purpose (optional)" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-                        <input value={formState.feature} onChange={(e) => setFormState((prev) => ({ ...prev, feature: e.target.value }))} placeholder="Feature (optional)" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                        <select value={formState.category} onChange={(e) => setFormState((prev) => ({ ...prev, category: e.target.value }))} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                            <option value="">Select Category</option>
+                            {
+                                applicationContext?.categories.map((cat) => (
+                                    <option key={cat.CategoryId.toString()} value={cat.CategoryId.toString()}>{cat.CategoryName}</option>
+                                ))
+                            }
+                        </select>
+                        <select value={formState.purpose} onChange={(e) => setFormState((prev) => ({ ...prev, purpose: e.target.value }))} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                            <option value="">Select purpose</option>
+                            {
+                                applicationContext?.purposes.map((purpose) => (
+                                    <option key={purpose.PurposeId.toString()} value={purpose.PurposeId.toString()}>{purpose.Purpose}</option>
+                                ))
+                            }
+                        </select>
+                        <select value={formState.feature} onChange={(e) => setFormState((prev) => ({ ...prev, feature: e.target.value }))} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                            <option value="">Select feature</option>
+                            {
+                                applicationContext?.features.map((feature) => (
+                                    <option key={feature.FeatureId.toString()} value={feature.FeatureId.toString()}>{feature.FeatureName}</option>
+                                ))
+                            }
+                        </select>
                         <input value={formState.amount} type="number" onChange={(e) => setFormState((prev) => ({ ...prev, amount: e.target.value }))} placeholder="Amount *" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
                         <input value={formState.currency} onChange={(e) => setFormState((prev) => ({ ...prev, currency: e.target.value }))} placeholder="Currency" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
                         <input value={formState.colors} onChange={(e) => setFormState((prev) => ({ ...prev, colors: e.target.value }))} placeholder="Colors (comma separated)" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
@@ -337,7 +328,10 @@ const ItemsPage: React.FC = () => {
                             <option value="Draft">Draft</option>
                             <option value="Archived">Archived</option>
                         </select>
-                        <input value={formState.image} onChange={(e) => setFormState((prev) => ({ ...prev, image: e.target.value }))} placeholder="Image URL (optional)" className="rounded-lg border border-gray-300 px-3 py-2 text-sm md:col-span-2" />
+                        <div className="md:col-span-2">
+                            <p className="text-sm text-gray-700 mb-2">Images (you can add multiple and crop each one)</p>
+                            <MultiImageUploadWithCrop onImagesChange={setImages} />
+                        </div>
                         <textarea value={formState.description} onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))} placeholder="Description *" rows={4} className="rounded-lg border border-gray-300 px-3 py-2 text-sm md:col-span-2" />
                     </div>
 

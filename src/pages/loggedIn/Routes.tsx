@@ -1,6 +1,7 @@
-import React, { useContext } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import React, { useContext, useEffect } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import ApplicationContext from "../../../resources/providers/ApplicationContext";
+import AuthContext from "../../../resources/providers/AuthContext";
 import HomePage from "./Home";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import CategoriesPage from "./categories/Categories";
@@ -15,6 +16,33 @@ import CustomizePage from "./Customize";
 
 const CustomRoutes: React.FC = () => {
     const applicationContext = useContext(ApplicationContext);
+    const authContext = useContext(AuthContext);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!authContext?.isAuthenticated) {
+            navigate('/login', { replace: true });
+            return;
+        }
+
+        if (authContext.isAuthenticated && authContext.refreshToken && authContext.accessToken) {
+            const refreshTimer = setInterval(() => {
+                if (authContext.isAuthenticated && authContext.refreshToken) {
+                    if (authContext.refreshToken && authContext.accessToken) {
+                        if (authContext.refreshToken && authContext.refreshSession) {
+                            void authContext.refreshSession();
+                        }
+                    }
+                }
+            }, 30000);
+
+            return () => clearInterval(refreshTimer);
+        }
+    }, [authContext, navigate]);
+
+    if (!authContext?.isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
 
     return <>
             <Routes>

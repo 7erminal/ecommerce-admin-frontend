@@ -1,33 +1,13 @@
 import axios from 'axios';
 import type { AxiosInstance } from 'axios';
-
-// Types
-export interface AuthenticationDTO {
-  username: string;
-  password: string;
-}
-
-export interface TokenResponseDTO {
-  AccessToken: string;
-  RefreshToken: string;
-  TokenType: string;
-  ExpiresIn: number;
-}
-
-export interface LoginDataResponseDTO {
-  UserType: string;
-  Token: TokenResponseDTO;
-}
-
-export interface LoginTokenResponseDTO {
-  StatusCode: number;
-  StatusDesc: string;
-  Result: LoginDataResponseDTO;
-}
-
-export interface RefreshTokenRequest {
-  RefreshToken: string;
-}
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api.config';
+import type {
+  AuthenticationDTO,
+  LoginTokenResponseDTO,
+  RefreshTokenRequest,
+  RegisterRequestDTO,
+  StoredAuthUser,
+} from '../../resources/types/applicationTypes';
 
 // Token storage interface
 interface StoredTokens {
@@ -38,8 +18,9 @@ interface StoredTokens {
   userType: string;
 }
 
-const API_BASE_URL = 'https://auth.africandigitalsolutions.com';
 const TOKENS_STORAGE_KEY = 'auth_tokens';
+const AUTH_USER_STORAGE_KEY = 'auth_user';
+const AUTH_CHANGE_EVENT = 'auth-session-changed';
 
 class AuthService {
   private api: AxiosInstance;
@@ -96,13 +77,16 @@ class AuthService {
    */
   async login(credentials: AuthenticationDTO): Promise<LoginTokenResponseDTO> {
     try {
+      console.log("Attempting login with:", credentials);
       const response = await this.api.post<LoginTokenResponseDTO>(
-        '/v1/auth/login/token',
+        API_ENDPOINTS.AUTH.LOGIN,
         credentials
       );
 
-      if (response.data.StatusCode === 200 && response.data.Result?.Token) {
+      console.log('Login API response:', response);
+      if (response.data.Success == true && response.data.Result?.Token) {
         // Store tokens with expiry times
+        console.log("Tokens response is ", response.data.Result.Token);
         const now = Date.now();
         const tokens: StoredTokens = {
           accessToken: response.data.Result.Token.AccessToken,
@@ -114,6 +98,7 @@ class AuthService {
           userType: response.data.Result.UserType,
         };
         this.storeTokens(tokens);
+        this.dispatchAuthChange();
       }
 
       return response.data;
@@ -125,14 +110,17 @@ class AuthService {
   /**
    * Register a customer
    */
-  async register(credentials: AuthenticationDTO): Promise<LoginTokenResponseDTO> {
+  async register(credentials: RegisterRequestDTO): Promise<LoginTokenResponseDTO> {
     try {
+      console.log("Registering user with data:", credentials);
       const response = await this.api.post<LoginTokenResponseDTO>(
-        '/v1/auth/login/token',
+        API_ENDPOINTS.AUTH.REGISTER,
         credentials
       );
 
-      if (response.data.StatusCode === 200 && response.data.Result?.Token) {
+      console.log("Registration API response:", response);
+
+      if (response.data.Success == true && response.data.Result?.Token) {
         // Store tokens with expiry times
         const now = Date.now();
         const tokens: StoredTokens = {
@@ -145,6 +133,7 @@ class AuthService {
           userType: response.data.Result.UserType,
         };
         this.storeTokens(tokens);
+        this.dispatchAuthChange();
       }
 
       return response.data;
@@ -161,12 +150,16 @@ class AuthService {
     if (!tokens?.refreshToken) {
       throw new Error('No refresh token available');
     }
+    console.log("Tokens fetched are ", tokens);
+    console.log("Refreshing access token with refresh token:", tokens.refreshToken);
 
     try {
       const response = await this.api.post<LoginTokenResponseDTO>(
-        '/v1/auth/refresh/user/token',
-        { RefreshToken: tokens.refreshToken } as RefreshTokenRequest
+        API_ENDPOINTS.AUTH.REFRESH_TOKEN,
+        { Value: tokens.refreshToken } as RefreshTokenRequest
       );
+
+      console.log("Refresh token API response:", response);
 
       const now = Date.now();
       const updatedTokens: StoredTokens = {
@@ -177,6 +170,7 @@ class AuthService {
         refreshTokenExpiresAt: tokens.refreshTokenExpiresAt, // Keep existing refresh token expiry
       };
       this.storeTokens(updatedTokens);
+      this.dispatchAuthChange();
 
       return response.data;
     } catch (error) {
@@ -204,6 +198,7 @@ class AuthService {
     if (!tokens?.refreshTokenExpiresAt) return true;
 
     const now = Date.now();
+    console.log("About to return ", tokens.refreshTokenExpiresAt <= now);
     return tokens.refreshTokenExpiresAt <= now;
   }
 
@@ -236,6 +231,33 @@ class AuthService {
    */
   logout(): void {
     localStorage.removeItem(TOKENS_STORAGE_KEY);
+    localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+    this.dispatchAuthChange();
+  }
+
+  /**
+   * Store the active user in local storage so the UI can hydrate memory state.
+   */
+  storeUser(user: StoredAuthUser | null): void {
+    if (user) {
+      localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+    }
+    this.dispatchAuthChange();
+  }
+
+  /**
+   * Get the stored user payload.
+   */
+  getStoredUser(): StoredAuthUser | null {
+    try {
+      const userStr = localStorage.getItem(AUTH_USER_STORAGE_KEY);
+      return userStr ? JSON.parse(userStr) : null;
+    } catch (error) {
+      console.error('Error parsing stored auth user:', error);
+      return null;
+    }
   }
 
   /**
@@ -244,6 +266,7 @@ class AuthService {
   getStoredTokens(): StoredTokens | null {
     try {
       const tokensStr = localStorage.getItem(TOKENS_STORAGE_KEY);
+      console.log("Tokens are ", tokensStr);
       return tokensStr ? JSON.parse(tokensStr) : null;
     } catch (error) {
       console.error('Error parsing stored tokens:', error);
@@ -277,7 +300,20 @@ class AuthService {
    * Store tokens in localStorage
    */
   private storeTokens(tokens: StoredTokens): void {
+    console.log("Storing tokens:", tokens);
     localStorage.setItem(TOKENS_STORAGE_KEY, JSON.stringify(tokens));
+  }
+
+  private dispatchAuthChange(): void {
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+  }
+
+  /**
+   * Subscribe to auth state updates.
+   */
+  onAuthChange(listener: () => void): () => void {
+    window.addEventListener(AUTH_CHANGE_EVENT, listener);
+    return () => window.removeEventListener(AUTH_CHANGE_EVENT, listener);
   }
 }
 

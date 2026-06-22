@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import type { AuthenticationDTO } from '../../resources/types/applicationTypes';
 
 /**
  * Utility function to safely navigate (handles missing Router context)
@@ -102,10 +103,14 @@ export const useLogin = () => {
       setError(null);
 
       try {
-        const response = await authService.login({ username, password });
+        var req: AuthenticationDTO = {
+          Email: username,
+          Password: password,
+        };
+        const response = await authService.login(req);
 
         console.log('Login response:', response);
-        if (response.StatusCode === 200) {
+        if (response.Success === true && response.Result?.Token) {
           // Navigate to home on successful login
           if (navigate) {
             navigate('/learn/home');

@@ -15,7 +15,7 @@ const CustomizePage: React.FC = () => {
     }
 
     const getCourses = async () => {
-        await applicationContext!.getCourses();
+        // await applicationContext!.getCourses();
     }
 
     return <div className="flex flex-col whitespace-normal p-4">

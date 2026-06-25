@@ -1,14 +1,13 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Category, Feature, Item, Language, Purpose, Role, Video } from '../types/applicationTypes';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData } from '../types/applicationTypes';
 import { API_ENDPOINTS } from '../../src/config/api.config';
 import { applicationService } from '../../src/services/applicationService';
 
 export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [courses, setCourses] = useState<Array<Video>>([]);
   const [categories, setCategories] = useState<Array<Category>>([]);
   const [languages, setLanguages] = useState<Array<Language>>([]);
   const [roles, setRoles] = useState<Array<Role>>([]);
@@ -21,9 +20,9 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedPurpose, setSelectedPurpose] = useState<Purpose | null>(null);
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+  const [branch, setBranch] = useState<Branch | null>(null);
 
   const clearAll = () => {
-    setCourses([]);
     setCategories([]);
     setLanguages([]);
     setRoles([]);
@@ -34,24 +33,37 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     setActiveMenuItem(menuItem);
   };
 
-  const getCourses = async (languageId: string | null | undefined = null, categoryId: string | null | undefined = null) => {
+  const fetchSystemConfigs = async (branchId: string) => {
     try {
-      let url = '/api/portal/videos/';
-      const params = new URLSearchParams();
-
-      if (languageId) params.append('language', languageId);
-      if (categoryId) params.append('category', categoryId);
-      if (params.toString()) {
-        url += '?' + params.toString();
-      }
-
-      const response = await Api.GET_(url);
-      if (response.status === 200 && response.data.StatusCode === 200) {
-        setCourses(response.data.Result);
-      }
+        var success = false;
+        var data_: SystemData = {} as SystemData;
+        var message = '';
+        var resp: SystemConfigsResponseDTO = {} as SystemConfigsResponseDTO;
+        const data = await applicationService.fetchSystemConfigs(branchId);
+        
+        if (!data.Success || !data.Result) {
+            message = data.StatusDesc || 'Failed to fetch system configs';
+        } else {
+            success = true;
+            data_ = data.Result;
+        }
+        setBranch(data_.Branch);
+        resp = {
+            Success: success,
+            StatusDesc: message,
+            Result: data_,
+        };
     } catch (err) {
-      console.error('Error fetching videos: ', err);
+      console.error('Error fetching system configs: ', err);
+      setError('Failed to fetch system configs');
+      resp = {
+        Success: false,
+        StatusDesc: 'Failed to fetch system configs',
+        Result: {} as SystemData,
+      };
     }
+
+    return resp;
   };
 
   const fetchCategories = async () => {
@@ -192,6 +204,20 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }
 
+  const updateItem = async (payload: EditItem) => {
+    try {
+      const response = await applicationService.updateItem(payload);
+      if (response.Success === true) {
+        await fetchItems();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error updating item: ', err);
+      setError('Failed to update item');
+      return { Success: false, StatusDesc: 'Failed to update item', Result: null };
+    }
+  }
+
   const uploadItemImage = async (file: File) => {
     try {
       const response = await applicationService.uploadItemImage(file);
@@ -265,11 +291,10 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         clearAll,
         loading,
         setLoading,
-        courses,
         categories,
         setCategories,
         languages,
-        getCourses,
+        fetchSystemConfigs,
         fetchCategories,
         fetchLanguages,
         activeMenuItem,
@@ -305,6 +330,8 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         deleteFeature,
         deletePurpose,
         deleteItem,
+        branch,
+        updateItem,
       }}
     >
       {children}

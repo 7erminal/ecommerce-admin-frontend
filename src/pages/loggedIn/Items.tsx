@@ -1,17 +1,18 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import ApplicationContext from "../../../resources/providers/ApplicationContext";
-import type { AddItem, Item } from "../../../resources/types/applicationTypes";
+import type { AddItem, EditItem, Item } from "../../../resources/types/applicationTypes";
 import MultiImageUploadWithCrop from "../components/MultiImageUploadWithCrop";
+import PillOption from "../../widgets/PillOption";
 
 type ItemFormState = {
     name: string;
     category: string;
-    purpose: string;
-    feature: string;
+    purposes: string[];
+    features: string[];
     amount: string;
     currency: string;
     description: string;
-    colors: string;
+    colors: string[];
     sizes: string;
     weightKg: string;
     sku: string;
@@ -22,12 +23,12 @@ type ItemFormState = {
 const defaultFormState: ItemFormState = {
     name: "",
     category: "",
-    purpose: "",
-    feature: "",
+    purposes: [],
+    features: [],
     amount: "",
-    currency: "USD",
+    currency: "GHS",
     description: "",
-    colors: "",
+    colors: [],
     sizes: "",
     weightKg: "",
     sku: "",
@@ -42,6 +43,8 @@ const ItemsPage: React.FC = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formState, setFormState] = useState<ItemFormState>(defaultFormState);
     const [images, setImages] = useState<File[]>([]);
+    const [colorPickerValue, setColorPickerValue] = useState("#ef4444");
+    const [customColorValue, setCustomColorValue] = useState("");
 
     const applicationContext = useContext(ApplicationContext);
     const items = Array.isArray(applicationContext?.items) ? applicationContext.items : [];
@@ -59,9 +62,15 @@ const ItemsPage: React.FC = () => {
             return;
         }
         await applicationContext!.fetchItems();
+        setDefaultFormState();
         applicationContext!.fetchCategories();
         applicationContext!.fetchFeatures();
         applicationContext!.fetchPurposes();
+    }
+
+    const setDefaultFormState = () => {
+        console.log("Setting default form state with branch:", applicationContext?.branch);
+        defaultFormState.currency = applicationContext?.branch?.Country.Currency.Symbol || "GHS";
     }
 
     const totalValue = useMemo(
@@ -84,6 +93,8 @@ const ItemsPage: React.FC = () => {
         setEditingId(null);
         setFormState(defaultFormState);
         setImages([]);
+        setColorPickerValue("#ef4444");
+        setCustomColorValue("");
         setShowModal(true);
     };
 
@@ -92,12 +103,12 @@ const ItemsPage: React.FC = () => {
         setFormState({
             name: item.ProductName,
             category: item.Category?.CategoryId?.toString() || "",
-            purpose: item.Purposes && item.Purposes.length > 0 ? item.Purposes[0].PurposeId.toString() : "",
-            feature: item.Features && item.Features.length > 0 ? item.Features[0].FeatureId.toString() : "",
+            purposes: item.Purposes ? item.Purposes.map((purpose) => purpose.PurposeId.toString()) : [],
+            features: item.Features ? item.Features.map((feature) => feature.FeatureId.toString()) : [],
             amount: String(item.ProductPrice),
-            currency: "GHC",
+            currency: applicationContext?.branch?.Country.Currency.Symbol || "GHS",
             description: item.Description,
-            colors: item.AvailableColors?.join(", ") || "",
+            colors: item.AvailableColors || [],
             sizes: item.AvailableSizes?.join(", ") || "",
             weightKg: item.Weight ? item.Weight.replace(" kg", "") : "",
             sku: item.ProductId.toString(),
@@ -105,7 +116,41 @@ const ItemsPage: React.FC = () => {
             status: item.Status,
         });
         setImages([]);
+        setColorPickerValue(item.AvailableColors?.[0] || "#ef4444");
+        setCustomColorValue("");
         setShowModal(true);
+    };
+
+    const addColor = (rawColor: string) => {
+        const trimmed = rawColor.trim();
+        if (!trimmed) {
+            return;
+        }
+
+        const normalized = trimmed.startsWith("#") ? trimmed.toUpperCase() : `#${trimmed.toUpperCase()}`;
+        const isHex = /^#[0-9A-F]{6}$/.test(normalized);
+
+        if (!isHex) {
+            return;
+        }
+
+        setFormState((prev) => {
+            if (prev.colors.includes(normalized)) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                colors: [...prev.colors, normalized],
+            };
+        });
+    };
+
+    const removeColor = (colorToRemove: string) => {
+        setFormState((prev) => ({
+            ...prev,
+            colors: prev.colors.filter((color) => color !== colorToRemove),
+        }));
     };
 
     const handleSaveItem = async () => {
@@ -121,19 +166,49 @@ const ItemsPage: React.FC = () => {
             }
         }
 
+        if(editingId){
+            const payload: EditItem = {
+                ProductId: editingId,
+                ImagePath: uploadedImagePaths[0] || "",
+                ImagePaths: uploadedImagePaths.length > 0 ? uploadedImagePaths : undefined,
+                ProductName: formState.name.trim(),
+                Description: formState.description.trim(),
+                Purposes: formState.purposes.length > 0 ? formState.purposes.map((purposeId) => Number(purposeId)) : undefined,
+                Features: formState.features.length > 0 ? formState.features.map((featureId) => Number(featureId)) : undefined,
+                AvailableSizes: formState.sizes ? formState.sizes.split(",").map(s => s.trim()) : undefined,
+                AvailableColors: formState.colors.length > 0 ? formState.colors : undefined,
+                Quantity: Number(formState.stockQty) || 0,
+                CostPrice: 0, 
+                SellingPrice: Number(formState.amount) || 0,
+                QuantityAlert: 10, 
+                Weight: formState.weightKg ? `${formState.weightKg} kg` : "0 kg",
+                CategoryId: formState.category ? Number(formState.category) : undefined,
+            };
+
+            const resp = await applicationContext?.updateItem(payload);
+            if (resp?.Success) {
+                // Handle success (e.g., show a success message, refresh the list)
+                setShowModal(false);
+                getItems(); // Refresh the items list after adding/updating
+            } else {
+                // Handle error (e.g., show an error message)
+            }
+
+            return;
+        }
         const payload: AddItem = {
             ImagePath: uploadedImagePaths[0] || "",
             ImagePaths: uploadedImagePaths.length > 0 ? uploadedImagePaths : undefined,
             ProductName: formState.name.trim(),
             Description: formState.description.trim(),
-            Purposes: formState.purpose ? [Number(formState.purpose)] : undefined,
-            Features: formState.feature ? [Number(formState.feature)] : undefined,
+            Purposes: formState.purposes.length > 0 ? formState.purposes.map((purposeId) => Number(purposeId)) : undefined,
+            Features: formState.features.length > 0 ? formState.features.map((featureId) => Number(featureId)) : undefined,
             AvailableSizes: formState.sizes ? formState.sizes.split(",").map(s => s.trim()) : undefined,
-            AvailableColors: formState.colors ? formState.colors.split(",").map(c => c.trim()) : undefined,
+            AvailableColors: formState.colors.length > 0 ? formState.colors : undefined,
             Quantity: Number(formState.stockQty) || 0,
-            CostPrice: 0, // This can be extended to include cost price in the form
+            CostPrice: 0, 
             SellingPrice: Number(formState.amount) || 0,
-            QuantityAlert: 10, // This can be extended to include quantity alert in the form
+            QuantityAlert: 10, 
             Weight: formState.weightKg ? `${formState.weightKg} kg` : "0 kg",
             CategoryId: formState.category ? Number(formState.category) : undefined,
         };
@@ -300,25 +375,109 @@ const ItemsPage: React.FC = () => {
                                 ))
                             }
                         </select>
-                        <select value={formState.purpose} onChange={(e) => setFormState((prev) => ({ ...prev, purpose: e.target.value }))} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                            <option value="">Select purpose</option>
-                            {
-                                applicationContext?.purposes.map((purpose) => (
-                                    <option key={purpose.PurposeId.toString()} value={purpose.PurposeId.toString()}>{purpose.Purpose}</option>
-                                ))
-                            }
-                        </select>
-                        <select value={formState.feature} onChange={(e) => setFormState((prev) => ({ ...prev, feature: e.target.value }))} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                            <option value="">Select feature</option>
-                            {
-                                applicationContext?.features.map((feature) => (
-                                    <option key={feature.FeatureId.toString()} value={feature.FeatureId.toString()}>{feature.FeatureName}</option>
-                                ))
-                            }
-                        </select>
+                        <div className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                            <p className="text-xs text-gray-500 mb-2">Purposes</p>
+                            <div className="flex flex-wrap gap-2">
+                                {applicationContext?.purposes.map((purpose) => {
+                                    const purposeId = purpose.PurposeId.toString();
+                                    const isSelected = formState.purposes.includes(purposeId);
+
+                                    return (
+                                        <PillOption
+                                            key={purposeId}
+                                            label={purpose.Purpose}
+                                            isSelected={isSelected}
+                                            onClick={() => {
+                                                setFormState((prev) => ({
+                                                    ...prev,
+                                                    purposes: isSelected
+                                                        ? prev.purposes.filter((id) => id !== purposeId)
+                                                        : [...prev.purposes, purposeId],
+                                                }));
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <div className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                            <p className="text-xs text-gray-500 mb-2">Features</p>
+                            <div className="flex flex-wrap gap-2">
+                                {applicationContext?.features.map((feature) => {
+                                    const featureId = feature.FeatureId.toString();
+                                    const isSelected = formState.features.includes(featureId);
+
+                                    return (
+                                        <PillOption
+                                            key={featureId}
+                                            label={feature.FeatureName}
+                                            isSelected={isSelected}
+                                            onClick={() => {
+                                                setFormState((prev) => ({
+                                                    ...prev,
+                                                    features: isSelected
+                                                        ? prev.features.filter((id) => id !== featureId)
+                                                        : [...prev.features, featureId],
+                                                }));
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
                         <input value={formState.amount} type="number" onChange={(e) => setFormState((prev) => ({ ...prev, amount: e.target.value }))} placeholder="Amount *" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-                        <input value={formState.currency} onChange={(e) => setFormState((prev) => ({ ...prev, currency: e.target.value }))} placeholder="Currency" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-                        <input value={formState.colors} onChange={(e) => setFormState((prev) => ({ ...prev, colors: e.target.value }))} placeholder="Colors (comma separated)" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                        <input value={formState.currency} onChange={(e) => setFormState((prev) => ({ ...prev, currency: e.target.value }))} placeholder="Currency" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" disabled />
+                        <div className="rounded-lg border border-gray-300 px-3 py-2 text-sm space-y-2">
+                            <p className="text-xs text-gray-500">Colors</p>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="color"
+                                    value={colorPickerValue}
+                                    onChange={(e) => setColorPickerValue(e.target.value)}
+                                    className="h-10 w-14 rounded border border-gray-300 p-1 cursor-pointer"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => addColor(colorPickerValue)}
+                                    className="px-3 py-2 rounded-lg border border-gray-300 text-xs"
+                                >
+                                    Add Picked Color
+                                </button>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    value={customColorValue}
+                                    onChange={(e) => setCustomColorValue(e.target.value)}
+                                    placeholder="Enter hex, e.g. #1F2937"
+                                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm w-full"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        addColor(customColorValue);
+                                        setCustomColorValue("");
+                                    }}
+                                    className="px-3 py-2 rounded-lg border border-gray-300 text-xs whitespace-nowrap"
+                                >
+                                    Add Hex
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {formState.colors.map((color) => (
+                                    <div key={color} className="flex items-center gap-2 rounded-full border border-gray-300 px-2 py-1">
+                                        <span className="inline-block w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: color }} />
+                                        <span className="text-xs">{color}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeColor(color)}
+                                            className="text-xs text-red-600"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                         <input value={formState.sizes} onChange={(e) => setFormState((prev) => ({ ...prev, sizes: e.target.value }))} placeholder="Sizes (comma separated)" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
                         <input value={formState.weightKg} type="number" onChange={(e) => setFormState((prev) => ({ ...prev, weightKg: e.target.value }))} placeholder="Weight (kg)" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />
                         <input value={formState.stockQty} type="number" onChange={(e) => setFormState((prev) => ({ ...prev, stockQty: e.target.value }))} placeholder="Stock quantity" className="rounded-lg border border-gray-300 px-3 py-2 text-sm" />

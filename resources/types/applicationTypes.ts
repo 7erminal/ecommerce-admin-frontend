@@ -212,6 +212,41 @@ export type AddItem = {
   CategoryId?: number
 }
 
+export type EditItem = {
+  ProductId: Number | string
+  ProductName: string
+  Description: string
+  ImagePath: string
+  ImagePaths?: Array<string>
+  Purposes: Array<number> | undefined
+  Features: Array<number> | undefined
+  AvailableSizes: Array<string> | undefined
+  AvailableColors: Array<string> | undefined
+  Quantity: number
+  CostPrice: number
+  SellingPrice: number
+  QuantityAlert: number
+  Weight: string
+  CategoryId?: number
+}
+
+export type EditItemPayload = {
+  ProductName: string
+  Description: string
+  ImagePath: string
+  ImagePaths?: Array<string>
+  Purposes: Array<number> | undefined
+  Features: Array<number> | undefined
+  AvailableSizes: Array<string> | undefined
+  AvailableColors: Array<string> | undefined
+  Quantity: number
+  CostPrice: number
+  SellingPrice: number
+  QuantityAlert: number
+  Weight: string
+  CategoryId?: number
+}
+
 export type ItemImageUploadResponseDTO = {
   Success: boolean
   Result: string | null
@@ -240,10 +275,8 @@ export type ApplicationContextProps = {
   clearAll: ()=>void
   loading: boolean
   setLoading: Dispatch<React.SetStateAction<boolean>>
-  courses: Array<Video>
   categories: Array<Category>
   languages: Array<Language>
-  getCourses: (languageId?: string | null | undefined, categoryId?: string | null | undefined) => Promise<void>
   fetchCategories: () => Promise<void>
   fetchLanguages: () => Promise<void>
   activeMenuItem: string
@@ -280,6 +313,9 @@ export type ApplicationContextProps = {
   deletePurpose: (id: string) => Promise<StringResponseDTO>
   deleteItem: (id: string) => Promise<StringResponseDTO>
   itemCount: number
+  fetchSystemConfigs: (branchId: string) => Promise<SystemConfigsResponseDTO>
+  branch: BranchData | null
+  updateItem: (payload: EditItem) => Promise<ItemResponseDTO>
 }
 
 export interface RegisterParams {
@@ -317,6 +353,15 @@ export type Category = {
     ImagePath: string
     Icon: string
     Active: Number
+}
+
+export type Branch = {
+  BranchId: number
+  Branch: string
+  Country: CountryData
+  Location: string
+  PhoneNumber: string
+  DateCreated: string
 }
 
 export type CategoryMin = {
@@ -584,4 +629,34 @@ export type CreateSubAccount = {
   merchantReference: string
   phoneNumber: string
   uniqueId: string
+}
+
+export type CurrencyData = {
+  Symbol: string
+  Currency: string
+}
+
+export type CountryData = {
+  Country: string
+  CountryCode: string
+  Currency: CurrencyData
+}
+
+export type BranchData = {
+  BranchId: number
+  Branch: string
+  Country: CountryData
+  Location: string
+  PhoneNumber: string
+  DateCreated: string
+}
+
+export type SystemData = {
+  Branch: BranchData
+}
+
+export type SystemConfigsResponseDTO = {
+  Success: boolean
+  Result: SystemData | null
+  StatusDesc: string
 }

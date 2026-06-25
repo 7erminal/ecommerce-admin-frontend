@@ -51,6 +51,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         token: token || '',
         resetPassword: undefined,
       });
+
+      await applicationContext?.fetchSystemConfigs(data.Result.Customer?.Branch?.BranchId?.toString() || '');
+
+
     } catch (error) {
       console.error('Unable to fetch user session:', error);
     }

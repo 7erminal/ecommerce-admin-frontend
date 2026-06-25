@@ -37,9 +37,12 @@ export const API_ENDPOINTS = {
         GET_BY_ID: (id: string) => `/v1/items/get-item/${id}`,
         ADD_ITEM: '/v1/items/add-sales-product',
       UPLOAD_IMAGE: '/v1/items/upload-product-image',
-        UPDATE_ITEM: '/v1/items/update-item',
+        UPDATE_ITEM: (id: string) => `/v1/items/update-product/${id}`,
         DELETE_ITEM: (id: string) => `/v1/items/delete-item/${id}`,
-    }
+    },
+  SYSTEM_CONFIGS: {
+    GET_ALL: (id: string) => `/v1/app-service/get-system-details/${id}`,
+  },
 } as const;
 
 export const getFullApiUrl = (endpoint: string): string => {

@@ -1,12 +1,17 @@
 import Api from '../../resources/apis';
 import { API_ENDPOINTS } from '../config/api.config';
-import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO } from '../../resources/types/applicationTypes';
+import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload } from '../../resources/types/applicationTypes';
 
 class ApplicationService {
   /**
    * Fetch user session details from backend using access token
    * Called after login/register and after token refresh
    */
+  async fetchSystemConfigs(branchId: string): Promise<SystemConfigsResponseDTO> {
+    const response = await Api.GET_<SystemConfigsResponseDTO>(API_ENDPOINTS.SYSTEM_CONFIGS.GET_ALL(branchId));
+    return response.data;
+  }
+
   async fetchCategories(): Promise<CategoriesResponseDTO> {
     const response = await Api.GET_<CategoriesResponseDTO>(API_ENDPOINTS.CATEGORIES.GET_ALL);
     return response.data;
@@ -74,8 +79,24 @@ class ApplicationService {
       return response.data;
     }
 
-    async updateItem(payload: AddItem): Promise<ItemResponseDTO> {
-      const response = await Api.POST_<ItemResponseDTO>(API_ENDPOINTS.ITEMS.UPDATE_ITEM, payload);
+    async updateItem(payload: EditItem): Promise<ItemResponseDTO> {
+      const reformedPayload: EditItemPayload = {
+        ProductName: payload.ProductName,
+        Description: payload.Description,
+        ImagePath: payload.ImagePath,
+        ImagePaths: payload.ImagePaths,
+        Purposes: payload.Purposes,
+        Features: payload.Features,
+        AvailableSizes: payload.AvailableSizes,
+        AvailableColors: payload.AvailableColors,
+        Quantity: payload.Quantity,
+        CostPrice: payload.CostPrice,
+        SellingPrice: payload.SellingPrice,
+        QuantityAlert: payload.QuantityAlert,
+        Weight: payload.Weight,
+        CategoryId: payload.CategoryId
+      }
+      const response = await Api.POST_<ItemResponseDTO>(API_ENDPOINTS.ITEMS.UPDATE_ITEM(payload.ProductId.toString()), reformedPayload);
       return response.data;
     }
 

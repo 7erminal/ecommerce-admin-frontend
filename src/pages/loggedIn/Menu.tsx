@@ -7,12 +7,17 @@ import ApplicationContext from "../../../resources/providers/ApplicationContext"
 
 const Menu: React.FC = () => {
   const appContext = useContext(ApplicationContext);
+    const adminMenuLinks = [
+        { label: "Categories", to: "/admin/categories", menuKey: "categories" },
+        { label: "Items", to: "/admin/items", menuKey: "items" },
+        { label: "Customize", to: "/admin/customize", menuKey: "customize" },
+    ];
 
     return (
     <div className='bg-white h-full w-full'>
                     <div className="bg-white text-gray-800 font-sans">
                         <div className="flex h-screen overflow-hidden">
-                            <div className="w-1/5 relative">
+                                                        <div className="hidden md:block md:w-1/5 relative">
                                 <div className="absolute right-0 top-50 bottom-50 w-px bg-gray-300"></div>
                                 
                                 <div className="h-full p-6 pr-8 overflow-y-auto flex flex-col">
@@ -64,10 +69,15 @@ const Menu: React.FC = () => {
                                 </div>
                             </div>
                             
-                            <div className="w-4/5">
+                                                        <div className="w-full md:w-4/5">
                                 <div className="h-full custom-scrollbar overflow-y-auto">
-                                    <header className="sticky top-0 z-10 bg-white  px-8 py-4">
-                                        <CustomNav />
+                                                                        <header className="sticky top-0 z-10 bg-white px-4 md:px-8 py-4">
+                                                                                <CustomNav
+                                                                                    mobileAdminLinks={adminMenuLinks}
+                                                                                    onMobileAdminLinkClick={(menuKey) => {
+                                                                                        appContext?.setActiveMenu(menuKey);
+                                                                                    }}
+                                                                                />
                                     </header>
                                     
                                     <CustomRoutes />

@@ -1,6 +1,17 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
+type MobileAdminLink = {
+  label: string;
+  to: string;
+  menuKey: string;
+};
+
+type CustomNavProps = {
+  mobileAdminLinks?: MobileAdminLink[];
+  onMobileAdminLinkClick?: (menuKey: string) => void;
+};
+
 const navLinks = [
   { label: "Home", href: "#home" },
   { label: "Explore", href: "#courses" },
@@ -8,7 +19,10 @@ const navLinks = [
   { label: "Partner With Us", href: "#contact" },
 ];
 
-const CustomNav: React.FC = () => {
+const CustomNav: React.FC<CustomNavProps> = ({
+  mobileAdminLinks = [],
+  onMobileAdminLinkClick,
+}) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -81,7 +95,7 @@ const CustomNav: React.FC = () => {
                   fontWeight: 500,
                   fontSize: "0.95rem",
                   color: location.pathname === link.to ? "#c53030" : "#4a1010",
-                  background: location.pathname === link.to ? "#fee2e2" : "transparent",
+                  background: location.pathname === link.to ? "#030303" : "transparent",
                   textDecoration: "none",
                   transition: "background 0.15s, color 0.15s",
                 }}
@@ -198,6 +212,50 @@ const CustomNav: React.FC = () => {
             gap: "4px",
           }}
         >
+          {mobileAdminLinks.length > 0 && (
+            <>
+              <p
+                style={{
+                  fontSize: "0.72rem",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "#9ca3af",
+                  padding: "6px 14px",
+                  marginTop: "2px",
+                }}
+              >
+                Admin Menu
+              </p>
+              {mobileAdminLinks.map((link) => (
+                <Link
+                  key={link.menuKey}
+                  to={link.to}
+                  onClick={() => {
+                    onMobileAdminLinkClick?.(link.menuKey);
+                    setMobileMenuOpen(false);
+                  }}
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: "8px",
+                    fontWeight: 600,
+                    color: location.pathname === link.to ? "#c53030" : "#4a1010",
+                    background: location.pathname === link.to ? "#fee2e2" : "transparent",
+                    textDecoration: "none",
+                  }}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <div
+                style={{
+                  height: "1px",
+                  background: "#fecaca",
+                  margin: "8px 0",
+                }}
+              />
+            </>
+          )}
+
           {navLinks.map((link) =>
             link.to ? (
               <Link

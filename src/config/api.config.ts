@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
     GET_ALL: '/v1/items/get-categories',
     ADD_CATEGORY: '/v1/items/add-category',
     DELETE_CATEGORY: (id: string) => `/v1/items/delete-category/${id}`,
+    UPDATE_CATEGORY: (id: string) => `/v1/items/update-category/${id}`,
     },
   FEATURES: {
     GET_ALL: '/v1/items/get-features',

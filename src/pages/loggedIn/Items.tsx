@@ -224,6 +224,18 @@ const ItemsPage: React.FC = () => {
         setImages([]);
     };
 
+    const handleDelete = async () => {
+        if (!editingId) return;
+
+        const resp = await applicationContext?.deleteItem(editingId.toString());
+        if (resp?.Success) {
+            // Handle success (e.g., show a success message, refresh the list)
+        } else {
+            // Handle error (e.g., show an error message)
+        }
+        setShowModal(false);
+    };
+
     return <div className="flex flex-col whitespace-normal p-6 gap-6">
         <section className="bg-white border border-red-100 rounded-xl p-5">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -259,7 +271,7 @@ const ItemsPage: React.FC = () => {
             </div>
             <div className="bg-white border border-red-100 rounded-xl p-4">
                 <p className="text-xs uppercase tracking-wider text-gray-500">Inventory Value</p>
-                <p className="text-2xl font-bold text-gray-800 mt-2">${totalValue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-gray-800 mt-2">{applicationContext?.branch?.Country.Currency.Symbol || "GHS"}{totalValue.toFixed(2)}</p>
             </div>
         </section>
 
@@ -494,11 +506,21 @@ const ItemsPage: React.FC = () => {
                         <textarea value={formState.description} onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))} placeholder="Description *" rows={4} className="rounded-lg border border-gray-300 px-3 py-2 text-sm md:col-span-2" />
                     </div>
 
-                    <div className="mt-4 flex justify-end gap-2">
-                        <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-sm">Cancel</button>
-                        <button onClick={handleSaveItem} className="px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ backgroundColor: "#c53030" }}>
-                            {editingId ? "Save Changes" : "Add Item"}
+                    <div className="mt-4 flex items-center justify-between gap-2">
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                            className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                            style={{ backgroundColor: "#991b1b" }}
+                        >
+                            Delete Item
                         </button>
+                        <div className="flex gap-2">
+                            <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-sm">Cancel</button>
+                            <button onClick={handleSaveItem} className="px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ backgroundColor: "#c53030" }}>
+                                {editingId ? "Save Changes" : "Add Item"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

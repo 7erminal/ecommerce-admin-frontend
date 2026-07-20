@@ -3,7 +3,7 @@
  * Change URLs and endpoints in ONE place only
  */
 
-export const API_BASE_URL = 'https://ecommerce.api.readils.com';
+export const API_BASE_URL = 'https://api.shopmallafrik.com';
 
 export const API_ENDPOINTS = {
   AUTH: {

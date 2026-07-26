@@ -259,6 +259,90 @@ export type StringResponseDTO = {
   StatusDesc: string
 }
 
+export type Transaction = {
+  TransactionId: string
+  Order: Order
+  Amount: number
+  TransactingCurrency: string
+  Status: string
+  DateCreated: string
+  DateModified: string
+  CreatedBy: number
+  ModifiedBy: number
+  Active: number
+}
+
+export type TransactionsResponseDTO = {
+  Success: boolean
+  Result: Array<Transaction> | null
+  StatusDesc: string
+}
+
+export type OrderProductPayload = {
+  ProductId: string
+  Quantity: number
+}
+
+export type PlaceOrderPayload = {
+  Products: Array<OrderProductPayload>
+  PaymentMethodId: string
+  OrderDate: string
+  Currency: string
+}
+
+export type ItemAlt = {
+  ItemId: string
+  ItemName: string
+  Description: string
+  Price: number
+  Category: string
+  Currency: string
+  DateCreated: string
+  DateModified: string
+}
+
+export type OrderItem = {
+  OrderItemId: string
+  OrderId: string
+  Item: ItemAlt
+  Quantity: number
+  Status: string
+  OrderDate: string
+  Comment: string
+}
+
+export type Order = {
+  OrderId: string
+  OrderNumber: string
+  Quantity: number
+  Cost: number
+  Currency: string
+  Customer: UserGateway
+  OrderDate: string
+  OrderEndDate: string
+  ReturnedDate: string
+  DateCreated: string
+  DateModified: string
+  OrderDetails: Array<OrderItem>
+}
+
+export type Orders = {
+  Count: number
+  Data: Array<Order>
+}
+
+export type OrdersResponseDTO = {
+  Success: boolean
+  Result: Array<Order> | null
+  StatusDesc: string
+}
+
+export type OrderResponseDTO = {
+  Success: boolean
+  Result: Order | null
+  StatusDesc: string
+}
+
 // export type LoginResponse = {
 //   Success: boolean;
 //   StatusDesc: string;
@@ -316,6 +400,11 @@ export type ApplicationContextProps = {
   fetchSystemConfigs: (branchId: string) => Promise<SystemConfigsResponseDTO>
   branch: BranchData | null
   updateItem: (payload: EditItem) => Promise<ItemResponseDTO>
+  fetchOrders: () => Promise<void>
+  fetchOrder: (id: string) => Promise<void>
+  placeOrder: (payload: PlaceOrderPayload) => Promise<TransactionsResponseDTO>
+  orders: Array<Order>
+  order: Order | null
 }
 
 export interface RegisterParams {

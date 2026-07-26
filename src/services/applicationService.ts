@@ -1,6 +1,6 @@
 import Api from '../../resources/apis';
 import { API_ENDPOINTS } from '../config/api.config';
-import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload } from '../../resources/types/applicationTypes';
+import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload } from '../../resources/types/applicationTypes';
 
 class ApplicationService {
   /**
@@ -117,6 +117,25 @@ class ApplicationService {
 
     async deletePurpose(id: string): Promise<StringResponseDTO> {
       const response = await Api.DELETE<StringResponseDTO>(API_ENDPOINTS.PURPOSES.DELETE_PURPOSE(id), { Id: id });
+      return response.data;
+    }
+
+    // Fetch all orders from backend using access token
+    async fetchOrders(): Promise<OrdersResponseDTO> {
+        const response = await Api.GET_<any>(API_ENDPOINTS.ORDERS.GET_ALL);
+        console.log('fetchOrders response:', response);
+        return response.data;
+    }
+
+    // Fetch order by ID from backend using access token
+    async fetchOrder(id: string): Promise<OrderResponseDTO> {
+        const response = await Api.GET_<any>(API_ENDPOINTS.ORDERS.GET_BY_ID(id));
+        console.log('fetchOrder response:', response);
+        return response.data;
+    }
+
+    async placeOrder(payload: PlaceOrderPayload): Promise<TransactionsResponseDTO> {
+      const response = await Api.POST_<TransactionsResponseDTO>(API_ENDPOINTS.ORDERS.ADD_ORDER, payload);
       return response.data;
     }
 

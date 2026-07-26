@@ -33,6 +33,11 @@ const Menu: React.FC = () => {
                                             <Icon icon="qlementine-icons:items-grid-24" className="mx-4" style={{ color: "#c53030", fontSize: '20px' }} />
                                             Items
                                         </Link>
+
+                                        <Link to="/admin/orders" onClick={()=>{ appContext?.setActiveMenu("orders") }} className={"flex items-center p-3"+ (appContext?.activeMenuItem === "orders" ? " bg-gray-100" : " text-gray-800 hover:bg-gray-100") + " rounded-lg transition-colors duration-200"}>
+                                            <Icon icon="material-symbols-light:inbox-customize-rounded" className="mx-4" style={{ color: "#c53030", fontSize: '20px' }} />
+                                            Orders
+                                        </Link>
                                         
                                          <Link to="/admin/customize" onClick={()=>{ appContext?.setActiveMenu("customize") }} className={"flex items-center p-3"+ (appContext?.activeMenuItem === "customize" ? " bg-gray-100" : " text-gray-800 hover:bg-gray-100") + " rounded-lg transition-colors duration-200"}>
                                             <Icon icon="material-symbols-light:inbox-customize-rounded" className="mx-4" style={{ color: "#c53030", fontSize: '20px' }} />

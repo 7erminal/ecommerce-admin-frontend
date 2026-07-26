@@ -41,6 +41,11 @@ export const API_ENDPOINTS = {
         UPDATE_ITEM: (id: string) => `/v1/items/update-product/${id}`,
         DELETE_ITEM: (id: string) => `/v1/items/delete-item/${id}`,
     },
+    ORDERS: {
+        GET_ALL: '/v1/transactions/get-all-orders',
+        GET_BY_ID: (id: string) => `/v1/transactions/get-order/${id}`,
+        ADD_ORDER: '/v1/transactions/place-order-request',
+    },
   SYSTEM_CONFIGS: {
     GET_ALL: (id: string) => `/v1/app-service/get-system-details/${id}`,
   },

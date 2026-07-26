@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData } from '../types/applicationTypes';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO } from '../types/applicationTypes';
 import { API_ENDPOINTS } from '../../src/config/api.config';
 import { applicationService } from '../../src/services/applicationService';
 
@@ -21,11 +21,16 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [selectedPurpose, setSelectedPurpose] = useState<Purpose | null>(null);
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [branch, setBranch] = useState<Branch | null>(null);
+  const [orders, setOrders] = useState<Array<Order>>([]);
+  const [order, setOrder] = useState<Order | null>(null);
 
   const clearAll = () => {
     setCategories([]);
     setLanguages([]);
     setRoles([]);
+    setItems([]);
+    setFeatures([]);
+    setPurposes([]);
     setError('');
   };
 
@@ -120,6 +125,48 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         setItemCount(data.Result.Count);
     } catch (err) {
       console.error('Error fetching items: ', err);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+        const data = await applicationService.fetchOrders();
+      
+        if (!data.Success || !data.Result) {
+            return;
+        }
+
+        setOrders(data.Result);
+    } catch (err) {
+      console.error('Error fetching orders: ', err);
+    }
+  };
+
+  const fetchOrder = async (orderId: string) => {
+    try {
+        const data = await applicationService.fetchOrder(orderId);
+      
+        if (!data.Success || !data.Result) {
+            return;
+        }
+
+        setOrder(data.Result);
+    } catch (err) {
+      console.error('Error fetching order: ', err);
+    }
+  };
+
+  const placeOrder = async (payload: PlaceOrderPayload): Promise<TransactionsResponseDTO> => {
+    try {
+      const response = await applicationService.placeOrder(payload);
+      if (response.Success === true) {
+        await fetchOrders();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error placing order: ', err);
+      setError('Failed to place order');
+      return { Success: false, StatusDesc: 'Failed to place order', Result: null };
     }
   };
 
@@ -332,6 +379,11 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         deleteItem,
         branch,
         updateItem,
+        fetchOrders,
+        fetchOrder,
+        placeOrder,
+        orders,
+        order,
       }}
     >
       {children}

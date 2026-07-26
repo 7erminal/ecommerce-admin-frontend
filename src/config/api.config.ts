@@ -42,7 +42,7 @@ export const API_ENDPOINTS = {
         DELETE_ITEM: (id: string) => `/v1/items/delete-item/${id}`,
     },
     ORDERS: {
-        GET_ALL: '/v1/transactions/get-all-orders',
+        GET_ALL: '/v1/transactions/get-orders',
         GET_BY_ID: (id: string) => `/v1/transactions/get-order/${id}`,
         ADD_ORDER: '/v1/transactions/place-order-request',
     },

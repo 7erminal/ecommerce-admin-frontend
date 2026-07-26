@@ -138,8 +138,6 @@ class ApplicationService {
       const response = await Api.POST_<TransactionsResponseDTO>(API_ENDPOINTS.ORDERS.ADD_ORDER, payload);
       return response.data;
     }
-
-
 }
 
 export const applicationService = new ApplicationService();

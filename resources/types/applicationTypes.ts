@@ -721,6 +721,7 @@ export type CreateSubAccount = {
 }
 
 export type CurrencyData = {
+  CurrencyId: number
   Symbol: string
   Currency: string
 }

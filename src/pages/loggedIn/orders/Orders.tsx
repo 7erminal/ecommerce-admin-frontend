@@ -7,7 +7,7 @@ const OrdersPage: React.FC = () => {
     const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
     const [productQuantities, setProductQuantities] = useState<Record<string, string>>({});
     const [paymentMethodId, setPaymentMethodId] = useState("");
-    const [currency, setCurrency] = useState("GHS");
+    const [currency, setCurrency] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -15,8 +15,17 @@ const OrdersPage: React.FC = () => {
     const orders = Array.isArray(applicationContext?.orders) ? applicationContext.orders : [];
     const currencyOptions = useMemo(() => {
         const branchCurrency = applicationContext?.branch?.Country?.Currency?.Symbol;
-        const options = [branchCurrency || "GHS", "USD", "EUR", "GBP"];
-        return [...new Set(options)];
+        const branchCurrencyId = applicationContext?.branch?.Country?.Currency?.CurrencyId;
+        if (!branchCurrencyId || !branchCurrency) {
+            return [] as Array<{ value: string; label: string }>;
+        }
+
+        return [
+            {
+                value: String(branchCurrencyId),
+                label: branchCurrency,
+            },
+        ];
     }, [applicationContext?.branch]);
 
     useEffect(()=>{
@@ -40,7 +49,7 @@ const OrdersPage: React.FC = () => {
         setSelectedProductIds([]);
         setProductQuantities({});
         setPaymentMethodId("");
-        setCurrency(currencyOptions[0] || "GHS");
+        setCurrency(currencyOptions[0]?.value || "");
         setErrorMessage("");
     }
 
@@ -75,6 +84,11 @@ const OrdersPage: React.FC = () => {
 
         if (!paymentMethodId.trim()) {
             setErrorMessage("Payment method is required.");
+            return;
+        }
+
+        if (!currency) {
+            setErrorMessage("Currency is required.");
             return;
         }
 
@@ -218,7 +232,7 @@ const OrdersPage: React.FC = () => {
                                 className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             >
                                 {currencyOptions.map((curr) => (
-                                    <option key={curr} value={curr}>{curr}</option>
+                                    <option key={curr.value} value={curr.value}>{curr.label}</option>
                                 ))}
                             </select>
                         </div>

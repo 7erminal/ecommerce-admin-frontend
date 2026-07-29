@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO } from '../types/applicationTypes';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser } from '../types/applicationTypes';
 import { API_ENDPOINTS } from '../../src/config/api.config';
 import { applicationService } from '../../src/services/applicationService';
 
@@ -23,6 +23,10 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [branch, setBranch] = useState<Branch | null>(null);
   const [orders, setOrders] = useState<Array<Order>>([]);
   const [order, setOrder] = useState<Order | null>(null);
+  const [users, setUsers] = useState<Array<User>>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [customers, setCustomers] = useState<Array<any>>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<any | null>(null);
 
   const clearAll = () => {
     setCategories([]);
@@ -190,6 +194,58 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     } catch (err) {
       console.error('Error fetching roles: ', err);
       setError('Failed to fetch roles');
+    }
+  };
+
+  const addCustomer = async (payload: AddCustomer) => {
+    try {
+      const response = await applicationService.addCustomer(payload);
+      if (response.Success === true) {
+        await fetchCustomers();
+      }
+
+      return response;
+    } catch (err) {
+      console.error('Error adding customer: ', err);
+      setError('Failed to add customer');
+      return { Success: false, StatusDesc: 'Failed to add customer', Result: null };
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await applicationService.fetchCustomers();
+      if (response.Success === true) {
+        setCustomers(response.Result ?? []);
+      }
+    } catch (err) {
+      console.error('Error fetching customers: ', err);
+    }
+  };
+
+  const addUser = async (payload: AddUser) => {
+    try {
+      const response = await applicationService.addUser(payload);
+      if (response.Success === true) {
+        await fetchUsers();
+      }
+
+      return response;
+    } catch (err) {
+      console.error('Error adding user: ', err);
+      setError('Failed to add user');
+      return { Success: false, StatusDesc: 'Failed to add user', Result: null };
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await applicationService.fetchUsers();
+      if (response.Success === true) {
+        setUsers(response.Result ?? []);
+      }
+    } catch (err) {
+      console.error('Error fetching users: ', err);
     }
   };
 
@@ -384,6 +440,18 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         placeOrder,
         orders,
         order,
+        users,
+        setUsers,
+        selectedUser,
+        setSelectedUser,
+        customers,
+        setCustomers,
+        selectedCustomer,
+        setSelectedCustomer,
+        fetchCustomers,
+        addCustomer,
+        fetchUsers,
+        addUser
       }}
     >
       {children}

@@ -1,6 +1,6 @@
 import Api from '../../resources/apis';
 import { API_ENDPOINTS } from '../config/api.config';
-import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload } from '../../resources/types/applicationTypes';
+import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse } from '../../resources/types/applicationTypes';
 
 class ApplicationService {
   /**
@@ -136,6 +136,34 @@ class ApplicationService {
 
     async placeOrder(payload: PlaceOrderPayload): Promise<TransactionsResponseDTO> {
       const response = await Api.POST_<TransactionsResponseDTO>(API_ENDPOINTS.ORDERS.ADD_ORDER, payload);
+      return response.data;
+    }
+
+    async fetchCustomers(): Promise<CustomersResponse> {
+        const response = await Api.GET_<any>(API_ENDPOINTS.CUSTOMERS.GET_ALL);
+        console.log('fetchCustomers response:', response);
+        return response.data;
+    }
+
+    async fetchCustomer(id: string): Promise<CustomerResponse> {
+        const response = await Api.GET_<any>(API_ENDPOINTS.CUSTOMERS.GET_BY_ID(id));
+        console.log('fetchCustomer response:', response);
+        return response.data;
+    }
+
+    async addCustomer(payload: AddCustomer): Promise<CustomerResponse> {
+      const response = await Api.POST_<CustomerResponse>(API_ENDPOINTS.CUSTOMERS.ADD_CUSTOMER, payload);
+      return response.data;
+    }
+
+    async fetchUsers(): Promise<UsersResponseDTO> {
+        const response = await Api.GET_<any>(API_ENDPOINTS.USER.GET_ALL);
+        console.log('fetchUsers response:', response);
+        return response.data;
+    }
+
+    async addUser(payload: AddUser): Promise<UserResponse> {
+      const response = await Api.POST_<UserResponse>(API_ENDPOINTS.USER.ADD_USER, payload);
       return response.data;
     }
 }

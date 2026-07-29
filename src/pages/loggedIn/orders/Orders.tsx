@@ -32,6 +32,7 @@ const OrdersPage: React.FC = () => {
         document.title = "Orders"
         getOrders();
         getItems();
+        getCustomers();
     }, [])
 
     const getOrders = async () => {
@@ -43,6 +44,13 @@ const OrdersPage: React.FC = () => {
             return;
         }
         await applicationContext.fetchItems();
+    }
+
+    const getCustomers = async () => {
+        if (!applicationContext) {
+            return;
+        }
+        await applicationContext.fetchCustomers();
     }
 
     const resetForm = () => {

@@ -343,6 +343,106 @@ export type OrderResponseDTO = {
   StatusDesc: string
 }
 
+// type AddCustomer struct {
+//     Email       string
+//     Name        string
+//     PhoneNumber string
+//     Location    string
+//     IdType      string
+//     IdNumber    string
+//     ImagePath   string
+// }
+
+export type AddCustomer = {
+  Email: string
+  Name: string
+  PhoneNumber: string
+  Location: string
+  IdType: string
+  IdNumber: string
+  ImagePath: string
+}
+
+export type AddUser = {
+  Email: string
+  Name: string
+  PhoneNumber: string
+  Location: string
+  IdType: string
+  IdNumber: string
+  ImagePath: string
+}
+
+// type CustomerGateway struct {
+// 	CustomerId           int64
+// 	FullName             string
+// 	Email                string
+// 	PhoneNumber          string
+// 	Location             string
+// 	IdentificationType   *Identification_types
+// 	IdentificationNumber string
+// 	DateCreated          time.Time
+// 	Status               int
+// 	LastDeal             time.Time
+// }
+
+export type Identification_types = {
+	IdentificationTypeId: number
+	Name: string
+	Code: string
+	Active: number
+}
+
+export type Customer = {
+  CustomerId: number
+  FullName: string
+  Email: string
+  PhoneNumber: string
+  Location: string
+  IdentificationType: Identification_types
+  IdentificationNumber: string
+  DateCreated: string
+  Status: number
+  LastDeal: string
+}
+
+export type CustomerResponse = {
+  Success: boolean
+  Result: Customer | null
+  StatusDesc: string
+}
+
+export type CustomersResponse = {
+  Success: boolean
+  Result: Array<Customer> | null
+  StatusDesc: string
+}
+
+export type User = {
+  UserId: number
+  FullName: string
+  Email: string
+  PhoneNumber: string
+  Location: string
+  IdentificationType: Identification_types
+  IdentificationNumber: string
+  DateCreated: string
+  Status: number
+  LastDeal: string
+}
+
+export type UserResponse = {
+  Success: boolean
+  Result: User | null
+  StatusDesc: string
+}
+
+export type UsersResponseDTO = {
+  Success: boolean
+  Result: Array<User> | null
+  StatusDesc: string
+}
+
 // export type LoginResponse = {
 //   Success: boolean;
 //   StatusDesc: string;
@@ -405,6 +505,18 @@ export type ApplicationContextProps = {
   placeOrder: (payload: PlaceOrderPayload) => Promise<TransactionsResponseDTO>
   orders: Array<Order>
   order: Order | null
+  users: Array<User>
+  setUsers: Dispatch<React.SetStateAction<Array<User>>>
+  selectedUser: User | null
+  setSelectedUser: Dispatch<React.SetStateAction<User | null>>
+  customers: Array<Customer>
+  setCustomers: Dispatch<React.SetStateAction<Array<Customer>>>
+  selectedCustomer: Customer | null
+  setSelectedCustomer: Dispatch<React.SetStateAction<Customer | null>>
+  fetchCustomers: () => Promise<void>
+  addCustomer: (payload: AddCustomer) => Promise<CustomerResponse>
+  fetchUsers: () => Promise<void>
+  addUser: (payload: AddUser) => Promise<UserResponse>
 }
 
 export interface RegisterParams {

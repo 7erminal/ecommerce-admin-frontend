@@ -13,6 +13,10 @@ export const API_ENDPOINTS = {
   },
   USER: {
     GET_SESSION: '/v1/user/get-user-session',
+    GET_ALL: '/v1/user/get-users',
+    ADD_USER: '/v1/user/add-user',
+    UPDATE_USER: (id: string) => `/v1/user/update-user/${id}`,
+    DELETE_USER: (id: string) => `/v1/user/delete-user/${id}`,
   },
   ROLES: {
     GET_ALL: '/v1/app-service/get-roles/',
@@ -45,6 +49,11 @@ export const API_ENDPOINTS = {
         GET_ALL: '/v1/transactions/get-orders',
         GET_BY_ID: (id: string) => `/v1/transactions/get-order/${id}`,
         ADD_ORDER: '/v1/transactions/place-order-request',
+    },
+    CUSTOMERS: {
+        GET_ALL: '/v1/customer/get-customers',
+        GET_BY_ID: (id: string) => `/v1/customer/get-customer/${id}`,
+        ADD_CUSTOMER: '/v1/customer/add-customer',
     },
   SYSTEM_CONFIGS: {
     GET_ALL: (id: string) => `/v1/app-service/get-system-details/${id}`,

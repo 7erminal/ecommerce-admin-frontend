@@ -96,6 +96,8 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         console.log("About to fetch ID types")
         const data = await applicationService.fetchIdTypes();
       
+        console.log("Data returned is ")
+        console.log(data)
         if (!data.Success || !data.Result) {
             return;
         }

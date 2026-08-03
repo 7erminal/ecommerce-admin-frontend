@@ -19,6 +19,7 @@ const UserManagementPage: React.FC = () => {
 
     const users = Array.isArray(applicationContext?.users) ? applicationContext.users : [];
     const customers = Array.isArray(applicationContext?.customers) ? applicationContext.customers : [];
+    const idTypes = Array.isArray(applicationContext?.idTypes) ? applicationContext.idTypes : [];
     const currentRecords = useMemo(() => (activeTab === "users" ? users : customers), [activeTab, users, customers]);
 
     useEffect(()=>{
@@ -81,7 +82,7 @@ const UserManagementPage: React.FC = () => {
                 Email: email.trim(),
                 PhoneNumber: phoneNumber.trim(),
                 Location: location.trim(),
-                IdType: idType.trim(),
+                IdType: idType,
                 IdNumber: idNumber.trim(),
                 ImagePath: imagePath.trim(),
             };
@@ -97,7 +98,7 @@ const UserManagementPage: React.FC = () => {
                 Email: email.trim(),
                 PhoneNumber: phoneNumber.trim(),
                 Location: location.trim(),
-                IdType: idType.trim(),
+                IdType: idType,
                 IdNumber: idNumber.trim(),
                 ImagePath: imagePath.trim(),
             };
@@ -196,7 +197,14 @@ const UserManagementPage: React.FC = () => {
                                 <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email *" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
                                 <input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="Phone Number *" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
                                 <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location *" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-                                <input value={idType} onChange={(e) => setIdType(e.target.value)} placeholder="ID Type *" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                                <select value={idType} onChange={(e) => setIdType(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+                                    <option value="">Select ID Type *</option>
+                                    {idTypes.map((entry) => (
+                                        <option key={String(entry.IdentificationTypeId)} value={String(entry.IdentificationTypeId)}>
+                                            {entry.Name}{entry.Code ? ` (${entry.Code})` : ""}
+                                        </option>
+                                    ))}
+                                </select>
                                 <input value={idNumber} onChange={(e) => setIdNumber(e.target.value)} placeholder="ID Number *" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
                                 <input value={imagePath} onChange={(e) => setImagePath(e.target.value)} placeholder="Image Path (optional)" className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
                             </div>

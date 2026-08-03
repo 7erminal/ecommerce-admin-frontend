@@ -36,7 +36,7 @@ const Menu: React.FC = () => {
 
                                         <Link to="/admin/user-management" onClick={()=>{ appContext?.setActiveMenu("user-management") }} className={"flex items-center p-3"+ (appContext?.activeMenuItem === "user-management" ? " bg-gray-100" : " text-gray-800 hover:bg-gray-100") + " rounded-lg transition-colors duration-200"}>
                                             <Icon icon="ph:users-thin" className="mx-4" style={{ color: "#c53030", fontSize: '20px' }} />
-                                            User Management
+                                            User
                                         </Link>
 
                                         <Link to="/admin/orders" onClick={()=>{ appContext?.setActiveMenu("orders") }} className={"flex items-center p-3"+ (appContext?.activeMenuItem === "orders" ? " bg-gray-100" : " text-gray-800 hover:bg-gray-100") + " rounded-lg transition-colors duration-200"}>

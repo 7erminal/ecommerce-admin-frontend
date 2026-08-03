@@ -13,6 +13,7 @@ class ApplicationService {
   }
 
   async fetchIdTypes(): Promise<IdTypesResponseDTO> {
+    console.log("ID Types url is "+API_ENDPOINTS.ID_TYPES.GET_ALL)
     const response = await Api.GET_<IdTypesResponseDTO>(API_ENDPOINTS.ID_TYPES.GET_ALL);
     return response.data;
   }

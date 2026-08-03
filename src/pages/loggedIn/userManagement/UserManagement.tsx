@@ -30,6 +30,7 @@ const UserManagementPage: React.FC = () => {
         if (!applicationContext) {
             return;
         }
+        await applicationContext.fetchIdTypes();
         await applicationContext.fetchUsers();
         await applicationContext.fetchCustomers();
     }

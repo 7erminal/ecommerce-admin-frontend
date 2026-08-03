@@ -21,6 +21,9 @@ export const API_ENDPOINTS = {
   ROLES: {
     GET_ALL: '/v1/app-service/get-roles/',
   },
+  ID_TYPES: {
+    GET_ALL: '/v1/app-service/get-id-types',
+  },
   CATEGORIES: {
     GET_ALL: '/v1/items/get-categories',
     ADD_CATEGORY: '/v1/items/add-category',

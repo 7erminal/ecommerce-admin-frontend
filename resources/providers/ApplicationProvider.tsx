@@ -27,6 +27,8 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [customers, setCustomers] = useState<Array<any>>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<any | null>(null);
+  const [idTypes, setIdTypes] = useState<Array<any>>([]);
+
 
   const clearAll = () => {
     setCategories([]);
@@ -86,6 +88,21 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         setCategories(data.Result);
     } catch (err) {
       console.error('Error fetching categories: ', err);
+    }
+  };
+
+  const fetchIdTypes = async () => {
+    try {
+        console.log("About to fetch ID types")
+        const data = await applicationService.fetchIdTypes();
+      
+        if (!data.Success || !data.Result) {
+            return;
+        }
+
+        setIdTypes(data.Result);
+    } catch (err) {
+      console.error('Error fetching ID types: ', err);
     }
   };
 
@@ -451,7 +468,10 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         fetchCustomers,
         addCustomer,
         fetchUsers,
-        addUser
+        addUser,
+        idTypes,
+        setIdTypes,
+        fetchIdTypes,
       }}
     >
       {children}

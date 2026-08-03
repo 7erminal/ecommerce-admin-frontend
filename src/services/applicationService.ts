@@ -12,6 +12,11 @@ class ApplicationService {
     return response.data;
   }
 
+  async fetchIdTypes(): Promise<CategoriesResponseDTO> {
+    const response = await Api.GET_<CategoriesResponseDTO>(API_ENDPOINTS.CATEGORIES.GET_ALL);
+    return response.data;
+  }
+
   async fetchCategories(): Promise<CategoriesResponseDTO> {
     const response = await Api.GET_<CategoriesResponseDTO>(API_ENDPOINTS.CATEGORIES.GET_ALL);
     return response.data;

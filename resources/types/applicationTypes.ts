@@ -130,6 +130,12 @@ export type CategoriesResponseDTO = {
   StatusDesc: string
 }
 
+export type IdTypesResponseDTO = {
+  Success: boolean
+  Result: Array<IdType> | null
+  StatusDesc: string
+}
+
 export type FeaturesResponseDTO = {
   Success: boolean
   Result: Array<Feature> | null
@@ -517,6 +523,9 @@ export type ApplicationContextProps = {
   addCustomer: (payload: AddCustomer) => Promise<CustomerResponse>
   fetchUsers: () => Promise<void>
   addUser: (payload: AddUser) => Promise<UserResponse>
+  idTypes: Array<IdType>
+  setIdTypes: Dispatch<React.SetStateAction<Array<IdType>>>
+  fetchIdTypes: ()=> Promise<void>
 }
 
 export interface RegisterParams {
@@ -554,6 +563,12 @@ export type Category = {
     ImagePath: string
     Icon: string
     Active: Number
+}
+
+export type IdType = {
+    IdentificationTypeId: Number | string
+    Name: string
+    Code: string
 }
 
 export type Branch = {

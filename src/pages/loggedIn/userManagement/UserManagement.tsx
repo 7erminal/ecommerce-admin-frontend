@@ -101,6 +101,7 @@ const UserManagementPage: React.FC = () => {
                 IdType: idType,
                 IdNumber: idNumber.trim(),
                 ImagePath: imagePath.trim(),
+                Category: "Individual", 
             };
 
             const resp = await applicationContext.addCustomer(payload);

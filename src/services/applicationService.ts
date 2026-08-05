@@ -127,9 +127,9 @@ class ApplicationService {
     }
 
     // Fetch all orders from backend using access token
-    async fetchOrders(order?: string): Promise<OrdersResponseDTO> {
+    async fetchOrders(order?: string, sortby: string = "DateCreated"): Promise<OrdersResponseDTO> {
       const endpoint = order
-        ? `${API_ENDPOINTS.ORDERS.GET_ALL}?order=${encodeURIComponent(order)}`
+        ? `${API_ENDPOINTS.ORDERS.GET_ALL}?sortby=${encodeURIComponent(sortby)}&order=${encodeURIComponent(order)}`
         : API_ENDPOINTS.ORDERS.GET_ALL;
 
       const response = await Api.GET_<any>(endpoint);

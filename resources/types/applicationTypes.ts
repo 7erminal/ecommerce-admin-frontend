@@ -508,7 +508,7 @@ export type ApplicationContextProps = {
   fetchSystemConfigs: (branchId: string) => Promise<SystemConfigsResponseDTO>
   branch: BranchData | null
   updateItem: (payload: EditItem) => Promise<ItemResponseDTO>
-  fetchOrders: () => Promise<void>
+  fetchOrders: (order?: string) => Promise<void>
   fetchOrder: (id: string) => Promise<void>
   placeOrder: (payload: PlaceOrderPayload) => Promise<TransactionsResponseDTO>
   orders: Array<Order>

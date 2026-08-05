@@ -151,9 +151,9 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   };
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (order?: string) => {
     try {
-        const data = await applicationService.fetchOrders();
+        const data = await applicationService.fetchOrders(order);
       
         if (!data.Success || !data.Result) {
             return;

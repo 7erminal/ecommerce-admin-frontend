@@ -38,7 +38,7 @@ const OrdersPage: React.FC = () => {
     }, [])
 
     const getOrders = async () => {
-        await applicationContext!.fetchOrders();
+        await applicationContext!.fetchOrders("desc");
     }
 
     const getItems = async () => {

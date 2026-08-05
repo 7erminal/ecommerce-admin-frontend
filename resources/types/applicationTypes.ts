@@ -367,6 +367,7 @@ export type AddCustomer = {
   IdType: string
   IdNumber: string
   ImagePath: string
+  Category: string
 }
 
 export type AddUser = {

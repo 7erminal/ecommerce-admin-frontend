@@ -218,6 +218,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
 
   const addCustomer = async (payload: AddCustomer) => {
     try {
+      payload.Category = 'GEN';
       const response = await applicationService.addCustomer(payload);
       if (response.Success === true) {
         await fetchCustomers();

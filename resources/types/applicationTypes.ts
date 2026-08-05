@@ -294,6 +294,7 @@ export type PlaceOrderPayload = {
   PaymentMethodId: string
   OrderDate: string
   Currency: string
+  CustomerId: string
 }
 
 export type ItemAlt = {

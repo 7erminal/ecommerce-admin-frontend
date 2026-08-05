@@ -8,11 +8,13 @@ const OrdersPage: React.FC = () => {
     const [productQuantities, setProductQuantities] = useState<Record<string, string>>({});
     const [paymentMethodId, setPaymentMethodId] = useState("");
     const [currency, setCurrency] = useState("");
+    const [customerid, setCustomerId] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
     const items = Array.isArray(applicationContext?.items) ? applicationContext.items : [];
     const orders = Array.isArray(applicationContext?.orders) ? applicationContext.orders : [];
+    const customers = Array.isArray(applicationContext?.customers) ? applicationContext.customers : [];
     const currencyOptions = useMemo(() => {
         const branchCurrency = applicationContext?.branch?.Country?.Currency?.Symbol;
         const branchCurrencyId = applicationContext?.branch?.Country?.Currency?.CurrencyId;
@@ -58,6 +60,7 @@ const OrdersPage: React.FC = () => {
         setProductQuantities({});
         setPaymentMethodId("");
         setCurrency(currencyOptions[0]?.value || "");
+        setCustomerId("");
         setErrorMessage("");
     }
 
@@ -112,6 +115,7 @@ const OrdersPage: React.FC = () => {
             PaymentMethodId: paymentMethodId.trim(),
             Currency: currency,
             OrderDate: new Date().toISOString(),
+            CustomerId: customerid,
         });
         setSubmitting(false);
 
@@ -221,6 +225,22 @@ const OrdersPage: React.FC = () => {
                                 </div>
                             );
                         })}
+
+                        <div>
+                            <label className="text-sm text-gray-700">Customer</label>
+                            <select
+                                value={customerid}
+                                onChange={(e) => setCustomerId(e.target.value)}
+                                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
+                            >
+                                <option value="">Select customer</option>
+                                {customers.map((customer) => (
+                                    <option key={customer.CustomerId.toString()} value={customer.CustomerId.toString()}>
+                                        {customer.FullName || customer.Email || `Customer ${customer.CustomerId}`}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
                         <div>
                             <label className="text-sm text-gray-700">Payment Method ID</label>

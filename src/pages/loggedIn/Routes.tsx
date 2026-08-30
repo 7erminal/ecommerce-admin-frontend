@@ -7,6 +7,8 @@ import LoadingOverlay from "../../components/LoadingOverlay";
 import CategoriesPage from "./categories/Categories";
 import ItemsPage from "./Items";
 import CustomizePage from "./customize/Customize";
+import OrdersPage from "./orders/Orders";
+import UserManagementPage from "./userManagement/UserManagement";
 // import ActivityTracker from "./resources/ActivityTracker.tsx";
 // import ApplicationContext from './resources/contexts/ApplicationContext';
 // import NotififcationModal from "./components/NotificationModal.tsx";
@@ -52,6 +54,8 @@ const CustomRoutes: React.FC = () => {
                 <Route path='/categories/*' element={<CategoriesPage />} />
                 <Route path='/items' element={<ItemsPage />} />
                 <Route path='/customize' element={<CustomizePage />} />
+                <Route path='/user-management' element={<UserManagementPage />} />
+                <Route path='/orders' element={<OrdersPage />} />
                 <Route path="/" element={<Navigate replace to="/admin/home" />} />
                 {/* <Route path="*" element={<Navigate replace to="/" />} /> */}
             </Routes>

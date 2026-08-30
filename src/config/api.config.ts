@@ -13,9 +13,16 @@ export const API_ENDPOINTS = {
   },
   USER: {
     GET_SESSION: '/v1/user/get-user-session',
+    GET_ALL: '/v1/user',
+    ADD_USER: '/v1/user/',
+    UPDATE_USER: (id: string) => `/v1/user/${id}`,
+    DELETE_USER: (id: string) => `/v1/user/${id}`,
   },
   ROLES: {
     GET_ALL: '/v1/app-service/get-roles/',
+  },
+  ID_TYPES: {
+    GET_ALL: '/v1/app-service/get-id-types',
   },
   CATEGORIES: {
     GET_ALL: '/v1/items/get-categories',
@@ -40,6 +47,16 @@ export const API_ENDPOINTS = {
       UPLOAD_IMAGE: '/v1/items/upload-product-image',
         UPDATE_ITEM: (id: string) => `/v1/items/update-product/${id}`,
         DELETE_ITEM: (id: string) => `/v1/items/delete-item/${id}`,
+    },
+    ORDERS: {
+        GET_ALL: '/v1/transactions/get-orders',
+        GET_BY_ID: (id: string) => `/v1/transactions/get-order/${id}`,
+        ADD_ORDER: '/v1/transactions/place-order-request',
+    },
+    CUSTOMERS: {
+        GET_ALL: '/v1/customers',
+        GET_BY_ID: (id: string) => `/v1/customers/${id}`,
+        ADD_CUSTOMER: '/v1/customers/',
     },
   SYSTEM_CONFIGS: {
     GET_ALL: (id: string) => `/v1/app-service/get-system-details/${id}`,

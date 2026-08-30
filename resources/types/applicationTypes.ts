@@ -130,6 +130,12 @@ export type CategoriesResponseDTO = {
   StatusDesc: string
 }
 
+export type IdTypesResponseDTO = {
+  Success: boolean
+  Result: Array<IdType> | null
+  StatusDesc: string
+}
+
 export type FeaturesResponseDTO = {
   Success: boolean
   Result: Array<Feature> | null
@@ -259,6 +265,192 @@ export type StringResponseDTO = {
   StatusDesc: string
 }
 
+export type Transaction = {
+  TransactionId: string
+  Order: Order
+  Amount: number
+  TransactingCurrency: string
+  Status: string
+  DateCreated: string
+  DateModified: string
+  CreatedBy: number
+  ModifiedBy: number
+  Active: number
+}
+
+export type TransactionsResponseDTO = {
+  Success: boolean
+  Result: Array<Transaction> | null
+  StatusDesc: string
+}
+
+export type OrderProductPayload = {
+  ProductId: string
+  Quantity: number
+}
+
+export type PlaceOrderPayload = {
+  Products: Array<OrderProductPayload>
+  PaymentMethodId: string
+  OrderDate: string
+  Currency: string
+  CustomerId: string
+}
+
+export type ItemAlt = {
+  ItemId: string
+  ItemName: string
+  Description: string
+  Price: number
+  Category: string
+  Currency: string
+  DateCreated: string
+  DateModified: string
+}
+
+export type OrderItem = {
+  OrderItemId: string
+  OrderId: string
+  Item: ItemAlt
+  Quantity: number
+  Status: string
+  OrderDate: string
+  Comment: string
+}
+
+export type Order = {
+  OrderId: string
+  OrderNumber: string
+  Quantity: number
+  Cost: number
+  Currency: string
+  Customer: UserGateway
+  OrderDate: string
+  OrderEndDate: string
+  ReturnedDate: string
+  DateCreated: string
+  DateModified: string
+  OrderDetails: Array<OrderItem>
+}
+
+export type Orders = {
+  Count: number
+  Data: Array<Order>
+}
+
+export type OrdersResponseDTO = {
+  Success: boolean
+  Result: Array<Order> | null
+  StatusDesc: string
+}
+
+export type OrderResponseDTO = {
+  Success: boolean
+  Result: Order | null
+  StatusDesc: string
+}
+
+// type AddCustomer struct {
+//     Email       string
+//     Name        string
+//     PhoneNumber string
+//     Location    string
+//     IdType      string
+//     IdNumber    string
+//     ImagePath   string
+// }
+
+export type AddCustomer = {
+  Email: string
+  Name: string
+  PhoneNumber: string
+  Location: string
+  IdType: string
+  IdNumber: string
+  ImagePath: string
+  Category: string
+}
+
+export type AddUser = {
+  Email: string
+  Name: string
+  PhoneNumber: string
+  Location: string
+  IdType: string
+  IdNumber: string
+  ImagePath: string
+}
+
+// type CustomerGateway struct {
+// 	CustomerId           int64
+// 	FullName             string
+// 	Email                string
+// 	PhoneNumber          string
+// 	Location             string
+// 	IdentificationType   *Identification_types
+// 	IdentificationNumber string
+// 	DateCreated          time.Time
+// 	Status               int
+// 	LastDeal             time.Time
+// }
+
+export type Identification_types = {
+	IdentificationTypeId: number
+	Name: string
+	Code: string
+	Active: number
+}
+
+export type Customer = {
+  CustomerId: number
+  FullName: string
+  Email: string
+  PhoneNumber: string
+  Location: string
+  IdentificationType: Identification_types
+  IdentificationNumber: string
+  DateCreated: string
+  Status: number
+  LastDeal: string
+}
+
+export type CustomerResponse = {
+  Success: boolean
+  Result: Customer | null
+  StatusDesc: string
+}
+
+export type CustomersResponse = {
+  Success: boolean
+  Result: Array<Customer> | null
+  StatusDesc: string
+}
+
+export type User = {
+  UserId: number
+  FullName: string
+  Email: string
+  PhoneNumber: string
+  Location: string
+  IdentificationType: Identification_types
+  IdentificationNumber: string
+  DateCreated: string
+  Status: number
+  LastDeal: string
+}
+
+export type UserResponse = {
+  Success: boolean
+  Result: User | null
+  StatusDesc: string
+}
+
+export type UsersResponseDTO = {
+  Success: boolean
+  Result: Array<User> | null
+  StatusDesc: string
+}
+
 // export type LoginResponse = {
 //   Success: boolean;
 //   StatusDesc: string;
@@ -316,6 +508,26 @@ export type ApplicationContextProps = {
   fetchSystemConfigs: (branchId: string) => Promise<SystemConfigsResponseDTO>
   branch: BranchData | null
   updateItem: (payload: EditItem) => Promise<ItemResponseDTO>
+  fetchOrders: (order?: string) => Promise<void>
+  fetchOrder: (id: string) => Promise<void>
+  placeOrder: (payload: PlaceOrderPayload) => Promise<TransactionsResponseDTO>
+  orders: Array<Order>
+  order: Order | null
+  users: Array<User>
+  setUsers: Dispatch<React.SetStateAction<Array<User>>>
+  selectedUser: User | null
+  setSelectedUser: Dispatch<React.SetStateAction<User | null>>
+  customers: Array<Customer>
+  setCustomers: Dispatch<React.SetStateAction<Array<Customer>>>
+  selectedCustomer: Customer | null
+  setSelectedCustomer: Dispatch<React.SetStateAction<Customer | null>>
+  fetchCustomers: () => Promise<void>
+  addCustomer: (payload: AddCustomer) => Promise<CustomerResponse>
+  fetchUsers: () => Promise<void>
+  addUser: (payload: AddUser) => Promise<UserResponse>
+  idTypes: Array<IdType>
+  setIdTypes: Dispatch<React.SetStateAction<Array<IdType>>>
+  fetchIdTypes: ()=> Promise<void>
 }
 
 export interface RegisterParams {
@@ -353,6 +565,12 @@ export type Category = {
     ImagePath: string
     Icon: string
     Active: Number
+}
+
+export type IdType = {
+    IdentificationTypeId: Number | string
+    Name: string
+    Code: string
 }
 
 export type Branch = {
@@ -632,6 +850,7 @@ export type CreateSubAccount = {
 }
 
 export type CurrencyData = {
+  CurrencyId: number
   Symbol: string
   Currency: string
 }

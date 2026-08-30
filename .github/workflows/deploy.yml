@@ -31,7 +31,7 @@ jobs:
           script: |
             set -e
 
-            APP_DIR="/usr/app/ecommerce/ecommerce-admin-frontend"
+            APP_DIR="/usr/app/ecommerce/ecommerce_main/ecommerce-admin-frontend"
             REPO_URL="https://github.com/${REPOSITORY}.git"
             NETRC_PATH="$HOME/.netrc"
 

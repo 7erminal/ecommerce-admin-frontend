@@ -1,6 +1,6 @@
 import Api from '../../resources/apis';
 import { API_ENDPOINTS } from '../config/api.config';
-import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload } from '../../resources/types/applicationTypes';
+import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO } from '../../resources/types/applicationTypes';
 
 class ApplicationService {
   /**
@@ -9,6 +9,12 @@ class ApplicationService {
    */
   async fetchSystemConfigs(branchId: string): Promise<SystemConfigsResponseDTO> {
     const response = await Api.GET_<SystemConfigsResponseDTO>(API_ENDPOINTS.SYSTEM_CONFIGS.GET_ALL(branchId));
+    return response.data;
+  }
+
+  async fetchIdTypes(): Promise<IdTypesResponseDTO> {
+    console.log("ID Types url is "+API_ENDPOINTS.ID_TYPES.GET_ALL)
+    const response = await Api.GET_<IdTypesResponseDTO>(API_ENDPOINTS.ID_TYPES.GET_ALL);
     return response.data;
   }
 
@@ -120,7 +126,56 @@ class ApplicationService {
       return response.data;
     }
 
+    // Fetch all orders from backend using access token
+    async fetchOrders(order?: string, sortby: string = "DateCreated"): Promise<OrdersResponseDTO> {
+      const endpoint = order
+        ? `${API_ENDPOINTS.ORDERS.GET_ALL}?sortby=${encodeURIComponent(sortby)}&order=${encodeURIComponent(order)}`
+        : API_ENDPOINTS.ORDERS.GET_ALL;
 
+      const response = await Api.GET_<any>(endpoint);
+        console.log('fetchOrders response:', response);
+        return response.data;
+    }
+
+    // Fetch order by ID from backend using access token
+    async fetchOrder(id: string): Promise<OrderResponseDTO> {
+        const response = await Api.GET_<any>(API_ENDPOINTS.ORDERS.GET_BY_ID(id));
+        console.log('fetchOrder response:', response);
+        return response.data;
+    }
+
+    async placeOrder(payload: PlaceOrderPayload): Promise<TransactionsResponseDTO> {
+      const response = await Api.POST_<TransactionsResponseDTO>(API_ENDPOINTS.ORDERS.ADD_ORDER, payload);
+      return response.data;
+    }
+
+    async fetchCustomers(): Promise<CustomersResponse> {
+        const response = await Api.GET_<any>(API_ENDPOINTS.CUSTOMERS.GET_ALL);
+        console.log('fetchCustomers response:', response);
+        return response.data;
+    }
+
+    async fetchCustomer(id: string): Promise<CustomerResponse> {
+        const response = await Api.GET_<any>(API_ENDPOINTS.CUSTOMERS.GET_BY_ID(id));
+        console.log('fetchCustomer response:', response);
+        return response.data;
+    }
+
+    async addCustomer(payload: AddCustomer): Promise<CustomerResponse> {
+      const response = await Api.POST_<CustomerResponse>(API_ENDPOINTS.CUSTOMERS.ADD_CUSTOMER, payload);
+      return response.data;
+    }
+
+    async fetchUsers(): Promise<UsersResponseDTO> {
+        const response = await Api.GET_<any>(API_ENDPOINTS.USER.GET_ALL);
+        console.log('fetchUsers response:', response);
+        return response.data;
+    }
+
+    async addUser(payload: AddUser): Promise<UserResponse> {
+      const response = await Api.POST_<UserResponse>(API_ENDPOINTS.USER.ADD_USER, payload);
+      return response.data;
+    }
 }
 
 export const applicationService = new ApplicationService();

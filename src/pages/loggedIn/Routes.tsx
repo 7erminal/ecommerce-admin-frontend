@@ -6,7 +6,7 @@ import HomePage from "./Home";
 import LoadingOverlay from "../../components/LoadingOverlay";
 import CategoriesPage from "./categories/Categories";
 import ItemsPage from "./Items";
-import CustomizePage from "./Customize";
+import CustomizePage from "./customize/Customize";
 import OrdersPage from "./orders/Orders";
 import UserManagementPage from "./userManagement/UserManagement";
 // import ActivityTracker from "./resources/ActivityTracker.tsx";

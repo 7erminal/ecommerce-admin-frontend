@@ -1,5 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
-import ApplicationContext from "../../../../resources/providers/ApplicationContext";
+import React, { useEffect, useState } from "react";
 
 type Tab = "applications" | "themes" | "appearance";
 

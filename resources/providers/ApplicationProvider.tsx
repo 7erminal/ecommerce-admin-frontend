@@ -352,6 +352,17 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }
 
+  const uploadSystemImage = async (file: File, systemName: string) => {
+    try {
+      const response = await applicationService.uploadSystemImage(file, systemName);
+      return response;
+    } catch (err) {
+      console.error('Error uploading system image: ', err);
+      setError('Failed to upload system image');
+      return { Success: false, StatusDesc: 'Failed to upload system image', Result: null };
+    }
+  }
+
   const deleteItem = async (id: string) => {
     try {
       const response = await applicationService.deleteItem(id);
@@ -475,6 +486,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         idTypes,
         setIdTypes,
         fetchIdTypes,
+        uploadSystemImage,
       }}
     >
       {children}

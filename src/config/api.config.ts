@@ -67,6 +67,7 @@ export const API_ENDPOINTS = {
     },
   SYSTEM_CONFIGS: {
     GET_ALL: (id: string) => `/v1/app-service/get-system-details/${id}`,
+    UPLOAD_IMAGE: '/v1/app-service/upload-system-image',
   },
 } as const;
 

@@ -259,6 +259,12 @@ export type ItemImageUploadResponseDTO = {
   StatusDesc: string
 }
 
+export type SystemImageUploadResponseDTO = {
+  Success: boolean
+  Result: string | null
+  StatusDesc: string
+}
+
 export type StringResponseDTO = {
   Success: boolean
   Result: string | null
@@ -528,6 +534,7 @@ export type ApplicationContextProps = {
   idTypes: Array<IdType>
   setIdTypes: Dispatch<React.SetStateAction<Array<IdType>>>
   fetchIdTypes: ()=> Promise<void>
+  uploadSystemImage: (file: File, systemName: string) => Promise<SystemImageUploadResponseDTO>
 }
 
 export interface RegisterParams {

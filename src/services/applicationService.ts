@@ -1,6 +1,6 @@
 import Api from '../../resources/apis';
 import { API_ENDPOINTS } from '../config/api.config';
-import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication } from '../../resources/types/applicationTypes';
+import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication, SystemImageUploadResponseDTO } from '../../resources/types/applicationTypes';
 
 class ApplicationService {
   /**
@@ -82,6 +82,14 @@ class ApplicationService {
       const formData = new FormData();
       formData.append('Image', file);
       const response = await Api.POST_FORM_DATA<ItemImageUploadResponseDTO>(API_ENDPOINTS.ITEMS.UPLOAD_IMAGE, formData);
+      return response.data;
+    }
+
+    async uploadSystemImage(file: File, systemName: string): Promise<SystemImageUploadResponseDTO> {
+      const formData = new FormData();
+      formData.append('Image', file);
+      formData.append('System', systemName);
+      const response = await Api.POST_FORM_DATA<SystemImageUploadResponseDTO>(API_ENDPOINTS.SYSTEM_CONFIGS.UPLOAD_IMAGE, formData);
       return response.data;
     }
 

@@ -1,34 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { applicationService } from '../../../services/applicationService';
+import type { ApplicationResp, AddApplication, UpdateApplication, ApplicationFormData } from '../../../../resources/types/applicationTypes';
 import axios from 'axios';
 
-interface Application {
-    ApplicationId?: number;
-    ApplicationCode: string;
-    ApplicationName: string;
-    ApplicationLogo?: string;
-    ApplicationImage?: string;
-    ThemeColors?: string[];
-    DefaultFontsize?: string;
-    ThemeCode: string;
-    DateCreated?: string;
-    DateModified?: string;
-    Active?: number;
-}
-
 const Application: React.FC = () => {
-    const [applications, setApplications] = useState<Application[]>([]);
+    const [applications, setApplications] = useState<ApplicationResp[]>([]);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [editingAppId, setEditingAppId] = useState<number | null>(null);
 
-    const [formData, setFormData] = useState<Application>({
+    const [formData, setFormData] = useState<ApplicationFormData>({
         ApplicationCode: "",
         ApplicationName: "",
         ApplicationLogo: "",
         ApplicationImage: "",
-        ThemeColors: [],
+        ThemeColors: "",
         DefaultFontsize: "14",
         ThemeCode: "",
     });
@@ -41,24 +29,15 @@ const Application: React.FC = () => {
     const fetchApplications = async () => {
         try {
             setLoading(true);
-            const token = sessionStorage.getItem('token');
-            const response = await axios.get(
-                `${process.env.REACT_APP_API_URL}/v1/system/applications`,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "X-Application-Code": sessionStorage.getItem('applicationCode') || '',
-                    }
-                }
-            );
-            console.log('[fetchApplications] Response:', response.data);
+            const response = await applicationService.fetchApplications();
+            console.log('[Application.tsx fetchApplications] Response:', response);
             
-            if (response.data.Success && Array.isArray(response.data.Result)) {
-                setApplications(response.data.Result);
+            if (response.Success && response.Result?.Data) {
+                setApplications(response.Result.Data);
             }
             setError(null);
         } catch (err) {
-            console.error('[fetchApplications] Error:', err);
+            console.error('[Application.tsx fetchApplications] Error:', err);
             setError('Failed to load applications');
         } finally {
             setLoading(false);
@@ -72,35 +51,25 @@ const Application: React.FC = () => {
         }
 
         try {
-            const token = sessionStorage.getItem('token');
-            const payload = {
-                application_code: formData.ApplicationCode,
-                application_name: formData.ApplicationName,
-                application_logo: formData.ApplicationLogo || "",
-                application_image: formData.ApplicationImage || "",
-                theme_colors: Array.isArray(formData.ThemeColors) ? formData.ThemeColors.join(',') : "",
-                default_fontsize: formData.DefaultFontsize || "14",
-                theme_code: formData.ThemeCode,
+            const payload: AddApplication = {
+                ApplicationCode: formData.ApplicationCode,
+                ApplicationName: formData.ApplicationName,
+                ApplicationLogo: formData.ApplicationLogo || "",
+                ApplicationImage: formData.ApplicationImage || "",
+                ThemeColors: Array.isArray(formData.ThemeColors) ? formData.ThemeColors.join(',') : formData.ThemeColors || "",
+                DefaultFontsize: formData.DefaultFontsize || "14",
+                ThemeCode: formData.ThemeCode,
             };
 
-            const response = await axios.post(
-                `${process.env.REACT_APP_API_URL}/v1/system/add-application`,
-                payload,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "X-Application-Code": sessionStorage.getItem('applicationCode') || '',
-                    }
-                }
-            );
-            console.log('[handleAddApplication] Response:', response.data);
+            const response = await applicationService.addApplication(payload);
+            console.log('[handleAddApplication] Response:', response);
 
-            if (response.data.Success) {
+            if (response.Success) {
                 fetchApplications();
                 resetForm();
                 setShowAddModal(false);
             } else {
-                setError(response.data.StatusDesc || 'Failed to add application');
+                setError(response.StatusDesc || 'Failed to add application');
             }
         } catch (err) {
             console.error('[handleAddApplication] Error:', err);
@@ -115,37 +84,27 @@ const Application: React.FC = () => {
         }
 
         try {
-            const token = sessionStorage.getItem('token');
-            const payload = {
-                application_code: formData.ApplicationCode,
-                application_name: formData.ApplicationName,
-                application_logo: formData.ApplicationLogo || "",
-                application_image: formData.ApplicationImage || "",
-                theme_colors: Array.isArray(formData.ThemeColors) ? formData.ThemeColors.join(',') : "",
-                default_fontsize: formData.DefaultFontsize || "14",
-                theme_code: formData.ThemeCode,
-                updated_by: parseInt(sessionStorage.getItem('userId') || '0'),
+            const payload: UpdateApplication = {
+                ApplicationCode: formData.ApplicationCode,
+                ApplicationName: formData.ApplicationName,
+                ApplicationLogo: formData.ApplicationLogo || "",
+                ApplicationImage: formData.ApplicationImage || "",
+                ThemeColors: Array.isArray(formData.ThemeColors) ? formData.ThemeColors.join(',') : formData.ThemeColors || "",
+                DefaultFontsize: formData.DefaultFontsize || "14",
+                ThemeCode: formData.ThemeCode,
+                UpdatedBy: parseInt(sessionStorage.getItem('userId') || '0'),
             };
 
-            const response = await axios.put(
-                `${process.env.REACT_APP_API_URL}/v1/system/update-application/${editingAppId}`,
-                payload,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "X-Application-Code": sessionStorage.getItem('applicationCode') || '',
-                    }
-                }
-            );
-            console.log('[handleUpdateApplication] Response:', response.data);
+            const response = await applicationService.updateApplication(editingAppId?.toString() || '', payload);
+            console.log('[handleUpdateApplication] Response:', response);
 
-            if (response.data.Success) {
+            if (response.Success) {
                 fetchApplications();
                 resetForm();
                 setShowAddModal(false);
                 setEditingAppId(null);
             } else {
-                setError(response.data.StatusDesc || 'Failed to update application');
+                setError(response.StatusDesc || 'Failed to update application');
             }
         } catch (err) {
             console.error('[handleUpdateApplication] Error:', err);
@@ -159,22 +118,13 @@ const Application: React.FC = () => {
         if (!window.confirm("Are you sure you want to delete this application?")) return;
 
         try {
-            const token = sessionStorage.getItem('token');
-            const response = await axios.delete(
-                `${process.env.REACT_APP_API_URL}/v1/system/delete-application/${appId}`,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "X-Application-Code": sessionStorage.getItem('applicationCode') || '',
-                    }
-                }
-            );
-            console.log('[handleDeleteApplication] Response:', response.data);
+            const response = await applicationService.deleteApplication(appId.toString());
+            console.log('[handleDeleteApplication] Response:', response);
 
-            if (response.data.Success) {
+            if (response.Success) {
                 fetchApplications();
             } else {
-                setError(response.data.StatusDesc || 'Failed to delete application');
+                setError(response.StatusDesc || 'Failed to delete application');
             }
         } catch (err) {
             console.error('[handleDeleteApplication] Error:', err);
@@ -217,15 +167,23 @@ const Application: React.FC = () => {
             ApplicationName: "",
             ApplicationLogo: "",
             ApplicationImage: "",
-            ThemeColors: [],
+            ThemeColors: "",
             DefaultFontsize: "14",
             ThemeCode: "",
         });
         setEditingAppId(null);
     };
 
-    const openEditModal = (app: Application) => {
-        setFormData(app);
+    const openEditModal = (app: ApplicationResp) => {
+        setFormData({
+            ApplicationCode: app.ApplicationCode,
+            ApplicationName: app.ApplicationName,
+            ApplicationLogo: app.ApplicationLogo,
+            ApplicationImage: app.ApplicationImage,
+            ThemeColors: app.ThemeColors,
+            DefaultFontsize: app.DefaultFontsize,
+            ThemeCode: app.Theme?.ThemeCode || "",
+        });
         setEditingAppId(app.ApplicationId || null);
         setShowAddModal(true);
     };
@@ -237,23 +195,23 @@ const Application: React.FC = () => {
     };
 
     const handleThemeColorChange = (index: number, value: string) => {
-        const newColors = [...(formData.ThemeColors || [])];
-        newColors[index] = value;
-        setFormData({ ...formData, ThemeColors: newColors });
+        const colors = formData.ThemeColors ? formData.ThemeColors.split(',').map(c => c.trim()) : [];
+        colors[index] = value;
+        setFormData({ ...formData, ThemeColors: colors.join(',') });
     };
 
     const addThemeColor = () => {
-        if ((formData.ThemeColors?.length || 0) < 2) {
-            setFormData({
-                ...formData,
-                ThemeColors: [...(formData.ThemeColors || []), "#000000"]
-            });
+        const colors = formData.ThemeColors ? formData.ThemeColors.split(',').map(c => c.trim()) : [];
+        if (colors.length < 2) {
+            colors.push("#000000");
+            setFormData({ ...formData, ThemeColors: colors.join(',') });
         }
     };
 
     const removeThemeColor = (index: number) => {
-        const newColors = (formData.ThemeColors || []).filter((_, i) => i !== index);
-        setFormData({ ...formData, ThemeColors: newColors });
+        const colors = formData.ThemeColors ? formData.ThemeColors.split(',').map(c => c.trim()) : [];
+        colors.splice(index, 1);
+        setFormData({ ...formData, ThemeColors: colors.join(',') });
     };
 
     return (
@@ -334,8 +292,8 @@ const Application: React.FC = () => {
                                 <div className="flex-1">
                                     <h3 className="text-lg font-semibold text-gray-800">{app.ApplicationName}</h3>
                                     <p className="text-sm text-gray-600">Code: {app.ApplicationCode}</p>
-                                    {app.ThemeCode && (
-                                        <p className="text-sm text-gray-600">Theme: {app.ThemeCode}</p>
+                                    {app.Theme?.ThemeCode && (
+                                        <p className="text-sm text-gray-600">Theme: {app.Theme?.ThemeCode}</p>
                                     )}
                                     {app.DefaultFontsize && (
                                         <p className="text-sm text-gray-600">Font Size: {app.DefaultFontsize}px</p>
@@ -461,7 +419,7 @@ const Application: React.FC = () => {
                                     Theme Colors
                                 </label>
                                 <div className="space-y-2">
-                                    {(formData.ThemeColors || []).map((color, index) => (
+                                    {(formData.ThemeColors ? formData.ThemeColors.split(',').map(c => c.trim()) : []).map((color, index) => (
                                         <div key={index} className="flex gap-2 items-center">
                                             <input
                                                 type="color"
@@ -485,7 +443,7 @@ const Application: React.FC = () => {
                                         </div>
                                     ))}
                                 </div>
-                                {(formData.ThemeColors?.length || 0) < 2 && (
+                                {(formData.ThemeColors ? formData.ThemeColors.split(',').map(c => c.trim()).length : 0) < 2 && (
                                     <button
                                         onClick={addThemeColor}
                                         className="mt-3 px-4 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium transition"

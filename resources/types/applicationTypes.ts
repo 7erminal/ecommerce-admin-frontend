@@ -879,3 +879,78 @@ export type SystemConfigsResponseDTO = {
   Result: SystemData | null
   StatusDesc: string
 }
+
+/**
+ * Application & Theme Types
+ */
+export type ThemeResp = {
+  ThemeId?: number
+  ThemeCode: string
+  ThemeName: string
+  ThemeConfig?: string
+  DateCreated?: string
+  DateModified?: string
+  Active?: number
+}
+
+export type ApplicationFormData = {
+  ApplicationCode: string
+  ApplicationName: string
+  ApplicationLogo: string
+  ThemeColors: string
+  DefaultFontsize: string
+  ApplicationImage: string
+  ThemeCode: string
+}
+
+export type ApplicationResp = {
+  ApplicationId?: number
+  ApplicationCode: string
+  ApplicationName: string
+  ApplicationLogo: string
+  ThemeColors: string
+  DefaultFontsize: string
+  ApplicationImage: string
+  DateCreated?: string
+  DateModified?: string
+  Active?: number
+  Theme?: ThemeResp
+}
+
+export type ApplicationResponseDTO = {
+  Success: boolean
+  Result: ApplicationResp | null
+  StatusDesc: string
+}
+
+export type ApplicationsData = {
+  Data: ApplicationResp[]
+  Count: number
+}
+
+export type ApplicationsResponseDTO = {
+  Success: boolean
+  Result: ApplicationsData | null
+  StatusDesc: string
+}
+
+export type AddApplication = {
+  ApplicationCode: string
+  ApplicationName: string
+  ApplicationLogo: string
+  ThemeColors: string
+  DefaultFontsize: string
+  ApplicationImage: string
+  ThemeCode: string
+}
+
+export type UpdateApplication = {
+  ApplicationCode: string
+  ApplicationName: string
+  ApplicationLogo: string
+  ThemeColors: string
+  DefaultFontsize: string
+  ApplicationImage: string
+  ThemeCode: string
+  UpdatedBy: number
+}

@@ -1,6 +1,6 @@
 import Api from '../../resources/apis';
 import { API_ENDPOINTS } from '../config/api.config';
-import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO } from '../../resources/types/applicationTypes';
+import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication } from '../../resources/types/applicationTypes';
 
 class ApplicationService {
   /**
@@ -174,6 +174,36 @@ class ApplicationService {
 
     async addUser(payload: AddUser): Promise<UserResponse> {
       const response = await Api.POST_<UserResponse>(API_ENDPOINTS.USER.ADD_USER, payload);
+      return response.data;
+    }
+
+    async fetchApplications(): Promise<ApplicationsResponseDTO> {
+        const response = await Api.GET_<ApplicationsResponseDTO>(API_ENDPOINTS.APPLICATIONS.GET_ALL);
+        console.log('[fetchApplications] Response:', response.data);
+        return response.data;
+    }
+
+    async addApplication(payload: AddApplication): Promise<ApplicationResponseDTO> {
+      const response = await Api.POST_<ApplicationResponseDTO>(API_ENDPOINTS.APPLICATIONS.ADD_APPLICATION, payload);
+      console.log('[addApplication] Response:', response.data);
+      return response.data;
+    }
+
+    async updateApplication(id: string, payload: UpdateApplication): Promise<ApplicationResponseDTO> {
+      const response = await Api.PUT_<ApplicationResponseDTO>(API_ENDPOINTS.APPLICATIONS.UPDATE_APPLICATION(id), payload);
+      console.log('[updateApplication] Response:', response.data);
+      return response.data;
+    }
+
+    async fetchApplication(id: string): Promise<ApplicationResponseDTO> {
+        const response = await Api.GET_<ApplicationResponseDTO>(API_ENDPOINTS.APPLICATIONS.GET_BY_ID(id));
+        console.log('[fetchApplication] Response:', response.data);
+        return response.data;
+    }
+
+    async deleteApplication(id: string): Promise<StringResponseDTO> {
+      const response = await Api.DELETE<StringResponseDTO>(API_ENDPOINTS.APPLICATIONS.DELETE_APPLICATION(id), { Id: id });
+      console.log('[deleteApplication] Response:', response.data);
       return response.data;
     }
 }

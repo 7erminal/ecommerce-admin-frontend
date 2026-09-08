@@ -30,6 +30,13 @@ export const API_ENDPOINTS = {
     DELETE_CATEGORY: (id: string) => `/v1/items/delete-category/${id}`,
     UPDATE_CATEGORY: (id: string) => `/v1/items/update-category/${id}`,
     },
+  APPLICATIONS: {
+    GET_BY_ID: (code: string) => `/v1/system/get-application/${code}`,
+    GET_ALL: '/v1/system/applications',
+    ADD_APPLICATION: '/v1/system/add-application',
+    DELETE_APPLICATION: (id: string) => `/v1/system/delete-application/${id}`,
+    UPDATE_APPLICATION: (id: string) => `/v1/system/update-application/${id}`,
+  },
   FEATURES: {
     GET_ALL: '/v1/items/get-features',
     ADD_FEATURE: '/v1/items/add-feature',

@@ -197,6 +197,12 @@ class ApplicationService {
         return response.data;
     }
 
+    async fetchTheme(id: string): Promise<ThemeResponseDTO> {
+        const response = await Api.GET_<ThemeResponseDTO>(API_ENDPOINTS.THEMES.GET_BY_ID(id));
+        console.log('[fetchTheme] Response:', response.data);
+        return response.data;
+    }
+
     async addApplication(payload: AddApplication): Promise<ApplicationResponseDTO> {
       const response = await Api.POST_<ApplicationResponseDTO>(API_ENDPOINTS.APPLICATIONS.ADD_APPLICATION, payload);
       console.log('[addApplication] Response:', response.data);

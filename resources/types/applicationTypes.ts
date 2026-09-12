@@ -1010,7 +1010,7 @@ export type ThemesData = {
 
 export type ThemesResponseDTO = {
   Success: boolean
-  Result: ThemesData | null
+  Result: ThemeResp[] | null
   StatusDesc: string
 }
 

@@ -65,6 +65,7 @@ const CustomizePage: React.FC = () => {
 
     useEffect(() => {
         applicationContext?.fetchApplications();
+        applicationContext?.fetchThemes();
     }, []);
 
     useEffect(() => {
@@ -282,13 +283,6 @@ const CustomizePage: React.FC = () => {
             }
         }
 
-        const newTheme: ThemeFormData = {
-            ThemeId: resp.Result?.ThemeId,
-            ThemeCode: resp.Result?.ThemeCode ?? themeFormData.ThemeCode,
-            ThemeName: resp.Result?.ThemeName ?? themeFormData.ThemeName,
-            ThemeConfig: themeFormData.ThemeConfig,
-        };
-        setThemes([...themes, newTheme]);
         setError("");
         setShowError(false);
         resetThemeForm();

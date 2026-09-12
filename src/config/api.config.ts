@@ -40,6 +40,7 @@ export const API_ENDPOINTS = {
   },
   THEMES: {
     ADD_THEME: '/v1/app-service/add-theme',
+    ADD_THEME_CONFIG: (id: string) => `/v1/app-service/add-theme-config/${id}`,
     REMOVE_THEME: (id: string) => `/v1/app-service/remove-theme/${id}`,
   },
   FEATURES: {

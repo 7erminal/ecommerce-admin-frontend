@@ -545,6 +545,7 @@ export type ApplicationContextProps = {
   deleteApplication: (id: string) => Promise<StringResponseDTO>
   addApplication: (payload: AddApplication) => Promise<ApplicationResponseDTO>
   addTheme: (payload: AddTheme) => Promise<ThemeResponseDTO>
+  addThemeConfig: (themeId: string, payload: AddThemeConfigPayload) => Promise<ThemeResponseDTO>
   removeTheme: (id: string) => Promise<ThemeResponseDTO>
 }
 
@@ -914,6 +915,10 @@ export type ThemeResp = {
 export type AddTheme = {
   ThemeCode: string
   ThemeName: string
+}
+
+export type AddThemeConfigPayload = {
+  Config: string
 }
 
 export type UpdateApplicationThemePayload = {

@@ -246,6 +246,21 @@ const CustomizePage: React.FC = () => {
             return;
         }
 
+        const createdThemeId = resp.Result?.ThemeId;
+        const hasThemeConfig = Boolean(themeFormData.ThemeConfig && Object.keys(themeFormData.ThemeConfig).length > 0);
+
+        if (createdThemeId && hasThemeConfig) {
+            const configResp = await applicationContext?.addThemeConfig(String(createdThemeId), {
+                Config: JSON.stringify(themeFormData.ThemeConfig),
+            });
+
+            if (!configResp?.Success) {
+                setError(configResp?.StatusDesc ?? "Theme added but failed to add theme config");
+                setShowError(true);
+                return;
+            }
+        }
+
         const newTheme: ThemeFormData = {
             ThemeId: resp.Result?.ThemeId,
             ThemeCode: resp.Result?.ThemeCode ?? themeFormData.ThemeCode,

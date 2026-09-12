@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload } from '../types/applicationTypes';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload } from '../types/applicationTypes';
 import { API_ENDPOINTS } from '../../src/config/api.config';
 import { applicationService } from '../../src/services/applicationService';
 
@@ -436,17 +436,31 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   const addTheme = async (payload: AddTheme) => {
-  try {
-    const response = await applicationService.addTheme(payload);
-    if (response.Success === true) {
-    await fetchApplications();
+    try {
+      const response = await applicationService.addTheme(payload);
+      if (response.Success === true) {
+        await fetchApplications();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error adding theme: ', err);
+      setError('Failed to add theme');
+      return { Success: false, StatusDesc: 'Failed to add theme', Result: null };
     }
-    return response;
-  } catch (err) {
-    console.error('Error adding theme: ', err);
-    setError('Failed to add theme');
-    return { Success: false, StatusDesc: 'Failed to add theme', Result: null };
   }
+
+  const addThemeConfig = async (themeId: string, payload: AddThemeConfigPayload) => {
+    try {
+      const response = await applicationService.addThemeConfig(themeId, payload);
+      if (response.Success === true) {
+        await fetchApplications();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error adding theme config: ', err);
+      setError('Failed to add theme config');
+      return { Success: false, StatusDesc: 'Failed to add theme config', Result: null };
+    }
   }
 
   const removeTheme = async (id: string) => {
@@ -597,6 +611,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         updateApplicationTheme,
         deleteApplication,
         addTheme,
+        addThemeConfig,
         removeTheme,
       }}
     >

@@ -724,7 +724,7 @@ const CustomizePage: React.FC = () => {
                                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
                                 >
                                     <option value="">Select a theme</option>
-                                    {themes.map((theme) => (
+                                    { applicationContext?.themes.map((theme) => (
                                         <option key={theme.ThemeId} value={theme.ThemeCode}>
                                             {theme.ThemeName}
                                         </option>

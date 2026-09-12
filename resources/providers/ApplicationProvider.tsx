@@ -485,7 +485,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   try {
     const response = await applicationService.removeTheme(id);
     if (response.Success === true) {
-    await fetchThemes();
+      await fetchThemes();
     }
     return response;
   } catch (err) {

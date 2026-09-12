@@ -52,7 +52,6 @@ const Application: React.FC = () => {
 
         try {
             const payload: AddApplication = {
-                ApplicationCode: formData.ApplicationCode,
                 ApplicationName: formData.ApplicationName,
                 ApplicationLogo: formData.ApplicationLogo || "",
                 ApplicationImage: formData.ApplicationImage || "",
@@ -78,14 +77,13 @@ const Application: React.FC = () => {
     };
 
     const handleUpdateApplication = async () => {
-        if (!formData.ApplicationCode.trim() || !formData.ApplicationName.trim() || !formData.ThemeCode.trim()) {
-            alert("Application Code, Name, and Theme Code are required");
+        if (!formData.ApplicationName.trim() || !formData.ThemeCode.trim()) {
+            alert("Application Name and Theme Code are required");
             return;
         }
 
         try {
             const payload: UpdateApplication = {
-                ApplicationCode: formData.ApplicationCode,
                 ApplicationName: formData.ApplicationName,
                 ApplicationLogo: formData.ApplicationLogo || "",
                 ApplicationImage: formData.ApplicationImage || "",

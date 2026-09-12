@@ -25,7 +25,6 @@ const CustomizePage: React.FC = () => {
     // Applications state
     const [showAddAppModal, setShowAddAppModal] = useState(false);
     const [appFormData, setAppFormData] = useState<ApplicationCustomizeFormData>({
-        ApplicationCode: "",
         ApplicationName: "",
         ApplicationLogo: "",
         ApplicationImage: "",
@@ -93,8 +92,8 @@ const CustomizePage: React.FC = () => {
 
     // ===== APPLICATION HANDLERS =====
     const handleAddApp = async () => {
-        if (!appFormData.ApplicationCode.trim() || !appFormData.ApplicationName.trim() || !appFormData.ThemeCode.trim()) {
-            alert("Application Code, Name, and Theme Code are required");
+        if (!appFormData.ApplicationName.trim() || !appFormData.ThemeCode.trim()) {
+            alert("Application Name and Theme Code are required");
             return;
         }
 
@@ -120,7 +119,6 @@ const CustomizePage: React.FC = () => {
         }
 
         const payload: AddApplication = {
-            ApplicationCode: appFormData.ApplicationCode,
             ApplicationName: appFormData.ApplicationName,
             ApplicationLogo: appFormData.ApplicationLogo ?? "",
             ApplicationImage: appFormData.ApplicationImage ?? "",
@@ -143,8 +141,8 @@ const CustomizePage: React.FC = () => {
     };
 
     const handleUpdateApp = async () => {
-        if (!appFormData.ApplicationCode.trim() || !appFormData.ApplicationName.trim() || !appFormData.ThemeCode.trim()) {
-            alert("Application Code, Name, and Theme Code are required");
+        if (!appFormData.ApplicationName.trim() || !appFormData.ThemeCode.trim()) {
+            alert("Application Name and Theme Code are required");
             return;
         }
 
@@ -153,7 +151,6 @@ const CustomizePage: React.FC = () => {
         }
 
         const payload: UpdateApplication = {
-            ApplicationCode: appFormData.ApplicationCode,
             ApplicationName: appFormData.ApplicationName,
             ApplicationLogo: appFormData.ApplicationLogo ?? "",
             ApplicationImage: appFormData.ApplicationImage ?? "",
@@ -200,7 +197,6 @@ const CustomizePage: React.FC = () => {
 
     const resetAppForm = () => {
         setAppFormData({
-            ApplicationCode: "",
             ApplicationName: "",
             ApplicationLogo: undefined,
             ApplicationImage: undefined,
@@ -214,7 +210,6 @@ const CustomizePage: React.FC = () => {
     const openEditAppModal = (app: ApplicationResp) => {
         console.log("Opening edit modal for application:", app);
         const appData: ApplicationCustomizeFormData = {
-            ApplicationCode: app.ApplicationCode || "",
             ApplicationName: app.ApplicationName || "",
             ApplicationLogo: app.ApplicationLogo,
             ApplicationImage: app.ApplicationImage,
@@ -674,16 +669,6 @@ const CustomizePage: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-sm text-gray-700">Application Code</label>
-                                <input
-                                    type="text"
-                                    value={appFormData.ApplicationCode}
-                                    onChange={(e) => setAppFormData({...appFormData, ApplicationCode: e.target.value})}
-                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                    placeholder="e.g., APP001"
-                                />
-                            </div>
 
                             <div>
                                 <label className="text-sm text-gray-700">Application Name</label>

@@ -940,7 +940,6 @@ export type ThemeFormData = {
 
 export type ApplicationCustomizeFormData = {
   ApplicationId?: number
-  ApplicationCode: string
   ApplicationName: string
   ApplicationLogo?: string
   ApplicationImage?: string
@@ -994,7 +993,6 @@ export type ApplicationsResponseDTO = {
 }
 
 export type AddApplication = {
-  ApplicationCode: string
   ApplicationName: string
   ApplicationLogo: string
   ThemeColors: string
@@ -1004,7 +1002,6 @@ export type AddApplication = {
 }
 
 export type UpdateApplication = {
-  ApplicationCode: string
   ApplicationName: string
   ApplicationLogo: string
   ThemeColors: string

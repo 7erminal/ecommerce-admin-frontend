@@ -385,7 +385,8 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     try {
       const response = await applicationService.fetchThemes();
       if (response.Success === true) {
-        setThemes(response.Result?.Data || []);
+        console.log("About to set themes: ", response.Result);
+        setThemes(response.Result || []);
       }
       return response;
     } catch (err) {

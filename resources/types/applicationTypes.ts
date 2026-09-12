@@ -946,7 +946,7 @@ export type ThemeFormData = {
   ThemeId?: number
   ThemeCode: string
   ThemeName: string
-  ThemeConfig?: Record<string, unknown>
+  ThemeConfig?: ThemeConfigs[]
 }
 
 export type ApplicationCustomizeFormData = {

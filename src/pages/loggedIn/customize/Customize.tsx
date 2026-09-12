@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
-import type { AddApplication, AddTheme, ApplicationCustomizeFormData, ApplicationResp, ThemeFormData, UpdateApplication } from "../../../../resources/types/applicationTypes";
+import type { AddApplication, AddTheme, ApplicationCustomizeFormData, ApplicationResp, ThemeFormData, ThemeResp, UpdateApplication } from "../../../../resources/types/applicationTypes";
 
 type Tab = "applications" | "themes" | "appearance";
 
@@ -40,7 +40,7 @@ const CustomizePage: React.FC = () => {
     const [themeFormData, setThemeFormData] = useState<ThemeFormData>({
         ThemeCode: "",
         ThemeName: "",
-        ThemeConfig: {},
+        ThemeConfig: [],
     });
     const [editingThemeId, setEditingThemeId] = useState<number | null>(null);
 
@@ -68,28 +68,6 @@ const CustomizePage: React.FC = () => {
         applicationContext?.fetchThemes();
     }, []);
 
-    useEffect(() => {
-        const appThemes = applicationContext?.applications
-            .map((app) => app.Theme)
-            .filter((theme): theme is NonNullable<typeof theme> => Boolean(theme))
-            .map((theme) => ({
-                ThemeId: theme.ThemeId,
-                ThemeCode: theme.ThemeCode,
-                ThemeName: theme.ThemeName,
-                ThemeConfig: {},
-            })) ?? [];
-
-        setThemes((prev) => {
-            const merged = [...prev];
-            appThemes.forEach((theme) => {
-                const exists = merged.some((m) => m.ThemeCode === theme.ThemeCode);
-                if (!exists) {
-                    merged.push(theme);
-                }
-            });
-            return merged;
-        });
-    }, [applicationContext?.applications]);
 
     // ===== APPLICATION HANDLERS =====
     const handleAddApp = async () => {
@@ -322,13 +300,19 @@ const CustomizePage: React.FC = () => {
         setThemeFormData({
             ThemeCode: "",
             ThemeName: "",
-            ThemeConfig: {},
+            ThemeConfig: [],
         });
         setEditingThemeId(null);
     };
 
-    const openEditThemeModal = (theme: ThemeFormData) => {
-        setThemeFormData(theme);
+    const openEditThemeModal = (theme: ThemeResp) => {
+
+        const newThemeFormData: ThemeFormData = {
+            ThemeCode: theme.ThemeCode || "",
+            ThemeName: theme.ThemeName || "",
+            ThemeConfig: theme.ThemeConfig || [],
+        };
+        setThemeFormData(newThemeFormData);
         setEditingThemeId(theme.ThemeId || null);
         setShowAddThemeModal(true);
     };
@@ -501,12 +485,12 @@ const CustomizePage: React.FC = () => {
                         </div>
                     </div>
 
-                    {themes.length === 0 ? (
+                    {applicationContext?.themes.length === 0 ? (
                         <div className="bg-white border border-gray-200 rounded-xl p-6 text-center text-gray-500">
                             No themes available.
                         </div>
                     ) : (
-                        themes.map((theme) => (
+                        applicationContext?.themes.map((theme) => (
                             <div key={theme.ThemeId} className="bg-white border border-gray-200 rounded-xl p-4">
                                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                     <div className="flex-1">

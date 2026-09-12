@@ -52,12 +52,12 @@ const Application: React.FC = () => {
 
         try {
             const payload: AddApplication = {
-                ApplicationName: formData.ApplicationName,
-                ApplicationLogo: formData.ApplicationLogo || "",
-                ApplicationImage: formData.ApplicationImage || "",
-                ThemeColors: Array.isArray(formData.ThemeColors) ? formData.ThemeColors.join(',') : formData.ThemeColors || "",
-                DefaultFontsize: formData.DefaultFontsize || "14",
-                ThemeCode: formData.ThemeCode,
+                application_name: formData.ApplicationName,
+                application_logo: formData.ApplicationLogo || "",
+                application_image: formData.ApplicationImage || "",
+                theme_colors: Array.isArray(formData.ThemeColors) ? formData.ThemeColors.join(',') : formData.ThemeColors || "",
+                default_fontsize: formData.DefaultFontsize || "14",
+                theme_code: formData.ThemeCode,
             };
 
             const response = await applicationService.addApplication(payload);
@@ -84,13 +84,13 @@ const Application: React.FC = () => {
 
         try {
             const payload: UpdateApplication = {
-                ApplicationName: formData.ApplicationName,
-                ApplicationLogo: formData.ApplicationLogo || "",
-                ApplicationImage: formData.ApplicationImage || "",
-                ThemeColors: Array.isArray(formData.ThemeColors) ? formData.ThemeColors.join(',') : formData.ThemeColors || "",
-                DefaultFontsize: formData.DefaultFontsize || "14",
-                ThemeCode: formData.ThemeCode,
-                UpdatedBy: parseInt(sessionStorage.getItem('userId') || '0'),
+                application_name: formData.ApplicationName,
+                application_logo: formData.ApplicationLogo || "",
+                application_image: formData.ApplicationImage || "",
+                theme_colors: Array.isArray(formData.ThemeColors) ? formData.ThemeColors.join(',') : formData.ThemeColors || "",
+                default_fontsize: formData.DefaultFontsize || "14",
+                theme_code: formData.ThemeCode,
+                updated_by: parseInt(sessionStorage.getItem('userId') || '0'),
             };
 
             const response = await applicationService.updateApplication(editingAppId || '', payload);

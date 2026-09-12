@@ -97,31 +97,33 @@ const CustomizePage: React.FC = () => {
             return;
         }
 
-        // Here you would call your API to add the application
-        console.log("Adding application:", appFormData);
-        if(appFormData.ApplicationImage) {
-            // Call your API to upload the application image here
-            console.log("Uploading application image:", appFormData.ApplicationImage);
-            const resp = await applicationContext?.uploadSystemImage(appFormImages.ApplicationImage!, "brand");
-            console.log("Upload response:", resp);
-            if(resp?.Success) {
-                setAppFormData({...appFormData, ApplicationImage: resp.Result ?? ""});
+        let uploadedApplicationImage = appFormData.ApplicationImage ?? "";
+        let uploadedApplicationLogo = appFormData.ApplicationLogo ?? "";
+
+        if (appFormImages.ApplicationImage) {
+            const imageResp = await applicationContext?.uploadSystemImage(appFormImages.ApplicationImage, "brand");
+            if (!imageResp?.Success || !imageResp.Result) {
+                setError(imageResp?.StatusDesc ?? "Failed to upload application image");
+                setShowError(true);
+                return;
             }
+            uploadedApplicationImage = imageResp.Result;
         }
-        if(appFormData.ApplicationLogo) {
-            // Call your API to upload the application logo here
-            console.log("Uploading application logo:", appFormData.ApplicationLogo);
-            const resp = await applicationContext?.uploadSystemImage(appFormImages.ApplicationLogo!, "brand");
-            console.log("Upload response:", resp);
-            if(resp?.Success) {
-                setAppFormData({...appFormData, ApplicationLogo: resp.Result ?? ""});
+
+        if (appFormImages.ApplicationLogo) {
+            const logoResp = await applicationContext?.uploadSystemImage(appFormImages.ApplicationLogo, "brand");
+            if (!logoResp?.Success || !logoResp.Result) {
+                setError(logoResp?.StatusDesc ?? "Failed to upload application logo");
+                setShowError(true);
+                return;
             }
+            uploadedApplicationLogo = logoResp.Result;
         }
 
         const payload: AddApplication = {
             ApplicationName: appFormData.ApplicationName,
-            ApplicationLogo: appFormData.ApplicationLogo ?? "",
-            ApplicationImage: appFormData.ApplicationImage ?? "",
+            ApplicationLogo: uploadedApplicationLogo,
+            ApplicationImage: uploadedApplicationImage,
             ThemeColors: (appFormData.ThemeColors ?? []).join(","),
             DefaultFontsize: appFormData.DefaultFontsize ?? "14",
             ThemeCode: appFormData.ThemeCode,
@@ -150,10 +152,33 @@ const CustomizePage: React.FC = () => {
             return;
         }
 
+        let uploadedApplicationImage = appFormData.ApplicationImage ?? "";
+        let uploadedApplicationLogo = appFormData.ApplicationLogo ?? "";
+
+        if (appFormImages.ApplicationImage) {
+            const imageResp = await applicationContext?.uploadSystemImage(appFormImages.ApplicationImage, "brand");
+            if (!imageResp?.Success || !imageResp.Result) {
+                setError(imageResp?.StatusDesc ?? "Failed to upload application image");
+                setShowError(true);
+                return;
+            }
+            uploadedApplicationImage = imageResp.Result;
+        }
+
+        if (appFormImages.ApplicationLogo) {
+            const logoResp = await applicationContext?.uploadSystemImage(appFormImages.ApplicationLogo, "brand");
+            if (!logoResp?.Success || !logoResp.Result) {
+                setError(logoResp?.StatusDesc ?? "Failed to upload application logo");
+                setShowError(true);
+                return;
+            }
+            uploadedApplicationLogo = logoResp.Result;
+        }
+
         const payload: UpdateApplication = {
             ApplicationName: appFormData.ApplicationName,
-            ApplicationLogo: appFormData.ApplicationLogo ?? "",
-            ApplicationImage: appFormData.ApplicationImage ?? "",
+            ApplicationLogo: uploadedApplicationLogo,
+            ApplicationImage: uploadedApplicationImage,
             ThemeColors: (appFormData.ThemeColors ?? []).join(","),
             DefaultFontsize: appFormData.DefaultFontsize ?? "14",
             ThemeCode: appFormData.ThemeCode,

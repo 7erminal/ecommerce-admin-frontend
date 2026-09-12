@@ -9,7 +9,7 @@ const Application: React.FC = () => {
     const [showSettings, setShowSettings] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [editingAppId, setEditingAppId] = useState<number | null>(null);
+    const [editingAppId, setEditingAppId] = useState<string | null>(null);
 
     const [formData, setFormData] = useState<ApplicationFormData>({
         ApplicationCode: "",
@@ -95,7 +95,7 @@ const Application: React.FC = () => {
                 UpdatedBy: parseInt(sessionStorage.getItem('userId') || '0'),
             };
 
-            const response = await applicationService.updateApplication(editingAppId?.toString() || '', payload);
+            const response = await applicationService.updateApplication(editingAppId || '', payload);
             console.log('[handleUpdateApplication] Response:', response);
 
             if (response.Success) {
@@ -112,13 +112,13 @@ const Application: React.FC = () => {
         }
     };
 
-    const handleDeleteApplication = async (appId: number | undefined) => {
+    const handleDeleteApplication = async (appId: string | undefined) => {
         if (!appId) return;
 
         if (!window.confirm("Are you sure you want to delete this application?")) return;
 
         try {
-            const response = await applicationService.deleteApplication(appId.toString());
+            const response = await applicationService.deleteApplication(appId);
             console.log('[handleDeleteApplication] Response:', response);
 
             if (response.Success) {

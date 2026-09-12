@@ -535,6 +535,17 @@ export type ApplicationContextProps = {
   setIdTypes: Dispatch<React.SetStateAction<Array<IdType>>>
   fetchIdTypes: ()=> Promise<void>
   uploadSystemImage: (file: File, systemName: string) => Promise<SystemImageUploadResponseDTO>
+  applications: Array<ApplicationResp>
+  setApplications: Dispatch<React.SetStateAction<Array<ApplicationResp>>>
+  selectedApplication: ApplicationResp | null
+  setSelectedApplication: Dispatch<React.SetStateAction<ApplicationResp | null>>
+  fetchApplications: () => Promise<any>
+  updateApplication: (id: string, payload: UpdateApplication) => Promise<ApplicationResponseDTO>
+  updateApplicationTheme: (id: string, payload: UpdateApplicationThemePayload) => Promise<ApplicationResponseDTO>
+  deleteApplication: (id: string) => Promise<StringResponseDTO>
+  addApplication: (payload: AddApplication) => Promise<ApplicationResponseDTO>
+  addTheme: (payload: AddTheme) => Promise<ThemeResponseDTO>
+  removeTheme: (id: string) => Promise<ThemeResponseDTO>
 }
 
 export interface RegisterParams {
@@ -900,6 +911,42 @@ export type ThemeResp = {
   Active?: number
 }
 
+export type AddTheme = {
+  ThemeCode: string
+  ThemeName: string
+}
+
+export type UpdateApplicationThemePayload = {
+  ThemeCode: string
+}
+
+export type ThemeResponseDTO = {
+  Success: boolean
+  Result: ThemeResp | null
+  StatusDesc: string
+}
+
+export type ThemeFormData = {
+  ThemeId?: number
+  ThemeCode: string
+  ThemeName: string
+  ThemeConfig?: Record<string, unknown>
+}
+
+export type ApplicationCustomizeFormData = {
+  ApplicationId?: number
+  ApplicationCode: string
+  ApplicationName: string
+  ApplicationLogo?: string
+  ApplicationImage?: string
+  ThemeColors?: string[]
+  DefaultFontsize?: string
+  ThemeCode: string
+  DateCreated?: string
+  DateModified?: string
+  Active?: number
+}
+
 export type ApplicationFormData = {
   ApplicationCode: string
   ApplicationName: string
@@ -911,7 +958,7 @@ export type ApplicationFormData = {
 }
 
 export type ApplicationResp = {
-  ApplicationId?: number
+  ApplicationId?: string
   ApplicationCode: string
   ApplicationName: string
   ApplicationLogo: string

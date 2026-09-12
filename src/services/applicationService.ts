@@ -1,6 +1,6 @@
 import Api from '../../resources/apis';
 import { API_ENDPOINTS } from '../config/api.config';
-import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication, SystemImageUploadResponseDTO } from '../../resources/types/applicationTypes';
+import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication, SystemImageUploadResponseDTO, AddTheme, ThemeResponseDTO, UpdateApplicationThemePayload } from '../../resources/types/applicationTypes';
 
 class ApplicationService {
   /**
@@ -203,6 +203,12 @@ class ApplicationService {
       return response.data;
     }
 
+    async updateApplicationTheme(id: string, payload: UpdateApplicationThemePayload): Promise<ApplicationResponseDTO> {
+      const response = await Api.PUT_<ApplicationResponseDTO>(API_ENDPOINTS.APPLICATIONS.UPDATE_THEME(id), payload);
+      console.log('[updateApplicationTheme] Response:', response.data);
+      return response.data;
+    }
+
     async fetchApplication(id: string): Promise<ApplicationResponseDTO> {
         const response = await Api.GET_<ApplicationResponseDTO>(API_ENDPOINTS.APPLICATIONS.GET_BY_ID(id));
         console.log('[fetchApplication] Response:', response.data);
@@ -212,6 +218,18 @@ class ApplicationService {
     async deleteApplication(id: string): Promise<StringResponseDTO> {
       const response = await Api.DELETE<StringResponseDTO>(API_ENDPOINTS.APPLICATIONS.DELETE_APPLICATION(id), { Id: id });
       console.log('[deleteApplication] Response:', response.data);
+      return response.data;
+    }
+
+    async addTheme(payload: AddTheme): Promise<ThemeResponseDTO> {
+      const response = await Api.POST_<ThemeResponseDTO>(API_ENDPOINTS.THEMES.ADD_THEME, payload);
+      console.log('[addTheme] Response:', response.data);
+      return response.data;
+    }
+
+    async removeTheme(id: string): Promise<ThemeResponseDTO> {
+      const response = await Api.DELETE<ThemeResponseDTO>(API_ENDPOINTS.THEMES.REMOVE_THEME(id), { Id: id });
+      console.log('[removeTheme] Response:', response.data);
       return response.data;
     }
 }

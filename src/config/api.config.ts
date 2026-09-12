@@ -36,6 +36,11 @@ export const API_ENDPOINTS = {
     ADD_APPLICATION: '/v1/system/add-application',
     DELETE_APPLICATION: (id: string) => `/v1/system/delete-application/${id}`,
     UPDATE_APPLICATION: (id: string) => `/v1/system/update-application/${id}`,
+    UPDATE_THEME: (id: string) => `/v1/system/update-application-theme/${id}`,
+  },
+  THEMES: {
+    ADD_THEME: '/v1/system/add-theme',
+    REMOVE_THEME: (id: string) => `/v1/system/remove-theme/${id}`,
   },
   FEATURES: {
     GET_ALL: '/v1/items/get-features',

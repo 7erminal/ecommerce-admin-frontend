@@ -1,27 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import ApplicationContext from "../../../../resources/providers/ApplicationContext";
+import type { AddApplication, AddTheme, ApplicationCustomizeFormData, ApplicationResp, ThemeFormData, UpdateApplication } from "../../../../resources/types/applicationTypes";
 
 type Tab = "applications" | "themes" | "appearance";
-
-interface Theme {
-    ThemeId?: number;
-    ThemeCode: string;
-    ThemeName: string;
-    ThemeConfig?: Record<string, unknown>;
-}
-
-interface Application {
-    ApplicationId?: number;
-    ApplicationCode: string;
-    ApplicationName: string;
-    ApplicationLogo?: string;
-    ApplicationImage?: string;
-    ThemeColors?: string[];
-    DefaultFontsize?: string;
-    ThemeCode: string;
-    DateCreated?: string;
-    DateModified?: string;
-    Active?: number;
-}
 
 interface AppearanceSettings {
     themeColors: string[];
@@ -33,13 +14,17 @@ interface AppearanceSettings {
 }
 
 const CustomizePage: React.FC = () => {
-    // const applicationContext = useContext(ApplicationContext);
+    const applicationContext = useContext(ApplicationContext);
     const [activeTab, setActiveTab] = useState<Tab>("applications");
+
+    const [error, setError] = useState<string>("");
+    // const [success, setSuccess] = useState<string>("");
+    const [showError, setShowError] = useState<boolean>(false);
+    // const [showSuccess, setShowSuccess] = useState<boolean>(false);
     
     // Applications state
-    const [applications, setApplications] = useState<Application[]>([]);
     const [showAddAppModal, setShowAddAppModal] = useState(false);
-    const [appFormData, setAppFormData] = useState<Application>({
+    const [appFormData, setAppFormData] = useState<ApplicationCustomizeFormData>({
         ApplicationCode: "",
         ApplicationName: "",
         ApplicationLogo: "",
@@ -48,12 +33,12 @@ const CustomizePage: React.FC = () => {
         DefaultFontsize: "14",
         ThemeCode: "",
     });
-    const [editingAppId, setEditingAppId] = useState<number | null>(null);
+    const [editingAppId, setEditingAppId] = useState<string | null>(null);
 
     // Themes state
-    const [themes, setThemes] = useState<Theme[]>([]);
+    const [themes, setThemes] = useState<ThemeFormData[]>([]);
     const [showAddThemeModal, setShowAddThemeModal] = useState(false);
-    const [themeFormData, setThemeFormData] = useState<Theme>({
+    const [themeFormData, setThemeFormData] = useState<ThemeFormData>({
         ThemeCode: "",
         ThemeName: "",
         ThemeConfig: {},
@@ -70,10 +55,41 @@ const CustomizePage: React.FC = () => {
         template: "modern",
     });
     const [appearanceModified, setAppearanceModified] = useState(false);
+    const [appFormImages, setAppFormImages] = useState<{ ApplicationLogo?: File; ApplicationImage?: File }>({
+        ApplicationLogo: undefined,
+        ApplicationImage: undefined,
+    });
 
     useEffect(() => {
         document.title = "Customize";
     }, []);
+
+    useEffect(() => {
+        applicationContext?.fetchApplications();
+    }, [applicationContext]);
+
+    useEffect(() => {
+        const appThemes = applicationContext?.applications
+            .map((app) => app.Theme)
+            .filter((theme): theme is NonNullable<typeof theme> => Boolean(theme))
+            .map((theme) => ({
+                ThemeId: theme.ThemeId,
+                ThemeCode: theme.ThemeCode,
+                ThemeName: theme.ThemeName,
+                ThemeConfig: {},
+            })) ?? [];
+
+        setThemes((prev) => {
+            const merged = [...prev];
+            appThemes.forEach((theme) => {
+                const exists = merged.some((m) => m.ThemeCode === theme.ThemeCode);
+                if (!exists) {
+                    merged.push(theme);
+                }
+            });
+            return merged;
+        });
+    }, [applicationContext?.applications]);
 
     // ===== APPLICATION HANDLERS =====
     const handleAddApp = async () => {
@@ -84,13 +100,44 @@ const CustomizePage: React.FC = () => {
 
         // Here you would call your API to add the application
         console.log("Adding application:", appFormData);
-        
-        // For now, add to local state
-        const newApp: Application = {
-            ApplicationId: Date.now(),
-            ...appFormData,
+        if(appFormData.ApplicationImage) {
+            // Call your API to upload the application image here
+            console.log("Uploading application image:", appFormData.ApplicationImage);
+            const resp = await applicationContext?.uploadSystemImage(appFormImages.ApplicationImage!, "brand");
+            console.log("Upload response:", resp);
+            if(resp?.Success) {
+                setAppFormData({...appFormData, ApplicationImage: resp.Result ?? ""});
+            }
+        }
+        if(appFormData.ApplicationLogo) {
+            // Call your API to upload the application logo here
+            console.log("Uploading application logo:", appFormData.ApplicationLogo);
+            const resp = await applicationContext?.uploadSystemImage(appFormImages.ApplicationLogo!, "brand");
+            console.log("Upload response:", resp);
+            if(resp?.Success) {
+                setAppFormData({...appFormData, ApplicationLogo: resp.Result ?? ""});
+            }
+        }
+
+        const payload: AddApplication = {
+            ApplicationCode: appFormData.ApplicationCode,
+            ApplicationName: appFormData.ApplicationName,
+            ApplicationLogo: appFormData.ApplicationLogo ?? "",
+            ApplicationImage: appFormData.ApplicationImage ?? "",
+            ThemeColors: (appFormData.ThemeColors ?? []).join(","),
+            DefaultFontsize: appFormData.DefaultFontsize ?? "14",
+            ThemeCode: appFormData.ThemeCode,
         };
-        setApplications([...applications, newApp]);
+        
+        const addAppResp = await applicationContext?.addApplication(payload);
+        if(addAppResp?.Success) {
+            setError("");
+            setShowError(false);
+        } else {
+            setError(addAppResp?.StatusDesc ?? "Failed to add application");
+            setShowError(true);
+        }
+       
         resetAppForm();
         setShowAddAppModal(false);
     };
@@ -101,20 +148,53 @@ const CustomizePage: React.FC = () => {
             return;
         }
 
-        console.log("Updating application:", appFormData);
+        if (!editingAppId) {
+            return;
+        }
 
-        setApplications(applications.map(app => 
-            app.ApplicationId === editingAppId ? { ...appFormData, ApplicationId: editingAppId } : app
-        ));
+        const payload: UpdateApplication = {
+            ApplicationCode: appFormData.ApplicationCode,
+            ApplicationName: appFormData.ApplicationName,
+            ApplicationLogo: appFormData.ApplicationLogo ?? "",
+            ApplicationImage: appFormData.ApplicationImage ?? "",
+            ThemeColors: (appFormData.ThemeColors ?? []).join(","),
+            DefaultFontsize: appFormData.DefaultFontsize ?? "14",
+            ThemeCode: appFormData.ThemeCode,
+            UpdatedBy: 0,
+        };
+
+        const updateResp = await applicationContext?.updateApplication(editingAppId, payload);
+        if (!updateResp?.Success) {
+            setError(updateResp?.StatusDesc ?? "Failed to update application");
+            setShowError(true);
+            return;
+        }
+
+        const updateThemeResp = await applicationContext?.updateApplicationTheme(editingAppId, {
+            ThemeCode: appFormData.ThemeCode,
+        });
+
+        if (!updateThemeResp?.Success) {
+            setError(updateThemeResp?.StatusDesc ?? "Failed to update application theme");
+            setShowError(true);
+            return;
+        }
+
+        setError("");
+        setShowError(false);
         resetAppForm();
         setEditingAppId(null);
         setShowAddAppModal(false);
     };
 
-    const handleDeleteApp = (appId: number | undefined) => {
+    const handleDeleteApp = async (appId: string | undefined) => {
         if (!appId) return;
         if (window.confirm("Are you sure you want to delete this application?")) {
-            setApplications(applications.filter(app => app.ApplicationId !== appId));
+            const resp = await applicationContext?.deleteApplication(appId);
+            if (!resp?.Success) {
+                setError(resp?.StatusDesc ?? "Failed to delete application");
+                setShowError(true);
+            }
         }
     };
 
@@ -122,8 +202,8 @@ const CustomizePage: React.FC = () => {
         setAppFormData({
             ApplicationCode: "",
             ApplicationName: "",
-            ApplicationLogo: "",
-            ApplicationImage: "",
+            ApplicationLogo: undefined,
+            ApplicationImage: undefined,
             ThemeColors: [],
             DefaultFontsize: "14",
             ThemeCode: "",
@@ -131,8 +211,18 @@ const CustomizePage: React.FC = () => {
         setEditingAppId(null);
     };
 
-    const openEditAppModal = (app: Application) => {
-        setAppFormData(app);
+    const openEditAppModal = (app: ApplicationResp) => {
+        console.log("Opening edit modal for application:", app);
+        const appData: ApplicationCustomizeFormData = {
+            ApplicationCode: app.ApplicationCode || "",
+            ApplicationName: app.ApplicationName || "",
+            ApplicationLogo: app.ApplicationLogo,
+            ApplicationImage: app.ApplicationImage,
+            ThemeColors: typeof app.ThemeColors === 'string' ? app.ThemeColors.split(',').map(c => c.trim()) : (app.ThemeColors || []),
+            DefaultFontsize: app.DefaultFontsize || "14",
+            ThemeCode: app.Theme?.ThemeCode || "",
+        };
+        setAppFormData(appData);
         setEditingAppId(app.ApplicationId || null);
         setShowAddAppModal(true);
     };
@@ -144,13 +234,27 @@ const CustomizePage: React.FC = () => {
             return;
         }
 
-        console.log("Adding theme:", themeFormData);
+        const payload: AddTheme = {
+            ThemeCode: themeFormData.ThemeCode,
+            ThemeName: themeFormData.ThemeName,
+        };
 
-        const newTheme: Theme = {
-            ThemeId: Date.now(),
-            ...themeFormData,
+        const resp = await applicationContext?.addTheme(payload);
+        if (!resp?.Success) {
+            setError(resp?.StatusDesc ?? "Failed to add theme");
+            setShowError(true);
+            return;
+        }
+
+        const newTheme: ThemeFormData = {
+            ThemeId: resp.Result?.ThemeId,
+            ThemeCode: resp.Result?.ThemeCode ?? themeFormData.ThemeCode,
+            ThemeName: resp.Result?.ThemeName ?? themeFormData.ThemeName,
+            ThemeConfig: themeFormData.ThemeConfig,
         };
         setThemes([...themes, newTheme]);
+        setError("");
+        setShowError(false);
         resetThemeForm();
         setShowAddThemeModal(false);
     };
@@ -161,20 +265,26 @@ const CustomizePage: React.FC = () => {
             return;
         }
 
-        console.log("Updating theme:", themeFormData);
-
         setThemes(themes.map(theme =>
-            theme.ThemeId === editingThemeId ? { ...themeFormData, ThemeId: editingThemeId } : theme
+            theme.ThemeId === editingThemeId ? { ...themeFormData, ThemeId: editingThemeId ?? undefined } : theme
         ));
         resetThemeForm();
         setEditingThemeId(null);
         setShowAddThemeModal(false);
     };
 
-    const handleDeleteTheme = (themeId: number | undefined) => {
+    const handleDeleteTheme = async (themeId: number | undefined) => {
         if (!themeId) return;
         if (window.confirm("Are you sure you want to delete this theme?")) {
-            setThemes(themes.filter(theme => theme.ThemeId !== themeId));
+            const resp = await applicationContext?.removeTheme(String(themeId));
+            if (resp?.Success) {
+                setThemes(themes.filter(theme => theme.ThemeId !== themeId));
+                setError("");
+                setShowError(false);
+            } else {
+                setError(resp?.StatusDesc ?? "Failed to remove theme");
+                setShowError(true);
+            }
         }
     };
 
@@ -187,7 +297,7 @@ const CustomizePage: React.FC = () => {
         setEditingThemeId(null);
     };
 
-    const openEditThemeModal = (theme: Theme) => {
+    const openEditThemeModal = (theme: ThemeFormData) => {
         setThemeFormData(theme);
         setEditingThemeId(theme.ThemeId || null);
         setShowAddThemeModal(true);
@@ -228,6 +338,12 @@ const CustomizePage: React.FC = () => {
     // ===== RENDER =====
     return (
         <div className="flex flex-col whitespace-normal p-4">
+            {showError && (
+                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {error}
+                </div>
+            )}
+
             {/* Tabs Navigation */}
             <section className="mb-6">
                 <div className="flex gap-2 border-b border-gray-200">
@@ -292,19 +408,19 @@ const CustomizePage: React.FC = () => {
                         </div>
                     </div>
 
-                    {applications.length === 0 ? (
+                    {applicationContext?.applications.length === 0 ? (
                         <div className="bg-white border border-gray-200 rounded-xl p-6 text-center text-gray-500">
                             No applications available.
                         </div>
                     ) : (
-                        applications.map((app) => (
+                        applicationContext?.applications.map((app) => (
                             <div key={app.ApplicationId} className="bg-white border border-gray-200 rounded-xl p-4">
                                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                     <div className="flex-1">
                                         <p className="text-sm text-gray-500">Application Code</p>
                                         <h3 className="text-lg font-semibold text-gray-800">{app.ApplicationCode}</h3>
                                         <p className="text-sm text-gray-600 mt-1">{app.ApplicationName}</p>
-                                        <p className="text-xs text-gray-500 mt-1">Theme: {app.ThemeCode}</p>
+                                        <p className="text-xs text-gray-500 mt-1">Theme: {app.Theme?.ThemeCode}</p>
                                     </div>
                                     <div className="flex gap-2">
                                         <button
@@ -460,13 +576,12 @@ const CustomizePage: React.FC = () => {
 
                         {/* Banner Image */}
                         <div>
-                            <label className="text-sm text-gray-700 block">Banner Image URL</label>
+                            <label className="text-sm text-gray-700 block">Banner Image</label>
                             <input
-                                type="text"
-                                value={appearanceSettings.bannerImage}
-                                onChange={(e) => handleAppearanceChange("bannerImage", e.target.value)}
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleAppearanceChange("bannerImage", e.target.files?.[0])}
                                 className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                placeholder="https://example.com/banner.jpg"
                             />
                         </div>
 
@@ -567,24 +682,22 @@ const CustomizePage: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="text-sm text-gray-700">Application Logo URL</label>
+                                <label className="text-sm text-gray-700">Application Logo</label>
                                 <input
-                                    type="text"
-                                    value={appFormData.ApplicationLogo || ""}
-                                    onChange={(e) => setAppFormData({...appFormData, ApplicationLogo: e.target.value})}
+                                    type="file"
+                                    onChange={(e) => setAppFormImages({...appFormImages, ApplicationLogo: e.target.files?.[0] || appFormImages.ApplicationLogo})}
                                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                    placeholder="https://example.com/logo.png"
+                                    accept="image/*"
                                 />
                             </div>
 
                             <div>
-                                <label className="text-sm text-gray-700">Application Image URL</label>
+                                <label className="text-sm text-gray-700">Application Image</label>
                                 <input
-                                    type="text"
-                                    value={appFormData.ApplicationImage || ""}
-                                    onChange={(e) => setAppFormData({...appFormData, ApplicationImage: e.target.value})}
+                                    type="file"
+                                    onChange={(e) => setAppFormImages({...appFormImages, ApplicationImage: e.target.files?.[0] || appFormImages.ApplicationImage})}
                                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                    placeholder="https://example.com/image.png"
+                                    accept="image/*"
                                 />
                             </div>
 

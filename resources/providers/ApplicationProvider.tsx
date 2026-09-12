@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser } from '../types/applicationTypes';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload } from '../types/applicationTypes';
 import { API_ENDPOINTS } from '../../src/config/api.config';
 import { applicationService } from '../../src/services/applicationService';
 
@@ -28,6 +28,8 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [customers, setCustomers] = useState<Array<any>>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<any | null>(null);
   const [idTypes, setIdTypes] = useState<Array<any>>([]);
+  const [applications, setApplications] = useState<Array<ApplicationResp>>([]);
+  const [selectedApplication, setSelectedApplication] = useState<ApplicationResp | null>(null);
 
 
   const clearAll = () => {
@@ -363,6 +365,104 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }
 
+  const fetchApplications = async () => {
+    try {
+      const response = await applicationService.fetchApplications();
+      if (response.Success === true) {
+        setApplications(response.Result?.Data || []);
+      }
+      return response;
+    } catch (err) {
+      console.error('Error fetching applications: ', err);
+      setError('Failed to fetch applications');
+      return { Success: false, StatusDesc: 'Failed to fetch applications', Result: null };
+    }
+  }
+
+  const addApplication = async (payload: AddApplication) => {
+    try {
+      const response = await applicationService.addApplication(payload);
+      if (response.Success === true) {
+        await fetchApplications();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error adding application: ', err);
+      setError('Failed to add application');
+      return { Success: false, StatusDesc: 'Failed to add application', Result: null };
+    }
+  }
+
+  const updateApplication = async (id: string, payload: UpdateApplication) => {
+    try {
+      const response = await applicationService.updateApplication(id, payload);
+      if (response.Success === true) {
+        await fetchApplications();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error updating application: ', err);
+      setError('Failed to update application');
+      return { Success: false, StatusDesc: 'Failed to update application', Result: null };
+    }
+  }
+
+  const updateApplicationTheme = async (id: string, payload: UpdateApplicationThemePayload) => {
+  try {
+    const response = await applicationService.updateApplicationTheme(id, payload);
+    if (response.Success === true) {
+    await fetchApplications();
+    }
+    return response;
+  } catch (err) {
+    console.error('Error updating application theme: ', err);
+    setError('Failed to update application theme');
+    return { Success: false, StatusDesc: 'Failed to update application theme', Result: null };
+  }
+  }
+
+  const deleteApplication = async (id: string) => {
+    try {
+      const response = await applicationService.deleteApplication(id);
+      if (response.Success === true) {
+        await fetchApplications();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error deleting application: ', err);
+      setError('Failed to delete application');
+      return { Success: false, StatusDesc: 'Failed to delete application', Result: null };
+    }
+  }
+
+  const addTheme = async (payload: AddTheme) => {
+  try {
+    const response = await applicationService.addTheme(payload);
+    if (response.Success === true) {
+    await fetchApplications();
+    }
+    return response;
+  } catch (err) {
+    console.error('Error adding theme: ', err);
+    setError('Failed to add theme');
+    return { Success: false, StatusDesc: 'Failed to add theme', Result: null };
+  }
+  }
+
+  const removeTheme = async (id: string) => {
+  try {
+    const response = await applicationService.removeTheme(id);
+    if (response.Success === true) {
+    await fetchApplications();
+    }
+    return response;
+  } catch (err) {
+    console.error('Error removing theme: ', err);
+    setError('Failed to remove theme');
+    return { Success: false, StatusDesc: 'Failed to remove theme', Result: null };
+  }
+  }
+
   const deleteItem = async (id: string) => {
     try {
       const response = await applicationService.deleteItem(id);
@@ -487,6 +587,17 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         setIdTypes,
         fetchIdTypes,
         uploadSystemImage,
+        applications,
+        setApplications,
+        selectedApplication,
+        setSelectedApplication,
+        fetchApplications,
+        addApplication,
+        updateApplication,
+        updateApplicationTheme,
+        deleteApplication,
+        addTheme,
+        removeTheme,
       }}
     >
       {children}

@@ -455,7 +455,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     try {
       const response = await applicationService.addTheme(payload);
       if (response.Success === true) {
-        await fetchApplications();
+        await fetchThemes();
       }
       return response;
     } catch (err) {
@@ -469,7 +469,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     try {
       const response = await applicationService.addThemeConfig(themeId, payload);
       if (response.Success === true) {
-        await fetchApplications();
+        await fetchThemes();
       }
       return response;
     } catch (err) {
@@ -483,7 +483,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   try {
     const response = await applicationService.removeTheme(id);
     if (response.Success === true) {
-    await fetchApplications();
+    await fetchThemes();
     }
     return response;
   } catch (err) {

@@ -387,6 +387,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
       if (response.Success === true) {
         console.log("About to set themes: ", response.Result);
         setThemes(response.Result || []);
+        console.log("Themes set successfully.");
       }
       return response;
     } catch (err) {

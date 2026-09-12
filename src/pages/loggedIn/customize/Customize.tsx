@@ -65,7 +65,7 @@ const CustomizePage: React.FC = () => {
 
     useEffect(() => {
         applicationContext?.fetchApplications();
-    }, [applicationContext]);
+    }, []);
 
     useEffect(() => {
         const appThemes = applicationContext?.applications
@@ -121,12 +121,12 @@ const CustomizePage: React.FC = () => {
         }
 
         const payload: AddApplication = {
-            application_name: appFormData.ApplicationName,
-            application_logo: uploadedApplicationLogo,
-            application_image: uploadedApplicationImage,
-            theme_colors: (appFormData.ThemeColors ?? []).join(","),
-            default_fontsize: appFormData.DefaultFontsize ?? "14",
-            theme_code: appFormData.ThemeCode,
+            ApplicationName: appFormData.ApplicationName,
+            ApplicationLogo: uploadedApplicationLogo,
+            ApplicationImage: uploadedApplicationImage,
+            ThemeColors: (appFormData.ThemeColors ?? []).join(","),
+            DefaultFontsize: appFormData.DefaultFontsize ?? "14",
+            ThemeCode: appFormData.ThemeCode,
         };
         
         const addAppResp = await applicationContext?.addApplication(payload);
@@ -177,13 +177,13 @@ const CustomizePage: React.FC = () => {
         }
 
         const payload: UpdateApplication = {
-            application_name: appFormData.ApplicationName,
-            application_logo: uploadedApplicationLogo,
-            application_image: uploadedApplicationImage,
-            theme_colors: (appFormData.ThemeColors ?? []).join(","),
-            default_fontsize: appFormData.DefaultFontsize ?? "14",
-            theme_code: appFormData.ThemeCode,
-            updated_by: 0,
+            ApplicationName: appFormData.ApplicationName,
+            ApplicationLogo: uploadedApplicationLogo,
+            ApplicationImage: uploadedApplicationImage,
+            ThemeColors: (appFormData.ThemeColors ?? []).join(","),
+            DefaultFontsize: appFormData.DefaultFontsize ?? "14",
+            ThemeCode: appFormData.ThemeCode,
+            UpdatedBy: 0,
         };
 
         const updateResp = await applicationContext?.updateApplication(editingAppId, payload);
@@ -194,7 +194,7 @@ const CustomizePage: React.FC = () => {
         }
 
         const updateThemeResp = await applicationContext?.updateApplicationTheme(editingAppId, {
-            theme_code: appFormData.ThemeCode,
+            ThemeCode: appFormData.ThemeCode,
         });
 
         if (!updateThemeResp?.Success) {
@@ -256,8 +256,8 @@ const CustomizePage: React.FC = () => {
         }
 
         const payload: AddTheme = {
-            theme_code: themeFormData.ThemeCode,
-            theme_name: themeFormData.ThemeName,
+            ThemeCode: themeFormData.ThemeCode,
+            ThemeName: themeFormData.ThemeName,
         };
 
         const resp = await applicationContext?.addTheme(payload);
@@ -272,7 +272,7 @@ const CustomizePage: React.FC = () => {
 
         if (createdThemeId && hasThemeConfig) {
             const configResp = await applicationContext?.addThemeConfig(String(createdThemeId), {
-                config: JSON.stringify(themeFormData.ThemeConfig),
+                Config: JSON.stringify(themeFormData.ThemeConfig),
             });
 
             if (!configResp?.Success) {

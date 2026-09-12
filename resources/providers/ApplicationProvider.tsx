@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload } from '../types/applicationTypes';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp } from '../types/applicationTypes';
 import { API_ENDPOINTS } from '../../src/config/api.config';
 import { applicationService } from '../../src/services/applicationService';
 
@@ -30,6 +30,8 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [idTypes, setIdTypes] = useState<Array<any>>([]);
   const [applications, setApplications] = useState<Array<ApplicationResp>>([]);
   const [selectedApplication, setSelectedApplication] = useState<ApplicationResp | null>(null);
+  const [themes, setThemes] = useState<Array<ThemeResp>>([]);
+  const [selectedTheme, setSelectedTheme] = useState<ThemeResp | null>(null);
 
 
   const clearAll = () => {
@@ -379,6 +381,20 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }
 
+  const fetchThemes = async () => {
+    try {
+      const response = await applicationService.fetchThemes();
+      if (response.Success === true) {
+        setThemes(response.Result?.Data || []);
+      }
+      return response;
+    } catch (err) {
+      console.error('Error fetching themes: ', err);
+      setError('Failed to fetch themes');
+      return { Success: false, StatusDesc: 'Failed to fetch themes', Result: null };
+    }
+  }
+
   const addApplication = async (payload: AddApplication) => {
     try {
       const response = await applicationService.addApplication(payload);
@@ -613,6 +629,11 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         addTheme,
         addThemeConfig,
         removeTheme,
+        themes,
+        setThemes,
+        selectedTheme,
+        setSelectedTheme,
+        fetchThemes,
       }}
     >
       {children}

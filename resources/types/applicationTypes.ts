@@ -547,6 +547,11 @@ export type ApplicationContextProps = {
   addTheme: (payload: AddTheme) => Promise<ThemeResponseDTO>
   addThemeConfig: (themeId: string, payload: AddThemeConfigPayload) => Promise<ThemeResponseDTO>
   removeTheme: (id: string) => Promise<ThemeResponseDTO>
+  fetchThemes: () => Promise<any>
+  themes: Array<ThemeResp>
+  setThemes: Dispatch<React.SetStateAction<Array<ThemeResp>>>
+  selectedTheme: ThemeResp | null
+  setSelectedTheme: Dispatch<React.SetStateAction<ThemeResp | null>>
 }
 
 export interface RegisterParams {
@@ -902,13 +907,19 @@ export type SystemConfigsResponseDTO = {
 /**
  * Application & Theme Types
  */
+
+
+export type ThemeConfigs = {
+  ConfigId: number
+  ThemeId: number
+  ConfigKey: string
+  ConfigValue: string
+}
 export type ThemeResp = {
   ThemeId?: number
   ThemeCode: string
   ThemeName: string
-  ThemeConfig?: string
-  DateCreated?: string
-  DateModified?: string
+  ThemeConfig?: ThemeConfigs[]
   Active?: number
 }
 
@@ -989,6 +1000,17 @@ export type ApplicationsData = {
 export type ApplicationsResponseDTO = {
   Success: boolean
   Result: ApplicationsData | null
+  StatusDesc: string
+}
+
+export type ThemesData = {
+  Data: ThemeResp[]
+  Count: number
+}
+
+export type ThemesResponseDTO = {
+  Success: boolean
+  Result: ThemesData | null
   StatusDesc: string
 }
 

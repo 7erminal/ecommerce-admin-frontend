@@ -1,6 +1,6 @@
 import Api from '../../resources/apis';
 import { API_ENDPOINTS } from '../config/api.config';
-import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication, SystemImageUploadResponseDTO, AddTheme, ThemeResponseDTO, UpdateApplicationThemePayload, AddThemeConfigPayload } from '../../resources/types/applicationTypes';
+import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication, SystemImageUploadResponseDTO, AddTheme, ThemeResponseDTO, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemesResponseDTO } from '../../resources/types/applicationTypes';
 
 class ApplicationService {
   /**
@@ -188,6 +188,12 @@ class ApplicationService {
     async fetchApplications(): Promise<ApplicationsResponseDTO> {
         const response = await Api.GET_<ApplicationsResponseDTO>(API_ENDPOINTS.APPLICATIONS.GET_ALL);
         console.log('[fetchApplications] Response:', response.data);
+        return response.data;
+    }
+
+    async fetchThemes(): Promise<ThemesResponseDTO> {
+        const response = await Api.GET_<ThemesResponseDTO>(API_ENDPOINTS.THEMES.GET_ALL);
+        console.log('[fetchThemes] Response:', response.data);
         return response.data;
     }
 

@@ -39,6 +39,8 @@ export const API_ENDPOINTS = {
     UPDATE_THEME: (id: string) => `/v1/app-service/update-application-theme/${id}`,
   },
   THEMES: {
+    GET_BY_ID: (id: string) => `/v1/app-service/fetch-theme/${id}`,
+    GET_ALL: '/v1/app-service/fetch-themes',
     ADD_THEME: '/v1/app-service/add-theme',
     ADD_THEME_CONFIG: (id: string) => `/v1/app-service/add-theme-config/${id}`,
     REMOVE_THEME: (id: string) => `/v1/app-service/remove-theme/${id}`,

@@ -76,8 +76,6 @@ const CustomizePage: React.FC = () => {
             return;
         }
 
-        appFormData.EditType = "add";
-
         let uploadedApplicationImage = appFormData.ApplicationImage ?? "";
         let uploadedApplicationLogo = appFormData.ApplicationLogo ?? "";
 
@@ -217,7 +215,6 @@ const CustomizePage: React.FC = () => {
     const openEditAppModal = (app: ApplicationResp) => {
         console.log("Opening edit modal for application:", app);
         const appData: ApplicationCustomizeFormData = {
-            EditType: "update",
             ApplicationName: app.ApplicationName || "",
             ApplicationLogo: app.ApplicationLogo,
             ApplicationImage: app.ApplicationImage,
@@ -690,9 +687,9 @@ const CustomizePage: React.FC = () => {
 
                             <div>
                                 <label className="text-sm text-gray-700">Application Logo</label>
-                                {
-                                    
-                                }
+                                {appFormData.ApplicationLogo && (
+                                    <img src={appFormData.ApplicationLogo} alt="Application Logo" className="mb-2 w-20 h-20 object-cover rounded" />
+                                )}
                                 <input
                                     type="file"
                                     onChange={(e) => setAppFormImages({...appFormImages, ApplicationLogo: e.target.files?.[0] || appFormImages.ApplicationLogo})}
@@ -703,6 +700,9 @@ const CustomizePage: React.FC = () => {
 
                             <div>
                                 <label className="text-sm text-gray-700">Application Image</label>
+                                {appFormData.ApplicationImage && (
+                                    <img src={appFormData.ApplicationImage} alt="Application Image" className="mb-2 w-20 h-20 object-cover rounded" />
+                                )}
                                 <input
                                     type="file"
                                     onChange={(e) => setAppFormImages({...appFormImages, ApplicationImage: e.target.files?.[0] || appFormImages.ApplicationImage})}

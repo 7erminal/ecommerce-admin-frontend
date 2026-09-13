@@ -908,14 +908,43 @@ export type SystemConfigsResponseDTO = {
  * Application & Theme Types
  */
 
+export type ThemeConfigPersonalResp = {
+  ThemeConfigCode: string
+  ThemeProperties: string
+  ShowBanner: boolean
+  BannerImages: string
+  BorderRadius: number
+  DateCreated: string
+  DateModified: string
+  CreatedBy: number
+  ModifiedBy: number
+  Active: number
+}
 
 export type ThemeConfigs = {
+  ThemeConfigCode: string
+  ThemeProperties: string
+  DateCreated: string
+  DateModified: string
+  CreatedBy: number
+  ModifiedBy: number
+  Active: number
+}
+export type ThemePersonalConfigs = {
   ConfigId: number
   ThemeId: number
   ConfigKey: string
   ConfigValue: string
 }
 export type ThemeResp = {
+  ThemeId?: number
+  ThemeCode: string
+  ThemeName: string
+  ThemeConfig?: ThemeConfigs[]
+  Active?: number
+}
+
+export type ThemePersonalResp = {
   ThemeId?: number
   ThemeCode: string
   ThemeName: string
@@ -983,7 +1012,7 @@ export type ApplicationResp = {
   DateCreated?: string
   DateModified?: string
   Active?: number
-  Theme?: ThemeResp
+  Theme?: ThemePersonalResp
 }
 
 export type ApplicationResponseDTO = {

@@ -960,6 +960,7 @@ export type ApplicationCustomizeFormData = {
   DateCreated?: string
   DateModified?: string
   Active?: number
+  EditType?: string
 }
 
 export type ApplicationFormData = {

@@ -76,6 +76,8 @@ const CustomizePage: React.FC = () => {
             return;
         }
 
+        appFormData.EditType = "add";
+
         let uploadedApplicationImage = appFormData.ApplicationImage ?? "";
         let uploadedApplicationLogo = appFormData.ApplicationLogo ?? "";
 
@@ -215,6 +217,7 @@ const CustomizePage: React.FC = () => {
     const openEditAppModal = (app: ApplicationResp) => {
         console.log("Opening edit modal for application:", app);
         const appData: ApplicationCustomizeFormData = {
+            EditType: "update",
             ApplicationName: app.ApplicationName || "",
             ApplicationLogo: app.ApplicationLogo,
             ApplicationImage: app.ApplicationImage,
@@ -687,6 +690,9 @@ const CustomizePage: React.FC = () => {
 
                             <div>
                                 <label className="text-sm text-gray-700">Application Logo</label>
+                                {
+                                    
+                                }
                                 <input
                                     type="file"
                                     onChange={(e) => setAppFormImages({...appFormImages, ApplicationLogo: e.target.files?.[0] || appFormImages.ApplicationLogo})}

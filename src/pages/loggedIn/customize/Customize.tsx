@@ -100,6 +100,25 @@ const CustomizePage: React.FC = () => {
         applicationContext?.setSelectedApplication(selectedApp ?? null);
     };
 
+    useEffect(() => {
+        if (!selectedAppearanceApplication) {
+            return;
+        }
+
+        const themeColors = selectedAppearanceApplication.ThemeColors
+            ? selectedAppearanceApplication.ThemeColors.split(",").map((color) => color.trim()).filter(Boolean)
+            : [];
+
+        setAppearanceSettings((prev) => ({
+            ...prev,
+            themeColors,
+            defaultFontSize: selectedAppearanceApplication.DefaultFontsize?.toString() ?? "14",
+            showBanners: selectedAppearanceApplication.Theme?.ThemeConfig?.[0]?.ShowBanner ?? true,
+            borderRadius: selectedAppearanceApplication.Theme?.ThemeConfig?.[0]?.BorderRadius?.toString() ?? "8",
+        }));
+        setAppearanceModified(false);
+    }, [selectedAppearanceApplication?.ApplicationId]);
+
 
     // ===== APPLICATION HANDLERS =====
     const handleAddApp = async () => {
@@ -599,7 +618,7 @@ const CustomizePage: React.FC = () => {
                         <div>
                             <h3 className="text-lg font-semibold text-gray-800 mb-4">Theme Colors</h3>
                             <div className="space-y-3">
-                                {selectedAppearanceApplication.ThemeColors.split(',').map((color, index) => (
+                                {appearanceSettings.themeColors.map((color, index) => (
                                     <div key={index} className="flex items-center gap-3">
                                         <div className="flex items-center gap-2 flex-1">
                                             <label className="text-sm text-gray-700">Color {index + 1}</label>
@@ -645,7 +664,7 @@ const CustomizePage: React.FC = () => {
                                 type="number"
                                 min={10}
                                 max={32}
-                                defaultValue={selectedAppearanceApplication.DefaultFontsize?.toString() ?? 14}
+                                value={appearanceSettings.defaultFontSize}
                                 onChange={(e) => handleAppearanceChange("defaultFontSize", e.target.value)}
                                 className="mt-1 w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             />
@@ -668,7 +687,7 @@ const CustomizePage: React.FC = () => {
                             <label className="text-sm text-gray-700">Show Banners</label>
                             <input
                                 type="checkbox"
-                                checked={selectedAppearanceApplication.Theme?.ThemeConfig?.[0]?.ShowBanner ?? false}
+                                checked={appearanceSettings.showBanners}
                                 onChange={(e) => handleAppearanceChange("showBanners", e.target.checked)}
                                 className="w-5 h-5 rounded cursor-pointer"
                             />
@@ -681,7 +700,7 @@ const CustomizePage: React.FC = () => {
                                 type="number"
                                 min={0}
                                 max={50}
-                                defaultValue={selectedAppearanceApplication.Theme?.ThemeConfig?.[0]?.BorderRadius?.toString() ?? 8}
+                                value={appearanceSettings.borderRadius}
                                 onChange={(e) => handleAppearanceChange("borderRadius", e.target.value)}
                                 className="mt-1 w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             />

@@ -931,10 +931,13 @@ export type ThemeConfigs = {
   Active: number
 }
 export type ThemePersonalConfigs = {
-  ConfigId: number
-  ThemeId: number
-  ConfigKey: string
-  ConfigValue: string
+  ThemeConfigCode: string
+  ThemeProperties: string
+  DateCreated: string
+  DateModified: string
+  CreatedBy: number
+  ModifiedBy: number
+  Active: number
 }
 export type ThemeResp = {
   ThemeId?: number
@@ -948,7 +951,7 @@ export type ThemePersonalResp = {
   ThemeId?: number
   ThemeCode: string
   ThemeName: string
-  ThemeConfig?: ThemeConfigs[]
+  ThemeConfig?: ThemeConfigPersonalResp[]
   Active?: number
 }
 

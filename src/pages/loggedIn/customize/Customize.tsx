@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
+import AuthContext from "../../../../resources/providers/AuthContext";
 import type { AddApplication, AddTheme, ApplicationCustomizeFormData, ApplicationResp, ThemeFormData, ThemeResp, UpdateApplication } from "../../../../resources/types/applicationTypes";
 
 type Tab = "applications" | "themes" | "appearance";
@@ -15,6 +16,7 @@ interface AppearanceSettings {
 
 const CustomizePage: React.FC = () => {
     const applicationContext = useContext(ApplicationContext);
+    const authContext = useContext(AuthContext);
     const [activeTab, setActiveTab] = useState<Tab>("applications");
 
     const [error, setError] = useState<string>("");
@@ -59,6 +61,9 @@ const CustomizePage: React.FC = () => {
         ApplicationImage: undefined,
     });
 
+    const isSuperAdmin = (authContext?.currentUser?.role ?? "").toUpperCase() === "SUPER_ADMIN";
+    const selectedAppearanceApplication = applicationContext?.selectedApplication ?? null;
+
     useEffect(() => {
         document.title = "Customize";
     }, []);
@@ -67,6 +72,33 @@ const CustomizePage: React.FC = () => {
         applicationContext?.fetchApplications();
         applicationContext?.fetchThemes();
     }, []);
+
+    useEffect(() => {
+        const apps = applicationContext?.applications ?? [];
+        if (apps.length === 0) {
+            applicationContext?.setSelectedApplication(null);
+            return;
+        }
+
+        const selectedId = applicationContext?.selectedApplication?.ApplicationId;
+        const selectedExists = apps.some((app) => app.ApplicationId === selectedId);
+
+        if (!selectedExists) {
+            applicationContext?.setSelectedApplication(apps[0]);
+        }
+    }, [applicationContext?.applications, applicationContext?.selectedApplication?.ApplicationId]);
+
+    const handleSelectAppearanceApplication = (applicationId: string) => {
+        if (!isSuperAdmin) {
+            return;
+        }
+
+        const selectedApp = (applicationContext?.applications ?? []).find(
+            (app) => String(app.ApplicationId) === applicationId,
+        );
+
+        applicationContext?.setSelectedApplication(selectedApp ?? null);
+    };
 
 
     // ===== APPLICATION HANDLERS =====
@@ -531,12 +563,43 @@ const CustomizePage: React.FC = () => {
                         </div>
                     </div>
 
+                    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-800">Application</h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {isSuperAdmin
+                                    ? "Select an application to configure appearance settings."
+                                    : "Your application is selected by default. Only SUPER_ADMIN can change it."}
+                            </p>
+                        </div>
+                        <select
+                            value={selectedAppearanceApplication?.ApplicationId ?? ""}
+                            onChange={(e) => handleSelectAppearanceApplication(e.target.value)}
+                            disabled={!isSuperAdmin}
+                            className="w-full max-w-md rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white disabled:bg-gray-100 disabled:text-gray-500"
+                        >
+                            <option value="">Select an application</option>
+                            {(applicationContext?.applications ?? []).map((app) => (
+                                <option key={app.ApplicationId} value={app.ApplicationId}>
+                                    {app.ApplicationName}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {!selectedAppearanceApplication && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+                            Select an application to view and edit appearance settings.
+                        </div>
+                    )}
+
+                    {selectedAppearanceApplication && (
                     <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-6">
                         {/* Theme Colors */}
                         <div>
                             <h3 className="text-lg font-semibold text-gray-800 mb-4">Theme Colors</h3>
                             <div className="space-y-3">
-                                {appearanceSettings.themeColors.map((color, index) => (
+                                {selectedAppearanceApplication.ThemeColors.split(',').map((color, index) => (
                                     <div key={index} className="flex items-center gap-3">
                                         <div className="flex items-center gap-2 flex-1">
                                             <label className="text-sm text-gray-700">Color {index + 1}</label>
@@ -582,7 +645,7 @@ const CustomizePage: React.FC = () => {
                                 type="number"
                                 min={10}
                                 max={32}
-                                value={appearanceSettings.defaultFontSize}
+                                defaultValue={selectedAppearanceApplication.DefaultFontsize?.toString() ?? 14}
                                 onChange={(e) => handleAppearanceChange("defaultFontSize", e.target.value)}
                                 className="mt-1 w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             />
@@ -590,11 +653,12 @@ const CustomizePage: React.FC = () => {
 
                         {/* Banner Image */}
                         <div>
-                            <label className="text-sm text-gray-700 block">Banner Image</label>
+                            <label className="text-sm text-gray-700 block">Banner Image(s)</label>
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => handleAppearanceChange("bannerImage", e.target.files?.[0])}
+                                multiple
+                                onChange={(e) => handleAppearanceChange("bannerImage", e.target.files ?? [])}
                                 className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             />
                         </div>
@@ -604,7 +668,7 @@ const CustomizePage: React.FC = () => {
                             <label className="text-sm text-gray-700">Show Banners</label>
                             <input
                                 type="checkbox"
-                                checked={appearanceSettings.showBanners}
+                                checked={selectedAppearanceApplication.Theme?.ThemeConfig?.[0]?.ShowBanner ?? false}
                                 onChange={(e) => handleAppearanceChange("showBanners", e.target.checked)}
                                 className="w-5 h-5 rounded cursor-pointer"
                             />
@@ -617,7 +681,7 @@ const CustomizePage: React.FC = () => {
                                 type="number"
                                 min={0}
                                 max={50}
-                                value={appearanceSettings.borderRadius}
+                                defaultValue={selectedAppearanceApplication.Theme?.ThemeConfig?.[0]?.BorderRadius?.toString() ?? 8}
                                 onChange={(e) => handleAppearanceChange("borderRadius", e.target.value)}
                                 className="mt-1 w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm"
                             />
@@ -658,6 +722,7 @@ const CustomizePage: React.FC = () => {
                             </button>
                         </div>
                     </div>
+                    )}
                 </section>
             )}
 

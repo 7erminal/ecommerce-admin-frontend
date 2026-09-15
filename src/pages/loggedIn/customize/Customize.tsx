@@ -617,6 +617,24 @@ const CustomizePage: React.FC = () => {
                         {/* Theme Colors */}
                         <div>
                             <h3 className="text-lg font-semibold text-gray-800 mb-4">Theme Colors</h3>
+                            <div className="mb-3">
+                                <p className="text-xs text-gray-500 mb-2">Current saved colors</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedAppearanceApplication.ThemeColors.split(",").map((color, index) => {
+                                        const trimmedColor = color.trim();
+                                        return (
+                                            <span
+                                                key={`saved-color-${index}`}
+                                                className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
+                                            >
+                                                <span className="inline-block h-3 w-3 rounded-full border border-gray-300" style={{ backgroundColor: trimmedColor }} />
+                                                {trimmedColor}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 mb-2">Edit colors (preview before save)</p>
                             <div className="space-y-3">
                                 {appearanceSettings.themeColors.map((color, index) => (
                                     <div key={index} className="flex items-center gap-3">

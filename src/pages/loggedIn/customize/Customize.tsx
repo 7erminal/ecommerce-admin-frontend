@@ -514,6 +514,8 @@ const CustomizePage: React.FC = () => {
     };
 
     const handleAddBranch = async () => {
+        const userId = authContext?.user?.id;
+        setBranchFormData((prev) => ({ ...prev, BranchManager: Number(userId) || 0 }))
         if (!branchFormData.Branch.trim() || !branchFormData.CountryCode.trim()) {
             setError("Branch name and country code are required");
             setShowError(true);
@@ -1580,7 +1582,7 @@ const CustomizePage: React.FC = () => {
                                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                                 />
                             </div>
-                            <div>
+                            {/* <div>
                                 <label className="text-sm text-gray-700">Branch Manager User ID</label>
                                 <input
                                     type="number"
@@ -1588,7 +1590,7 @@ const CustomizePage: React.FC = () => {
                                     onChange={(e) => setBranchFormData((prev) => ({ ...prev, BranchManager: Number(e.target.value) || 0 }))}
                                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                                 />
-                            </div>
+                            </div> */}
                         </div>
 
                         <div className="mt-4 flex items-center justify-end gap-2">

@@ -552,6 +552,23 @@ export type ApplicationContextProps = {
   setThemes: Dispatch<React.SetStateAction<Array<ThemeResp>>>
   selectedTheme: ThemeResp | null
   setSelectedTheme: Dispatch<React.SetStateAction<ThemeResp | null>>
+  shops: ShopResp[]
+  setShops: Dispatch<React.SetStateAction<ShopResp[]>>
+  fetchShops: () => Promise<ShopsResponse>
+  fetchShop: (id: string) => Promise<ShopResponse>
+  addShop: (payload: ShopRequestDTO) => Promise<ShopResponse>
+  updateShop: (payload: ShopRequestDTO) => Promise<ShopResponse>
+  deleteShop: (payload: { ShopId: string }) => Promise<ShopResponse>
+  branches: BranchResp[]
+  setBranches: Dispatch<React.SetStateAction<BranchResp[]>>
+  fetchBranches: () => Promise<BranchesResponseDTO>
+  addBranch: (payload: BranchRequestDTO) => Promise<BranchResponseDTO>
+  updateBranch: (id: string, payload: BranchRequestDTO) => Promise<BranchResponseDTO>
+  deleteBranch: (id: string) => Promise<StringResponseDTO>
+  addShopBranch: (payload: ShopBranchRequestDTO) => Promise<ShopResponse>
+  removeShopBranch: (payload: ShopBranchRequestDTO) => Promise<ShopResponse>
+  addApplicationShop: (payload: ApplicationShopRequest) => Promise<ApplicationResponseDTO>
+  removeApplicationShop: (payload: ApplicationShopRequest) => Promise<ApplicationResponseDTO>
 }
 
 export interface RegisterParams {
@@ -1016,6 +1033,7 @@ export type ApplicationResp = {
   DateModified?: string
   Active?: number
   Theme?: ThemePersonalResp
+  Shops?: ShopResp[]
 }
 
 export type ApplicationResponseDTO = {
@@ -1063,4 +1081,96 @@ export type UpdateApplication = {
   ApplicationImage: string
   ThemeCode: string
   UpdatedBy: number
+}
+
+export type ShopRequestDTO = {
+  ShopId?: string
+  ShopName: string
+  ShopDescription: string
+  ShopAssistantName: string
+  ShopAssistantNumber: string
+  ShopLocation: string
+  PhoneNumber: string
+  Email: string
+  Image: string
+}
+
+export type ShopBranchRequestDTO = {
+  BranchId: string
+  ShopId: string
+}
+
+export type ApplicationShopRequest = {
+  ApplicationId: string
+  ShopId: string
+}
+
+export type BranchRequestDTO = {
+  Branch: string
+  CountryCode: string
+  PhoneNumber: string
+  Location: string
+  BranchManager: number
+}
+
+export type BranchResp = {
+  BranchId: number
+  Branch: string
+  Description?: string
+  Location: string
+  PhoneNumber: string
+  DateCreated?: string
+}
+
+export type BranchesData = {
+  Data: BranchResp[]
+  Count: number
+}
+
+export type BranchResponseDTO = {
+  Success: boolean
+  Result: BranchResp | null
+  StatusDesc: string
+}
+
+export type BranchesResponseDTO = {
+  Success: boolean
+  Result: BranchesData | null
+  StatusDesc: string
+}
+
+export type ShopBranchResp = {
+  ShopBranch: BranchResp
+  ShopId: string
+  BranchId: string
+}
+
+export type ShopResp = {
+  ShopId: string
+  ShopName: string
+  ShopDescription: string
+  ShopAssistantName: string
+  ShopAssistantNumber: string
+  PhoneNumber: string
+  Email: string
+  Image: string
+  ShopLocation: string
+  DateCreated?: string
+  DateModified?: string
+  CreatedBy?: number
+  ModifiedBy?: number
+  Active?: number
+  ShopBranches: ShopBranchResp[]
+}
+
+export type ShopResponse = {
+  Success: boolean
+  StatusDesc: string
+  Result: ShopResp | null
+}
+
+export type ShopsResponse = {
+  Success: boolean
+  StatusDesc: string
+  Result: ShopResp[]
 }

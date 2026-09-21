@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
 import AuthContext from "../../../../resources/providers/AuthContext";
-import type { AddApplication, AddTheme, ApplicationCustomizeFormData, ApplicationResp, ThemeFormData, ThemeResp, UpdateApplication } from "../../../../resources/types/applicationTypes";
+import type { AddApplication, AddTheme, ApplicationCustomizeFormData, ApplicationResp, BranchRequestDTO, ShopRequestDTO, ThemeFormData, ThemeResp, UpdateApplication } from "../../../../resources/types/applicationTypes";
 
 type Tab = "applications" | "themes" | "appearance";
 
@@ -35,6 +35,34 @@ const CustomizePage: React.FC = () => {
         ThemeCode: "",
     });
     const [editingAppId, setEditingAppId] = useState<string | null>(null);
+    const [expandedShopId, setExpandedShopId] = useState<string | null>(null);
+    const [shopBranchSelection, setShopBranchSelection] = useState<Record<string, string>>({});
+    const [shopFormData, setShopFormData] = useState<ShopRequestDTO>({
+        ShopId: "",
+        ShopName: "",
+        ShopDescription: "",
+        ShopAssistantName: "",
+        ShopAssistantNumber: "",
+        ShopLocation: "",
+        PhoneNumber: "",
+        Email: "",
+        Image: "",
+    });
+    const [editingShopId, setEditingShopId] = useState<string | null>(null);
+    const [showShopModal, setShowShopModal] = useState(false);
+    const [branchFormData, setBranchFormData] = useState<BranchRequestDTO>({
+        Branch: "",
+        CountryCode: "",
+        PhoneNumber: "",
+        Location: "",
+        BranchManager: 0,
+    });
+    const [editingBranchId, setEditingBranchId] = useState<string | null>(null);
+    const [showBranchModal, setShowBranchModal] = useState(false);
+    const [appShopFormData, setAppShopFormData] = useState<{ ApplicationId: string; ShopId: string }>({
+        ApplicationId: "",
+        ShopId: "",
+    });
 
     // Themes state
     const [themes, setThemes] = useState<ThemeFormData[]>([]);
@@ -71,6 +99,8 @@ const CustomizePage: React.FC = () => {
     useEffect(() => {
         applicationContext?.fetchApplications();
         applicationContext?.fetchThemes();
+        applicationContext?.fetchShops();
+        applicationContext?.fetchBranches();
     }, []);
 
     useEffect(() => {
@@ -368,6 +398,236 @@ const CustomizePage: React.FC = () => {
         setShowAddThemeModal(true);
     };
 
+    // ===== SHOP & BRANCH HANDLERS =====
+    const resetShopForm = () => {
+        setShopFormData({
+            ShopId: "",
+            ShopName: "",
+            ShopDescription: "",
+            ShopAssistantName: "",
+            ShopAssistantNumber: "",
+            ShopLocation: "",
+            PhoneNumber: "",
+            Email: "",
+            Image: "",
+        });
+        setEditingShopId(null);
+    };
+
+    const openEditShopModal = (shopId: string) => {
+        const selectedShop = (applicationContext?.shops ?? []).find((shop) => shop.ShopId === shopId);
+        if (!selectedShop) {
+            return;
+        }
+        setShopFormData({
+            ShopId: selectedShop.ShopId,
+            ShopName: selectedShop.ShopName,
+            ShopDescription: selectedShop.ShopDescription,
+            ShopAssistantName: selectedShop.ShopAssistantName,
+            ShopAssistantNumber: selectedShop.ShopAssistantNumber,
+            ShopLocation: selectedShop.ShopLocation,
+            PhoneNumber: selectedShop.PhoneNumber,
+            Email: selectedShop.Email,
+            Image: selectedShop.Image,
+        });
+        setEditingShopId(selectedShop.ShopId);
+        setShowShopModal(true);
+    };
+
+    const handleAddShop = async () => {
+        if (!shopFormData.ShopName.trim()) {
+            setError("Shop name is required");
+            setShowError(true);
+            return;
+        }
+        const response = await applicationContext?.addShop(shopFormData);
+        if (!response?.Success) {
+            setError(response?.StatusDesc ?? "Failed to add shop");
+            setShowError(true);
+            return;
+        }
+        setError("");
+        setShowError(false);
+        resetShopForm();
+        setShowShopModal(false);
+    };
+
+    const handleUpdateShop = async () => {
+        if (!editingShopId) {
+            return;
+        }
+        const payload: ShopRequestDTO = {
+            ...shopFormData,
+            ShopId: editingShopId,
+        };
+        const response = await applicationContext?.updateShop(payload);
+        if (!response?.Success) {
+            setError(response?.StatusDesc ?? "Failed to update shop");
+            setShowError(true);
+            return;
+        }
+        setError("");
+        setShowError(false);
+        resetShopForm();
+        setShowShopModal(false);
+    };
+
+    const handleDeleteShop = async (shopId: string) => {
+        if (!window.confirm("Are you sure you want to delete this shop?")) {
+            return;
+        }
+        const response = await applicationContext?.deleteShop({ ShopId: shopId });
+        if (!response?.Success) {
+            setError(response?.StatusDesc ?? "Failed to delete shop");
+            setShowError(true);
+            return;
+        }
+        setError("");
+        setShowError(false);
+    };
+
+    const resetBranchForm = () => {
+        setBranchFormData({
+            Branch: "",
+            CountryCode: "",
+            PhoneNumber: "",
+            Location: "",
+            BranchManager: 0,
+        });
+        setEditingBranchId(null);
+    };
+
+    const openEditBranchModal = (branchId: string) => {
+        const selectedBranch = (applicationContext?.branches ?? []).find((branch) => String(branch.BranchId) === branchId);
+        if (!selectedBranch) {
+            return;
+        }
+        setBranchFormData({
+            Branch: selectedBranch.Branch,
+            CountryCode: "",
+            PhoneNumber: selectedBranch.PhoneNumber,
+            Location: selectedBranch.Location,
+            BranchManager: 0,
+        });
+        setEditingBranchId(branchId);
+        setShowBranchModal(true);
+    };
+
+    const handleAddBranch = async () => {
+        if (!branchFormData.Branch.trim() || !branchFormData.CountryCode.trim()) {
+            setError("Branch name and country code are required");
+            setShowError(true);
+            return;
+        }
+        const response = await applicationContext?.addBranch(branchFormData);
+        if (!response?.Success) {
+            setError(response?.StatusDesc ?? "Failed to add branch");
+            setShowError(true);
+            return;
+        }
+        setError("");
+        setShowError(false);
+        resetBranchForm();
+        setShowBranchModal(false);
+    };
+
+    const handleUpdateBranch = async () => {
+        if (!editingBranchId) {
+            return;
+        }
+        const response = await applicationContext?.updateBranch(editingBranchId, branchFormData);
+        if (!response?.Success) {
+            setError(response?.StatusDesc ?? "Failed to update branch");
+            setShowError(true);
+            return;
+        }
+        setError("");
+        setShowError(false);
+        resetBranchForm();
+        setShowBranchModal(false);
+    };
+
+    const handleDeleteBranch = async (branchId: string) => {
+        if (!window.confirm("Are you sure you want to delete this branch?")) {
+            return;
+        }
+        const response = await applicationContext?.deleteBranch(branchId);
+        if (!response?.Success) {
+            setError(response?.StatusDesc ?? "Failed to delete branch");
+            setShowError(true);
+            return;
+        }
+        setError("");
+        setShowError(false);
+    };
+
+    const handleAddBranchToShop = async (shopId: string) => {
+        const branchId = shopBranchSelection[shopId];
+        if (!branchId) {
+            setError("Select a branch to add");
+            setShowError(true);
+            return;
+        }
+
+        const response = await applicationContext?.addShopBranch({ ShopId: shopId, BranchId: branchId });
+        if (!response?.Success) {
+            setError(response?.StatusDesc ?? "Failed to add branch to shop");
+            setShowError(true);
+            return;
+        }
+
+        setShopBranchSelection((prev) => ({ ...prev, [shopId]: "" }));
+        setError("");
+        setShowError(false);
+    };
+
+    const handleRemoveBranchFromShop = async (shopId: string, branchId: string) => {
+        const response = await applicationContext?.removeShopBranch({ ShopId: shopId, BranchId: branchId });
+        if (!response?.Success) {
+            setError(response?.StatusDesc ?? "Failed to remove branch from shop");
+            setShowError(true);
+            return;
+        }
+        setError("");
+        setShowError(false);
+    };
+
+    const handleAddShopToApplication = async () => {
+        if (!appShopFormData.ApplicationId || !appShopFormData.ShopId) {
+            setError("Application and shop are required");
+            setShowError(true);
+            return;
+        }
+
+        const response = await applicationContext?.addApplicationShop(appShopFormData);
+        if (!response?.Success) {
+            setError(response?.StatusDesc ?? "Failed to add shop to application");
+            setShowError(true);
+            return;
+        }
+
+        setError("");
+        setShowError(false);
+    };
+
+    const handleRemoveShopFromApplication = async () => {
+        if (!appShopFormData.ApplicationId || !appShopFormData.ShopId) {
+            setError("Application and shop are required");
+            setShowError(true);
+            return;
+        }
+
+        const response = await applicationContext?.removeApplicationShop(appShopFormData);
+        if (!response?.Success) {
+            setError(response?.StatusDesc ?? "Failed to remove shop from application");
+            setShowError(true);
+            return;
+        }
+
+        setError("");
+        setShowError(false);
+    };
+
     // ===== APPEARANCE HANDLERS =====
     const handleAppearanceChange = (key: keyof AppearanceSettings, value: unknown) => {
         setAppearanceSettings(prev => ({
@@ -505,6 +765,195 @@ const CustomizePage: React.FC = () => {
                             </div>
                         ))
                     )}
+
+                    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-800">Application Shops</h3>
+                        <p className="text-sm text-gray-500">Add or remove a shop from an application.</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <select
+                                value={appShopFormData.ApplicationId}
+                                onChange={(e) => setAppShopFormData((prev) => ({ ...prev, ApplicationId: e.target.value }))}
+                                className="rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
+                            >
+                                <option value="">Select Application</option>
+                                {(applicationContext?.applications ?? []).map((app) => (
+                                    <option key={app.ApplicationId} value={String(app.ApplicationId)}>
+                                        {app.ApplicationName}
+                                    </option>
+                                ))}
+                            </select>
+                            <select
+                                value={appShopFormData.ShopId}
+                                onChange={(e) => setAppShopFormData((prev) => ({ ...prev, ShopId: e.target.value }))}
+                                className="rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
+                            >
+                                <option value="">Select Shop</option>
+                                {(applicationContext?.shops ?? []).map((shop) => (
+                                    <option key={shop.ShopId} value={shop.ShopId}>
+                                        {shop.ShopName}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleAddShopToApplication}
+                                    className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                >
+                                    Add Shop
+                                </button>
+                                <button
+                                    onClick={handleRemoveShopFromApplication}
+                                    className="px-4 py-2 rounded-lg border border-red-300 text-sm font-medium text-red-600 hover:bg-red-50"
+                                >
+                                    Remove Shop
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-800">Branches</h3>
+                                <p className="text-sm text-gray-500">Create, update and delete branches.</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    resetBranchForm();
+                                    setShowBranchModal(true);
+                                }}
+                                className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                                style={{ backgroundColor: "#c53030" }}
+                            >
+                                Add Branch
+                            </button>
+                        </div>
+                        {(applicationContext?.branches ?? []).length === 0 ? (
+                            <div className="rounded-lg border border-gray-200 p-4 text-sm text-gray-500">No branches found.</div>
+                        ) : (
+                            (applicationContext?.branches ?? []).map((branch) => (
+                                <div key={branch.BranchId} className="rounded-lg border border-gray-200 p-3 flex items-center justify-between gap-3">
+                                    <div>
+                                        <p className="font-medium text-gray-800">{branch.Branch}</p>
+                                        <p className="text-xs text-gray-500">{branch.Location} • {branch.PhoneNumber}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => openEditBranchModal(String(branch.BranchId))}
+                                            className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteBranch(String(branch.BranchId))}
+                                            className="px-3 py-2 rounded-lg border border-red-300 text-sm font-medium text-red-600 hover:bg-red-50"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-800">Shops</h3>
+                                <p className="text-sm text-gray-500">Select a shop to expand and manage its branches.</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    resetShopForm();
+                                    setShowShopModal(true);
+                                }}
+                                className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                                style={{ backgroundColor: "#c53030" }}
+                            >
+                                Add Shop
+                            </button>
+                        </div>
+
+                        {(applicationContext?.shops ?? []).length === 0 ? (
+                            <div className="rounded-lg border border-gray-200 p-4 text-sm text-gray-500">No shops found.</div>
+                        ) : (
+                            (applicationContext?.shops ?? []).map((shop) => {
+                                const isExpanded = expandedShopId === shop.ShopId;
+                                return (
+                                    <div key={shop.ShopId} className="rounded-lg border border-gray-200">
+                                        <button
+                                            onClick={() => setExpandedShopId(isExpanded ? null : shop.ShopId)}
+                                            className="w-full text-left p-4 flex items-center justify-between"
+                                        >
+                                            <div>
+                                                <p className="font-medium text-gray-800">{shop.ShopName}</p>
+                                                <p className="text-xs text-gray-500">{shop.ShopLocation} • {shop.PhoneNumber}</p>
+                                            </div>
+                                            <span className="text-sm text-gray-500">{isExpanded ? "Hide" : "Show"}</span>
+                                        </button>
+                                        {isExpanded && (
+                                            <div className="px-4 pb-4 space-y-3 border-t border-gray-200">
+                                                <div className="pt-3 flex gap-2">
+                                                    <button
+                                                        onClick={() => openEditShopModal(shop.ShopId)}
+                                                        className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                                    >
+                                                        Edit Shop
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteShop(shop.ShopId)}
+                                                        className="px-3 py-2 rounded-lg border border-red-300 text-sm font-medium text-red-600 hover:bg-red-50"
+                                                    >
+                                                        Delete Shop
+                                                    </button>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2">
+                                                    <select
+                                                        value={shopBranchSelection[shop.ShopId] ?? ""}
+                                                        onChange={(e) => setShopBranchSelection((prev) => ({ ...prev, [shop.ShopId]: e.target.value }))}
+                                                        className="rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
+                                                    >
+                                                        <option value="">Select branch</option>
+                                                        {(applicationContext?.branches ?? []).map((branch) => (
+                                                            <option key={branch.BranchId} value={String(branch.BranchId)}>
+                                                                {branch.Branch}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <button
+                                                        onClick={() => handleAddBranchToShop(shop.ShopId)}
+                                                        className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                                    >
+                                                        Add Branch To Shop
+                                                    </button>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <p className="text-xs text-gray-500">Assigned branches</p>
+                                                    {(shop.ShopBranches ?? []).length === 0 ? (
+                                                        <p className="text-sm text-gray-500">No branches assigned to this shop.</p>
+                                                    ) : (
+                                                        (shop.ShopBranches ?? []).map((shopBranch) => (
+                                                            <div key={`${shop.ShopId}-${shopBranch.BranchId}`} className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2">
+                                                                <span className="text-sm text-gray-700">{shopBranch.ShopBranch?.Branch ?? `Branch ${shopBranch.BranchId}`}</span>
+                                                                <button
+                                                                    onClick={() => handleRemoveBranchFromShop(shop.ShopId, shopBranch.BranchId)}
+                                                                    className="px-3 py-1 rounded-lg border border-red-300 text-xs font-medium text-red-600 hover:bg-red-50"
+                                                                >
+                                                                    Remove
+                                                                </button>
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
                 </section>
             )}
 
@@ -973,6 +1422,188 @@ const CustomizePage: React.FC = () => {
                                 style={{ backgroundColor: "#c53030" }}
                             >
                                 {editingThemeId ? "Update" : "Add"} Theme
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ADD/EDIT SHOP MODAL */}
+            {showShopModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                    <div className="bg-white w-full max-w-2xl rounded-xl border border-red-100 p-5 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-800">
+                                {editingShopId ? "Edit Shop" : "Add Shop"}
+                            </h3>
+                            <button onClick={() => setShowShopModal(false)} className="text-sm text-gray-500">Close</button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-sm text-gray-700">Shop Name</label>
+                                <input
+                                    type="text"
+                                    value={shopFormData.ShopName}
+                                    onChange={(e) => setShopFormData((prev) => ({ ...prev, ShopName: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-700">Email</label>
+                                <input
+                                    type="text"
+                                    value={shopFormData.Email}
+                                    onChange={(e) => setShopFormData((prev) => ({ ...prev, Email: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-700">Phone Number</label>
+                                <input
+                                    type="text"
+                                    value={shopFormData.PhoneNumber}
+                                    onChange={(e) => setShopFormData((prev) => ({ ...prev, PhoneNumber: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-700">Location</label>
+                                <input
+                                    type="text"
+                                    value={shopFormData.ShopLocation}
+                                    onChange={(e) => setShopFormData((prev) => ({ ...prev, ShopLocation: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-700">Assistant Name</label>
+                                <input
+                                    type="text"
+                                    value={shopFormData.ShopAssistantName}
+                                    onChange={(e) => setShopFormData((prev) => ({ ...prev, ShopAssistantName: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-700">Assistant Number</label>
+                                <input
+                                    type="text"
+                                    value={shopFormData.ShopAssistantNumber}
+                                    onChange={(e) => setShopFormData((prev) => ({ ...prev, ShopAssistantNumber: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className="text-sm text-gray-700">Description</label>
+                                <textarea
+                                    value={shopFormData.ShopDescription}
+                                    onChange={(e) => setShopFormData((prev) => ({ ...prev, ShopDescription: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className="text-sm text-gray-700">Image URL</label>
+                                <input
+                                    type="text"
+                                    value={shopFormData.Image}
+                                    onChange={(e) => setShopFormData((prev) => ({ ...prev, Image: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-4 flex items-center justify-end gap-2">
+                            <button
+                                onClick={() => setShowShopModal(false)}
+                                className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={editingShopId ? handleUpdateShop : handleAddShop}
+                                className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                                style={{ backgroundColor: "#c53030" }}
+                            >
+                                {editingShopId ? "Update" : "Add"} Shop
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ADD/EDIT BRANCH MODAL */}
+            {showBranchModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                    <div className="bg-white w-full max-w-2xl rounded-xl border border-red-100 p-5 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-800">
+                                {editingBranchId ? "Edit Branch" : "Add Branch"}
+                            </h3>
+                            <button onClick={() => setShowBranchModal(false)} className="text-sm text-gray-500">Close</button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-sm text-gray-700">Branch Name</label>
+                                <input
+                                    type="text"
+                                    value={branchFormData.Branch}
+                                    onChange={(e) => setBranchFormData((prev) => ({ ...prev, Branch: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-700">Country Code</label>
+                                <input
+                                    type="text"
+                                    value={branchFormData.CountryCode}
+                                    onChange={(e) => setBranchFormData((prev) => ({ ...prev, CountryCode: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-700">Phone Number</label>
+                                <input
+                                    type="text"
+                                    value={branchFormData.PhoneNumber}
+                                    onChange={(e) => setBranchFormData((prev) => ({ ...prev, PhoneNumber: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-700">Location</label>
+                                <input
+                                    type="text"
+                                    value={branchFormData.Location}
+                                    onChange={(e) => setBranchFormData((prev) => ({ ...prev, Location: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-700">Branch Manager User ID</label>
+                                <input
+                                    type="number"
+                                    value={branchFormData.BranchManager}
+                                    onChange={(e) => setBranchFormData((prev) => ({ ...prev, BranchManager: Number(e.target.value) || 0 }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-4 flex items-center justify-end gap-2">
+                            <button
+                                onClick={() => setShowBranchModal(false)}
+                                className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={editingBranchId ? handleUpdateBranch : handleAddBranch}
+                                className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                                style={{ backgroundColor: "#c53030" }}
+                            >
+                                {editingBranchId ? "Update" : "Add"} Branch
                             </button>
                         </div>
                     </div>

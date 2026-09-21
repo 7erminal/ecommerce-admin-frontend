@@ -1,6 +1,6 @@
 import Api from '../../resources/apis';
 import { API_ENDPOINTS } from '../config/api.config';
-import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication, SystemImageUploadResponseDTO, AddTheme, ThemeResponseDTO, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemesResponseDTO } from '../../resources/types/applicationTypes';
+import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication, SystemImageUploadResponseDTO, AddTheme, ThemeResponseDTO, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemesResponseDTO, ShopsResponse, ShopResponse, ShopRequestDTO, BranchesResponseDTO, BranchResponseDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest } from '../../resources/types/applicationTypes';
 
 class ApplicationService {
   /**
@@ -248,6 +248,84 @@ class ApplicationService {
     async removeTheme(id: string): Promise<ThemeResponseDTO> {
       const response = await Api.DELETE<ThemeResponseDTO>(API_ENDPOINTS.THEMES.REMOVE_THEME(id), { Id: id });
       console.log('[removeTheme] Response:', response.data);
+      return response.data;
+    }
+
+    async fetchShops(): Promise<ShopsResponse> {
+      const response = await Api.GET_<ShopsResponse>(API_ENDPOINTS.SHOPS.GET_ALL);
+      console.log('[fetchShops] Response:', response.data);
+      return response.data;
+    }
+
+    async fetchShop(id: string): Promise<ShopResponse> {
+      const response = await Api.GET_<ShopResponse>(API_ENDPOINTS.SHOPS.GET_BY_ID(id));
+      console.log('[fetchShop] Response:', response.data);
+      return response.data;
+    }
+
+    async addShop(payload: ShopRequestDTO): Promise<ShopResponse> {
+      const response = await Api.POST_<ShopResponse>(API_ENDPOINTS.SHOPS.ADD_SHOP, payload);
+      console.log('[addShop] Response:', response.data);
+      return response.data;
+    }
+
+    async updateShop(payload: ShopRequestDTO): Promise<ShopResponse> {
+      const response = await Api.POST_<ShopResponse>(API_ENDPOINTS.SHOPS.UPDATE_SHOP, payload);
+      console.log('[updateShop] Response:', response.data);
+      return response.data;
+    }
+
+    async deleteShop(payload: { ShopId: string }): Promise<ShopResponse> {
+      const response = await Api.POST_<ShopResponse>(API_ENDPOINTS.SHOPS.DELETE_SHOP, payload);
+      console.log('[deleteShop] Response:', response.data);
+      return response.data;
+    }
+
+    async fetchBranches(): Promise<BranchesResponseDTO> {
+      const response = await Api.GET_<BranchesResponseDTO>(API_ENDPOINTS.BRANCHES.GET_ALL);
+      console.log('[fetchBranches] Response:', response.data);
+      return response.data;
+    }
+
+    async addBranch(payload: BranchRequestDTO): Promise<BranchResponseDTO> {
+      const response = await Api.POST_<BranchResponseDTO>(API_ENDPOINTS.BRANCHES.ADD_BRANCH, payload);
+      console.log('[addBranch] Response:', response.data);
+      return response.data;
+    }
+
+    async updateBranch(id: string, payload: BranchRequestDTO): Promise<BranchResponseDTO> {
+      const response = await Api.PUT_<BranchResponseDTO>(API_ENDPOINTS.BRANCHES.UPDATE_BRANCH(id), payload);
+      console.log('[updateBranch] Response:', response.data);
+      return response.data;
+    }
+
+    async deleteBranch(id: string): Promise<StringResponseDTO> {
+      const response = await Api.DELETE<StringResponseDTO>(API_ENDPOINTS.BRANCHES.DELETE_BRANCH(id));
+      console.log('[deleteBranch] Response:', response.data);
+      return response.data;
+    }
+
+    async addShopBranch(payload: ShopBranchRequestDTO): Promise<ShopResponse> {
+      const response = await Api.POST_<ShopResponse>(API_ENDPOINTS.SHOP_BRANCHES.ADD_BRANCH, payload);
+      console.log('[addShopBranch] Response:', response.data);
+      return response.data;
+    }
+
+    async removeShopBranch(payload: ShopBranchRequestDTO): Promise<ShopResponse> {
+      const response = await Api.POST_<ShopResponse>(API_ENDPOINTS.SHOP_BRANCHES.REMOVE_BRANCH, payload);
+      console.log('[removeShopBranch] Response:', response.data);
+      return response.data;
+    }
+
+    async addApplicationShop(payload: ApplicationShopRequest): Promise<ApplicationResponseDTO> {
+      const response = await Api.POST_<ApplicationResponseDTO>(API_ENDPOINTS.APPLICATIONS.ADD_SHOP, payload);
+      console.log('[addApplicationShop] Response:', response.data);
+      return response.data;
+    }
+
+    async removeApplicationShop(payload: ApplicationShopRequest): Promise<ApplicationResponseDTO> {
+      const response = await Api.POST_<ApplicationResponseDTO>(API_ENDPOINTS.APPLICATIONS.REMOVE_SHOP, payload);
+      console.log('[removeApplicationShop] Response:', response.data);
       return response.data;
     }
 }

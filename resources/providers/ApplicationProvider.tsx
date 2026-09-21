@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp } from '../types/applicationTypes';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp, ShopResp, BranchResp, ShopRequestDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest } from '../types/applicationTypes';
 import { API_ENDPOINTS } from '../../src/config/api.config';
 import { applicationService } from '../../src/services/applicationService';
 
@@ -32,6 +32,8 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [selectedApplication, setSelectedApplication] = useState<ApplicationResp | null>(null);
   const [themes, setThemes] = useState<Array<ThemeResp>>([]);
   const [selectedTheme, setSelectedTheme] = useState<ThemeResp | null>(null);
+  const [shops, setShops] = useState<Array<ShopResp>>([]);
+  const [branches, setBranches] = useState<Array<BranchResp>>([]);
 
 
   const clearAll = () => {
@@ -495,6 +497,185 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   }
   }
 
+  const fetchShops = async () => {
+    try {
+      const response = await applicationService.fetchShops();
+      if (response.Success === true) {
+        setShops(response.Result || []);
+      }
+      return response;
+    } catch (err) {
+      console.error('Error fetching shops: ', err);
+      setError('Failed to fetch shops');
+      return { Success: false, StatusDesc: 'Failed to fetch shops', Result: [] };
+    }
+  }
+
+  const fetchShop = async (id: string) => {
+    try {
+      const response = await applicationService.fetchShop(id);
+      return response;
+    } catch (err) {
+      console.error('Error fetching shop: ', err);
+      setError('Failed to fetch shop');
+      return { Success: false, StatusDesc: 'Failed to fetch shop', Result: null };
+    }
+  }
+
+  const addShop = async (payload: ShopRequestDTO) => {
+    try {
+      const response = await applicationService.addShop(payload);
+      if (response.Success === true) {
+        await fetchShops();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error adding shop: ', err);
+      setError('Failed to add shop');
+      return { Success: false, StatusDesc: 'Failed to add shop', Result: null };
+    }
+  }
+
+  const updateShop = async (payload: ShopRequestDTO) => {
+    try {
+      const response = await applicationService.updateShop(payload);
+      if (response.Success === true) {
+        await fetchShops();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error updating shop: ', err);
+      setError('Failed to update shop');
+      return { Success: false, StatusDesc: 'Failed to update shop', Result: null };
+    }
+  }
+
+  const deleteShop = async (payload: { ShopId: string }) => {
+    try {
+      const response = await applicationService.deleteShop(payload);
+      if (response.Success === true) {
+        await fetchShops();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error deleting shop: ', err);
+      setError('Failed to delete shop');
+      return { Success: false, StatusDesc: 'Failed to delete shop', Result: null };
+    }
+  }
+
+  const fetchBranches = async () => {
+    try {
+      const response = await applicationService.fetchBranches();
+      if (response.Success === true) {
+        setBranches(response.Result?.Data || []);
+      }
+      return response;
+    } catch (err) {
+      console.error('Error fetching branches: ', err);
+      setError('Failed to fetch branches');
+      return { Success: false, StatusDesc: 'Failed to fetch branches', Result: null };
+    }
+  }
+
+  const addBranch = async (payload: BranchRequestDTO) => {
+    try {
+      const response = await applicationService.addBranch(payload);
+      if (response.Success === true) {
+        await fetchBranches();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error adding branch: ', err);
+      setError('Failed to add branch');
+      return { Success: false, StatusDesc: 'Failed to add branch', Result: null };
+    }
+  }
+
+  const updateBranch = async (id: string, payload: BranchRequestDTO) => {
+    try {
+      const response = await applicationService.updateBranch(id, payload);
+      if (response.Success === true) {
+        await fetchBranches();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error updating branch: ', err);
+      setError('Failed to update branch');
+      return { Success: false, StatusDesc: 'Failed to update branch', Result: null };
+    }
+  }
+
+  const deleteBranch = async (id: string) => {
+    try {
+      const response = await applicationService.deleteBranch(id);
+      if (response.Success === true) {
+        await fetchBranches();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error deleting branch: ', err);
+      setError('Failed to delete branch');
+      return { Success: false, StatusDesc: 'Failed to delete branch', Result: null };
+    }
+  }
+
+  const addShopBranch = async (payload: ShopBranchRequestDTO) => {
+    try {
+      const response = await applicationService.addShopBranch(payload);
+      if (response.Success === true) {
+        await fetchShops();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error adding branch to shop: ', err);
+      setError('Failed to add branch to shop');
+      return { Success: false, StatusDesc: 'Failed to add branch to shop', Result: null };
+    }
+  }
+
+  const removeShopBranch = async (payload: ShopBranchRequestDTO) => {
+    try {
+      const response = await applicationService.removeShopBranch(payload);
+      if (response.Success === true) {
+        await fetchShops();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error removing branch from shop: ', err);
+      setError('Failed to remove branch from shop');
+      return { Success: false, StatusDesc: 'Failed to remove branch from shop', Result: null };
+    }
+  }
+
+  const addApplicationShop = async (payload: ApplicationShopRequest) => {
+    try {
+      const response = await applicationService.addApplicationShop(payload);
+      if (response.Success === true) {
+        await fetchApplications();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error adding shop to application: ', err);
+      setError('Failed to add shop to application');
+      return { Success: false, StatusDesc: 'Failed to add shop to application', Result: null };
+    }
+  }
+
+  const removeApplicationShop = async (payload: ApplicationShopRequest) => {
+    try {
+      const response = await applicationService.removeApplicationShop(payload);
+      if (response.Success === true) {
+        await fetchApplications();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error removing shop from application: ', err);
+      setError('Failed to remove shop from application');
+      return { Success: false, StatusDesc: 'Failed to remove shop from application', Result: null };
+    }
+  }
+
   const deleteItem = async (id: string) => {
     try {
       const response = await applicationService.deleteItem(id);
@@ -636,6 +817,23 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         selectedTheme,
         setSelectedTheme,
         fetchThemes,
+        shops,
+        setShops,
+        fetchShops,
+        fetchShop,
+        addShop,
+        updateShop,
+        deleteShop,
+        branches,
+        setBranches,
+        fetchBranches,
+        addBranch,
+        updateBranch,
+        deleteBranch,
+        addShopBranch,
+        removeShopBranch,
+        addApplicationShop,
+        removeApplicationShop,
       }}
     >
       {children}

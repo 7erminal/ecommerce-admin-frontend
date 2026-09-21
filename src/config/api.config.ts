@@ -37,6 +37,25 @@ export const API_ENDPOINTS = {
     DELETE_APPLICATION: (id: string) => `/v1/app-service/delete-application/${id}`,
     UPDATE_APPLICATION: (id: string) => `/v1/app-service/update-application/${id}`,
     UPDATE_THEME: (id: string) => `/v1/app-service/update-application-theme/${id}`,
+    ADD_SHOP: '/v1/app-service/application/add-shop',
+    REMOVE_SHOP: '/v1/app-service/application/remove-shop',
+  },
+  SHOPS: {
+    GET_ALL: '/v1/app-service/get-shops',
+    GET_BY_ID: (id: string) => `/v1/app-service/get-shop/${id}`,
+    ADD_SHOP: '/v1/app-service/add-shop',
+    UPDATE_SHOP: '/v1/app-service/update-shop',
+    DELETE_SHOP: '/v1/app-service/delete-shop',
+  },
+  BRANCHES: {
+    GET_ALL: '/v1/app-service/get-branches',
+    ADD_BRANCH: '/v1/app-service/add-branch',
+    UPDATE_BRANCH: (id: string) => `/v1/app-service/update-branch/${id}`,
+    DELETE_BRANCH: (id: string) => `/v1/app-service/delete-branch/${id}`,
+  },
+  SHOP_BRANCHES: {
+    ADD_BRANCH: '/v1/app-service/shop/add-branch',
+    REMOVE_BRANCH: '/v1/app-service/shop/remove-branch',
   },
   THEMES: {
     GET_BY_ID: (id: string) => `/v1/app-service/fetch-theme/${id}`,

@@ -519,6 +519,7 @@ const CustomizePage: React.FC = () => {
     const handleAddBranch = async () => {
         const userId = authContext?.user?.id;
         console.log("User ID:", userId);
+        console.log("Number to be set for BranchManager:", Number(userId) || 0)
         setBranchFormData((prev) => ({ ...prev, BranchManager: Number(userId) || 0 }))
         if (!branchFormData.Branch.trim() || !branchFormData.CountryCode.trim()) {
             setError("Branch name and country code are required");
@@ -526,7 +527,7 @@ const CustomizePage: React.FC = () => {
             return;
         }
 
-        console.log("Number for BranchManager:", Number(userId) || 0)
+        
         console.log("Form Data for branch:", branchFormData);
         const response = await applicationContext?.addBranch(branchFormData);
         if (!response?.Success) {

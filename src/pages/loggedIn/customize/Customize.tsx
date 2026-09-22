@@ -522,6 +522,7 @@ const CustomizePage: React.FC = () => {
             setShowError(true);
             return;
         }
+        console.log("Form Data for branch:", branchFormData);
         const response = await applicationContext?.addBranch(branchFormData);
         if (!response?.Success) {
             setError(response?.StatusDesc ?? "Failed to add branch");

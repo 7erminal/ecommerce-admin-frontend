@@ -498,6 +498,9 @@ const CustomizePage: React.FC = () => {
     };
 
     const openEditBranchModal = (branchId: string) => {
+        const userId = authContext?.user?.id;
+        console.log("User ID:", userId);
+        // setBranchFormData((prev) => ({ ...prev, BranchManager: Number(userId) || 0 }))
         const selectedBranch = (applicationContext?.branches ?? []).find((branch) => String(branch.BranchId) === branchId);
         if (!selectedBranch) {
             return;
@@ -825,6 +828,9 @@ const CustomizePage: React.FC = () => {
                             </div>
                             <button
                                 onClick={() => {
+                                    const userId = authContext?.user?.id;
+                                    console.log("User ID:", userId);
+                                    setBranchFormData((prev) => ({ ...prev, BranchManager: Number(userId) || 0 }))
                                     resetBranchForm();
                                     setShowBranchModal(true);
                                 }}

@@ -1,8 +1,10 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
+import { Icon } from "@iconify/react";
 import ApplicationContext from "../../../resources/providers/ApplicationContext";
 import type { AddItem, EditItem, Item } from "../../../resources/types/applicationTypes";
 import MultiImageUploadWithCrop from "../components/MultiImageUploadWithCrop";
 import PillOption from "../../widgets/PillOption";
+import { PageBanner, StatTile, Panel, EmptyState, primaryBtnClass, ghostBtnClass } from "../components/PageUi";
 
 type ItemFormState = {
     name: string;
@@ -236,78 +238,82 @@ const ItemsPage: React.FC = () => {
         setShowModal(false);
     };
 
-    return <div className="flex flex-col whitespace-normal p-6 gap-6">
-        <section className="bg-white border border-red-100 rounded-xl p-5">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <h2 className="text-xl font-semibold text-gray-800">Items Catalog</h2>
-                    <p className="text-sm text-gray-500 mt-1">Manage products, attributes, pricing and stock. Backend integration can replace this local dummy dataset later.</p>
-                </div>
-                <button
-                    onClick={openAddModal}
-                    style={{
-                        background: "#c53030",
-                        color: "#fff",
-                        padding: "10px 20px",
-                        borderRadius: "10px",
-                        fontWeight: 600,
-                        textAlign: "center",
-                        border: "2px solid #c53030",
-                    }}
-                >
+    return <div className="flex flex-col gap-4 whitespace-normal p-4 md:p-6">
+        <PageBanner
+            icon="material-symbols-light:inventory-2-outline"
+            eyebrow="Catalog"
+            title="Items Catalog"
+            description="Manage products, attributes, pricing and stock."
+            actions={
+                <button onClick={openAddModal} className={primaryBtnClass}>
+                    <Icon icon="material-symbols-light:add-outline" className="h-4 w-4" />
                     Add Item
                 </button>
+            }
+            aside={
+                <>
+                    <StatTile
+                        icon="material-symbols-light:inventory-2-outline"
+                        label="Total Items"
+                        value={applicationContext?.itemCount ?? items.length}
+                    />
+                    <StatTile
+                        icon="material-symbols-light:check-circle-outline"
+                        label="Active Items"
+                        value={items.filter((i) => i.Status === "Active").length}
+                    />
+                    <StatTile
+                        icon="material-symbols-light:payments-outline"
+                        label="Inventory Value"
+                        value={`${applicationContext?.branch?.Country.Currency.Symbol || "GHS"}${totalValue.toFixed(2)}`}
+                    />
+                </>
+            }
+        />
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="relative w-full md:max-w-sm">
+                    <Icon
+                        icon="material-symbols-light:search-outline"
+                        className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                    />
+                    <input
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search by name, category, or SKU"
+                        className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-3 text-sm text-gray-800 transition placeholder:text-gray-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100"
+                    />
+                </div>
+                <div className="flex items-center gap-2">
+                    <Icon icon="material-symbols-light:filter-alt-outline" className="h-4 w-4 shrink-0 text-[#c53030]" />
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value as "All" | "Active" | "Draft" | "Archived")}
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 transition focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 md:w-auto"
+                    >
+                        <option value="All">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Archived">Archived</option>
+                    </select>
+                </div>
             </div>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white border border-red-100 rounded-xl p-4">
-                <p className="text-xs uppercase tracking-wider text-gray-500">Total Items</p>
-                <p className="text-2xl font-bold text-gray-800 mt-2">{applicationContext?.itemCount}</p>
-            </div>
-            <div className="bg-white border border-red-100 rounded-xl p-4">
-                <p className="text-xs uppercase tracking-wider text-gray-500">Active Items</p>
-                <p className="text-2xl font-bold text-gray-800 mt-2">{items.filter((i) => i.Status === "Active").length}</p>
-            </div>
-            <div className="bg-white border border-red-100 rounded-xl p-4">
-                <p className="text-xs uppercase tracking-wider text-gray-500">Inventory Value</p>
-                <p className="text-2xl font-bold text-gray-800 mt-2">{applicationContext?.branch?.Country.Currency.Symbol || "GHS"}{totalValue.toFixed(2)}</p>
-            </div>
-        </section>
-
-        <section className="bg-white border border-red-100 rounded-xl p-4">
-            <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-                <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search by name, category, or SKU"
-                    className="w-full md:max-w-sm rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-red-400"
-                />
-                <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as "All" | "Active" | "Draft" | "Archived")}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-red-400"
-                >
-                    <option value="All">All Status</option>
-                    <option value="Active">Active</option>
-                    <option value="Draft">Draft</option>
-                    <option value="Archived">Archived</option>
-                </select>
-            </div>
-        </section>
-
-        <section className="space-y-4">
+        <Panel title="Products" description={`${filteredItems.length} item${filteredItems.length === 1 ? "" : "s"} shown`} scroll>
+            <div className="space-y-3">
             {filteredItems.map((item) => (
-                <div key={item.ProductId.toString()} className="bg-white border border-gray-200 rounded-xl p-4">
+                <div key={item.ProductId.toString()} className="rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:shadow-sm">
                     <div className="flex flex-col lg:flex-row lg:items-start gap-4">
-                        <img src={item.ImagePath} alt={item.ProductName} className="w-24 h-24 rounded-lg object-cover border border-gray-200" />
-                        <div className="flex-1">
+                        <img src={item.ImagePath} alt={item.ProductName} className="w-24 h-24 shrink-0 rounded-xl object-cover border border-gray-200" />
+                        <div className="flex-1 min-w-0">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-800">{item.ProductName}</h3>
+                                <div className="min-w-0">
+                                    <h3 className="text-lg font-semibold text-gray-800 truncate">{item.ProductName}</h3>
                                     <p className="text-xs text-gray-500">SKU: {item.ProductId.toString()}</p>
                                 </div>
-                                <span className="text-xs font-semibold px-2 py-1 rounded-md w-fit" style={{
+                                <span className="text-xs font-semibold px-2.5 py-1 rounded-full w-fit" style={{
                                     backgroundColor: item.Status === "Active" ? "#fee2e2" : item.Status === "Draft" ? "#fef3c7" : "#e5e7eb",
                                     color: item.Status === "Active" ? "#b91c1c" : item.Status === "Draft" ? "#92400e" : "#374151",
                                 }}>
@@ -341,18 +347,16 @@ const ItemsPage: React.FC = () => {
                                 <div><span className="text-gray-500">Colors:</span> <span className="font-medium text-gray-800">{item.AvailableColors?.join(", ") || "-"}</span></div>
                                 <div><span className="text-gray-500">Sizes:</span> <span className="font-medium text-gray-800">{item.AvailableSizes?.join(", ") || "-"}</span></div>
                             </div>
-                            <div className="mt-4 flex gap-2">
+                            <div className="mt-4 flex gap-2 border-t border-gray-100 pt-3">
                                 <button
                                     onClick={() => openEditModal(item)}
-                                    className="px-3 py-2 rounded-lg text-sm font-medium border"
-                                    style={{ borderColor: "#c53030", color: "#c53030" }}
+                                    className={ghostBtnClass}
                                 >
                                     Edit
                                 </button>
                                 <button
                                     onClick={() => openEditModal(item)}
-                                    className="px-3 py-2 rounded-lg text-sm font-medium text-white"
-                                    style={{ backgroundColor: "#c53030" }}
+                                    className={primaryBtnClass}
                                 >
                                     Configure
                                 </button>
@@ -363,11 +367,14 @@ const ItemsPage: React.FC = () => {
             ))}
 
             {filteredItems.length === 0 ? (
-                <div className="bg-white border border-gray-200 rounded-xl p-6 text-center text-gray-500">
-                    No items match your current filter.
-                </div>
+                <EmptyState
+                    icon="material-symbols-light:search-off-outline"
+                    title="No items match your current filter."
+                    hint="Try a different search term or status."
+                />
             ) : null}
-        </section>
+            </div>
+        </Panel>
 
         {showModal ? (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

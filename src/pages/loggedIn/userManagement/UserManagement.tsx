@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
+import { Icon } from "@iconify/react";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
 import type { AddCustomer, AddUser } from "../../../../resources/types/applicationTypes";
+import { Panel, EmptyState, SwitchCard, primaryBtnClass } from "../../components/PageUi";
 
 type ActiveTab = "users" | "customers";
 
@@ -115,75 +117,82 @@ const UserManagementPage: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col whitespace-normal p-4">
-                <section className="mb-6">
-                    <div className="grid grid-cols-2 gap-4">
-                        <button
-                            onClick={() => setActiveTab("users")}
-                            className="text-white font-semibold py-8 px-4 rounded-lg transition duration-200 text-left"
-                            style={{
-                                backgroundColor: "#c53030",
-                                opacity: activeTab === "users" ? 1 : 0.75,
-                            }}
-                        >
-                            Users
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("customers")}
-                            className="text-white font-semibold py-8 px-4 rounded-lg transition duration-200 text-left"
-                            style={{
-                                backgroundColor: "#c53030",
-                                opacity: activeTab === "customers" ? 1 : 0.75,
-                            }}
-                        >
-                            Customers
-                        </button>
-                    </div>
+        <div className="flex flex-col gap-4 whitespace-normal p-4 md:p-6">
+                <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <SwitchCard
+                        icon="material-symbols-light:group-outline"
+                        label="Users"
+                        description="Team members with access"
+                        count={users.length}
+                        isActive={activeTab === "users"}
+                        onClick={() => setActiveTab("users")}
+                    />
+                    <SwitchCard
+                        icon="material-symbols-light:face-outline"
+                        label="Customers"
+                        description="People who buy from you"
+                        count={customers.length}
+                        isActive={activeTab === "customers"}
+                        onClick={() => setActiveTab("customers")}
+                    />
                 </section>
-                <section>
-                    <div className="bg-white border border-red-100 rounded-xl p-5">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-800">
-                                {activeTab === "users" ? "Users" : "Customers"}
-                            </h2>
-                            <button
-                                onClick={openAddModal}
-                                style={{
-                                    background: "#c53030",
-                                    color: "#fff",
-                                    padding: "10px 20px",
-                                    borderRadius: "10px",
-                                    fontWeight: 600,
-                                    textAlign: "center",
-                                    border: "2px solid #c53030",
-                                }}
-                            >
-                                {activeTab === "users" ? "Add User" : "Add Customer"}
-                            </button>
-                        </div>
 
-                        <div className="space-y-4">
-                            {currentRecords.length === 0 ? (
-                                <div className="rounded-lg border border-gray-200 p-4 text-sm text-gray-500">
-                                    No {activeTab} found.
-                                </div>
-                            ) : (
-                                currentRecords.map((entry: any, index: number) => (
-                                    <div key={(entry?.UserId || entry?.CustomerId || index).toString()} className={`flex items-start gap-4 p-4 ${index !== currentRecords.length - 1 ? "border-b border-gray-200" : ""}`}>
-                                        <div className="flex-1">
-                                            <div className="text-sm font-semibold text-gray-800">{entry.FullName || "-"}</div>
-                                            <div className="text-sm text-gray-500">{entry.Email || "-"}</div>
-                                            <div className="text-sm text-gray-500">{entry.PhoneNumber || "-"}</div>
-                                            <div className="text-xs text-gray-400 mt-1">
-                                                {entry.Location || "-"} {entry.IdentificationType?.Name ? `• ${entry.IdentificationType.Name}` : ""} {entry.IdentificationNumber ? `• ${entry.IdentificationNumber}` : ""}
-                                            </div>
+                <Panel
+                    title={activeTab === "users" ? "Users" : "Customers"}
+                    description={
+                        activeTab === "users"
+                            ? "Manage the people who can access the admin."
+                            : "Everyone who has shopped with you."
+                    }
+                    action={
+                        <button onClick={openAddModal} className={primaryBtnClass}>
+                            <Icon icon="material-symbols-light:add-outline" className="h-4 w-4" />
+                            {activeTab === "users" ? "Add User" : "Add Customer"}
+                        </button>
+                    }
+                    scroll
+                >
+                    {currentRecords.length === 0 ? (
+                        <EmptyState
+                            icon={
+                                activeTab === "users"
+                                    ? "material-symbols-light:group-outline"
+                                    : "material-symbols-light:face-outline"
+                            }
+                            title={`No ${activeTab} found.`}
+                            hint={
+                                activeTab === "users"
+                                    ? "Use \"Add User\" to invite your first team member."
+                                    : "Use \"Add Customer\" to record your first customer."
+                            }
+                        />
+                    ) : (
+                        <div className="space-y-3">
+                            {currentRecords.map((entry: any, index: number) => (
+                                <div
+                                    key={(entry?.UserId || entry?.CustomerId || index).toString()}
+                                    className="flex items-start gap-4 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/30"
+                                >
+                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-red-50 text-sm font-semibold text-[#c53030]">
+                                        {entry.ImagePath ? (
+                                            <img src={entry.ImagePath} alt="" className="h-full w-full object-cover" />
+                                        ) : (
+                                            (entry.FullName || entry.Email || "?").charAt(0).toUpperCase()
+                                        )}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="truncate text-sm font-semibold text-gray-800">{entry.FullName || "-"}</div>
+                                        <div className="truncate text-sm text-gray-500">{entry.Email || "-"}</div>
+                                        <div className="truncate text-sm text-gray-500">{entry.PhoneNumber || "-"}</div>
+                                        <div className="mt-1 truncate text-xs text-gray-400">
+                                            {entry.Location || "-"} {entry.IdentificationType?.Name ? `• ${entry.IdentificationType.Name}` : ""} {entry.IdentificationNumber ? `• ${entry.IdentificationNumber}` : ""}
                                         </div>
                                     </div>
-                                ))
-                            )}
+                                </div>
+                            ))}
                         </div>
-                    </div>
-                </section>
+                    )}
+                </Panel>
 
                 {showModal ? (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

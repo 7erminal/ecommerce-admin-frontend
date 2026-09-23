@@ -1,5 +1,7 @@
 import React, { useEffect, useContext, useMemo, useState } from "react";
+import { Icon } from "@iconify/react";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
+import { PageBanner, StatTile, Panel, EmptyState, primaryBtnClass } from "../../components/PageUi";
 
 const OrdersPage: React.FC = () => {
     const applicationContext = useContext(ApplicationContext);
@@ -130,56 +132,64 @@ const OrdersPage: React.FC = () => {
     }
 
 
-    return <div className="flex flex-col whitespace-normal p-4">
-        <section className="mb-6">
-            <div className="bg-white border border-red-100 rounded-xl p-5">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <h2 className="text-xl font-semibold text-gray-800">Orders</h2>
-                        <p className="text-sm text-gray-500 mt-1">Create new orders and review recent order requests.</p>
-                    </div>
-                    <button
-                        onClick={() => {
-                            resetForm();
-                            setShowModal(true);
-                        }}
-                        style={{
-                            background: "#c53030",
-                            color: "#fff",
-                            padding: "10px 20px",
-                            borderRadius: "10px",
-                            fontWeight: 600,
-                            textAlign: "center",
-                            border: "2px solid #c53030",
-                        }}
-                    >
-                        Add Order
-                    </button>
-                </div>
-            </div>
-        </section>
+    return <div className="flex flex-col gap-4 whitespace-normal p-4 md:p-6">
+        <PageBanner
+            icon="material-symbols-light:receipt-long-outline"
+            eyebrow="Sales"
+            title="Orders"
+            description="Create new orders and review recent order requests."
+            actions={
+                <button
+                    onClick={() => {
+                        resetForm();
+                        setShowModal(true);
+                    }}
+                    className={primaryBtnClass}
+                >
+                    <Icon icon="material-symbols-light:add-outline" className="h-4 w-4" />
+                    Add Order
+                </button>
+            }
+            aside={
+                <StatTile
+                    icon="material-symbols-light:receipt-long-outline"
+                    label="Total Orders"
+                    value={orders.length}
+                />
+            }
+        />
 
-        <section className="space-y-4">
+        <Panel title="Recent orders" description="The latest order requests from your store." scroll>
             {orders.length === 0 ? (
-                <div className="bg-white border border-gray-200 rounded-xl p-6 text-center text-gray-500">
-                    No orders available.
-                </div>
+                <EmptyState
+                    icon="material-symbols-light:receipt-long-outline"
+                    title="No orders available."
+                    hint={"Use \"Add Order\" to create the first one."}
+                />
             ) : (
-                orders.map((order) => (
-                    <div key={order.OrderId.toString()} className="bg-white border border-gray-200 rounded-xl p-4">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                            <div>
-                                <p className="text-sm text-gray-500">Order Number</p>
-                                <h3 className="text-lg font-semibold text-gray-800">{order.OrderNumber}</h3>
+                <div className="space-y-3">
+                    {orders.map((order) => (
+                        <div
+                            key={order.OrderId.toString()}
+                            className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/30"
+                        >
+                            <div className="flex min-w-0 items-center gap-3">
+                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-[#c53030]">
+                                    <Icon icon="material-symbols-light:shopping-bag-outline" className="h-5 w-5" />
+                                </span>
+                                <div className="min-w-0">
+                                    <p className="text-xs uppercase tracking-wide text-gray-500">Order Number</p>
+                                    <p className="truncate text-sm font-semibold text-gray-800">{order.OrderNumber}</p>
+                                </div>
                             </div>
-                            <div className="text-sm text-gray-600">
+                            <div className="shrink-0 rounded-full border border-red-100 bg-red-50 px-3 py-1 text-sm font-semibold text-[#c53030]">
                                 {order.Currency} {Number(order.Cost || 0).toFixed(2)}
                             </div>
                         </div>
-                    </div>
-                ))
+                    ))}
+                </div>
             )}
-        </section>
+        </Panel>
 
         {showModal ? (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

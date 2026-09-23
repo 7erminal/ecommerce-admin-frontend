@@ -1,7 +1,9 @@
 import React, { useContext, useState } from "react";
+import { Icon } from "@iconify/react";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
 import type { AddPurpose, Purpose } from "../../../../resources/types/applicationTypes";
 import ImageUploadWithCrop from "../../components/ImageUploadWithCrop";
+import { Panel, EmptyState, primaryBtnClass, ghostBtnClass } from "../../components/PageUi";
 
 const PurposesSection: React.FC = () => {
     const [showModal, setShowModal] = useState(false);
@@ -60,43 +62,55 @@ const PurposesSection: React.FC = () => {
         setShowModal(false);
     };
 
-    return <div className="p-6">
-        <section className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">Purposes</h2>
-                <button onClick={openAdd} style={{
-                    marginTop: "10px",
-                    background: "#c53030",
-                    color: "#fff",
-                    padding: "10px 20px",
-                    borderRadius: "10px",
-                    fontWeight: 600,
-                    textAlign: "center",
-                    textDecoration: "none",
-                    border: "2px solid #c53030",
-                }}>
+    const purposes = appContext?.purposes ?? [];
+
+    return <div className="flex flex-col gap-4">
+        <Panel
+            title="Purposes"
+            description="Capture why customers reach for a product."
+            action={
+                <button onClick={openAdd} className={primaryBtnClass}>
+                    <Icon icon="material-symbols-light:add-outline" className="h-4 w-4" />
                     Add Purpose
                 </button>
-            </div>
-            <div className="space-y-4">
-                {appContext?.purposes.map((entry, index) => (
-                    <div key={entry.PurposeId.toLocaleString()} className={`flex items-start gap-4 p-4 ${index !== appContext.purposes.length - 1 ? "border-b border-gray-200" : ""}`}>
-                        <img src={entry.ImagePath} alt={entry.Purpose} className="w-16 h-16 rounded-lg object-cover" />
-                        <div className="flex-1">
-                            <div className="text-sm font-semibold text-gray-800">{entry.Purpose}</div>
-                            <div className="text-sm text-gray-500">{entry.Description}</div>
-                        </div>
-                        <button
-                            onClick={() => openEdit(entry)}
-                            className="px-3 py-2 rounded-lg text-xs font-medium border"
-                            style={{ borderColor: "#c53030", color: "#c53030" }}
+            }
+            scroll
+        >
+            {purposes.length === 0 ? (
+                <EmptyState
+                    icon="material-symbols-light:target-outline"
+                    title="No purposes yet."
+                    hint={"Use \"Add Purpose\" to create your first one."}
+                />
+            ) : (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {purposes.map((entry) => (
+                        <div
+                            key={entry.PurposeId.toLocaleString()}
+                            className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-3 transition hover:border-red-200 hover:bg-red-50/30"
                         >
-                            Edit
-                        </button>
-                    </div>
-                ))}
-            </div>
-        </section>
+                            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-red-50 text-sm font-semibold text-[#c53030]">
+                                {entry.ImagePath ? (
+                                    <img src={entry.ImagePath} alt={entry.Purpose} className="h-full w-full object-cover" />
+                                ) : (
+                                    <span>{(entry.Purpose || "?").charAt(0).toUpperCase()}</span>
+                                )}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                                <div className="truncate text-sm font-semibold text-gray-800">{entry.Purpose}</div>
+                                <div className="truncate text-xs text-gray-500">{entry.Description}</div>
+                            </div>
+                            <button
+                                onClick={() => openEdit(entry)}
+                                className={`${ghostBtnClass} shrink-0 px-3 py-2 text-xs`}
+                            >
+                                Edit
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </Panel>
 
         {showModal ? (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

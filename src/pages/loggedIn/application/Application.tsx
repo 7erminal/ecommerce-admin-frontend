@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Icon } from '@iconify/react';
 import { applicationService } from '../../../services/applicationService';
 import type { ApplicationResp, AddApplication, UpdateApplication, ApplicationFormData } from '../../../../resources/types/applicationTypes';
 import axios from 'axios';
+import { Eyebrow, Panel, EmptyState, primaryBtnClass, ghostBtnClass, dangerBtnClass } from '../../components/PageUi';
 
 const Application: React.FC = () => {
     const [applications, setApplications] = useState<ApplicationResp[]>([]);
@@ -213,109 +215,122 @@ const Application: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col whitespace-normal p-4">
-            {/* Header with Settings */}
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">Applications</h1>
-                <div className="relative">
-                    <button
-                        onClick={() => setShowSettings(!showSettings)}
-                        className="p-2 hover:bg-gray-100 rounded-full transition"
-                    >
-                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </button>
-
-                    {showSettings && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+        <div className="flex flex-col gap-4 whitespace-normal p-4 md:p-6">
+            {/* Banner: title, actions and settings */}
+            <div className="relative overflow-hidden rounded-2xl border border-red-100 bg-white p-5">
+                <div className="pointer-events-none absolute -top-24 -right-16 h-52 w-52 rounded-full bg-red-50" />
+                <div className="pointer-events-none absolute -bottom-28 right-32 h-44 w-44 rounded-full bg-red-100/40" />
+                <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="min-w-0">
+                        <Eyebrow icon="material-symbols-light:apps-outline">Platform</Eyebrow>
+                        <h1 className="mt-2 text-xl font-semibold text-gray-800">Applications</h1>
+                        <p className="mt-1 text-sm text-gray-500">Create and manage every application on the platform.</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button onClick={openAddModal} className={primaryBtnClass}>
+                            <Icon icon="material-symbols-light:add-outline" className="h-4 w-4" />
+                            Add Application
+                        </button>
+                        <div className="relative">
                             <button
-                                onClick={() => {
-                                    setShowSettings(false);
-                                    handleLogout();
-                                }}
-                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition"
+                                onClick={() => setShowSettings(!showSettings)}
+                                className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 transition hover:border-red-200 hover:text-[#c53030] hover:bg-red-50"
                             >
-                                Logout
+                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
                             </button>
+
+                            {showSettings && (
+                                <div className="absolute right-0 mt-2 w-48 rounded-xl border border-gray-200 bg-white shadow-lg z-10 overflow-hidden">
+                                    <button
+                                        onClick={() => {
+                                            setShowSettings(false);
+                                            handleLogout();
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
             {/* Error Message */}
             {error && (
-                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                    {error}
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    <span>{error}</span>
                     <button
                         onClick={() => setError(null)}
-                        className="ml-4 font-bold hover:text-red-900"
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-bold hover:bg-red-100"
                     >
                         ✕
                     </button>
                 </div>
             )}
 
-            {/* Add Button */}
-            <div className="mb-6">
-                <button
-                    onClick={openAddModal}
-                    className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition"
-                >
-                    + Add Application
-                </button>
-            </div>
-
-            {/* Loading State */}
-            {loading && (
-                <div className="text-center py-8 text-gray-500">
-                    Loading applications...
-                </div>
-            )}
-
             {/* Applications List */}
-            {!loading && applications.length === 0 ? (
-                <div className="bg-white border border-gray-200 rounded-xl p-6 text-center text-gray-500">
-                    No applications available. Create one to get started.
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 gap-4">
-                    {applications.map((app) => (
-                        <div
-                            key={app.ApplicationId}
-                            className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition"
-                        >
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div className="flex-1">
-                                    <h3 className="text-lg font-semibold text-gray-800">{app.ApplicationName}</h3>
-                                    <p className="text-sm text-gray-600">Code: {app.ApplicationCode}</p>
+            <Panel title="All applications" description={`${applications.length} application${applications.length === 1 ? "" : "s"} on the platform`} scroll>
+                {loading ? (
+                    <div className="flex items-center justify-center gap-2 py-8 text-sm text-gray-500">
+                        <Icon icon="material-symbols-light:progress-activity-outline" className="h-4 w-4 animate-spin text-[#c53030]" />
+                        Loading applications...
+                    </div>
+                ) : applications.length === 0 ? (
+                    <EmptyState
+                        icon="material-symbols-light:apps-outline"
+                        title="No applications available. Create one to get started."
+                        hint={"Use \"Add Application\" above to get started."}
+                    />
+                ) : (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        {applications.map((app) => (
+                            <div
+                                key={app.ApplicationId}
+                                className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:shadow-sm"
+                            >
+                                <div className="flex items-start gap-3">
+                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-red-50 text-sm font-semibold text-[#c53030]">
+                                        {app.ApplicationLogo ? (
+                                            <img src={app.ApplicationLogo} alt="" className="h-full w-full object-cover" />
+                                        ) : (
+                                            (app.ApplicationName || "?").charAt(0).toUpperCase()
+                                        )}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="truncate text-sm font-semibold text-gray-800">{app.ApplicationName}</h3>
+                                        <p className="mt-0.5 truncate text-xs text-gray-500">Code: {app.ApplicationCode}</p>
+                                    </div>
+                                </div>
+                                <div className="mt-3 flex flex-wrap items-center gap-2">
                                     {app.Theme?.ThemeCode && (
-                                        <p className="text-sm text-gray-600">Theme: {app.Theme?.ThemeCode}</p>
+                                        <span className="inline-flex items-center rounded-full border border-red-100 bg-red-50 px-2.5 py-1 text-[11px] font-medium text-[#c53030]">
+                                            Theme: {app.Theme?.ThemeCode}
+                                        </span>
                                     )}
                                     {app.DefaultFontsize && (
-                                        <p className="text-sm text-gray-600">Font Size: {app.DefaultFontsize}px</p>
+                                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-600">
+                                            Font: {app.DefaultFontsize}px
+                                        </span>
                                     )}
                                 </div>
-                                <div className="flex gap-2 md:flex-row flex-col">
-                                    <button
-                                        onClick={() => openEditModal(app)}
-                                        className="px-4 py-2 bg-blue-100 text-blue-600 hover:bg-blue-200 rounded-lg text-sm font-medium transition"
-                                    >
+                                <div className="mt-4 flex gap-2 border-t border-gray-100 pt-3">
+                                    <button onClick={() => openEditModal(app)} className={`${ghostBtnClass} flex-1`}>
                                         Edit
                                     </button>
-                                    <button
-                                        onClick={() => handleDeleteApplication(app.ApplicationId)}
-                                        className="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg text-sm font-medium transition"
-                                    >
+                                    <button onClick={() => handleDeleteApplication(app.ApplicationId)} className={`${dangerBtnClass} flex-1`}>
                                         Delete
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                        ))}
+                    </div>
+                )}
+            </Panel>
 
             {/* Add/Edit Modal */}
             {showAddModal && (

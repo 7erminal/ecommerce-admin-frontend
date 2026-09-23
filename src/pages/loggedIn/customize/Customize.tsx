@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Icon } from "@iconify/react";
+import { primaryBtnClass, ghostBtnClass, dangerBtnClass } from "../../components/PageUi";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
 import AuthContext from "../../../../resources/providers/AuthContext";
 import type { AddApplication, AddTheme, ApplicationCustomizeFormData, ApplicationResp, BranchRequestDTO, ShopRequestDTO, ThemeFormData, ThemeResp, UpdateApplication } from "../../../../resources/types/applicationTypes";
@@ -711,13 +712,6 @@ const CustomizePage: React.FC = () => {
             count: 0,
         },
     ];
-
-    const primaryBtnClass =
-        "inline-flex items-center gap-2 rounded-xl bg-[#c53030] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#9b2226] focus:outline-none focus:ring-2 focus:ring-red-200";
-    const ghostBtnClass =
-        "inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-red-200 hover:text-[#c53030] hover:bg-red-50";
-    const dangerBtnClass =
-        "inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50";
 
     // ===== RENDER =====
     return (

@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useContext } from "react";
+import { Icon } from "@iconify/react";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
 import AuthContext from "../../../../resources/providers/AuthContext";
 import type { AddApplication, AddTheme, ApplicationCustomizeFormData, ApplicationResp, BranchRequestDTO, ShopRequestDTO, ThemeFormData, ThemeResp, UpdateApplication } from "../../../../resources/types/applicationTypes";
 
 type Tab = "applications" | "themes" | "appearance";
+type ApplicationsSection = "applications" | "branches" | "shops" | "shop-links";
 
 interface AppearanceSettings {
     themeColors: string[];
@@ -18,6 +20,8 @@ const CustomizePage: React.FC = () => {
     const applicationContext = useContext(ApplicationContext);
     const authContext = useContext(AuthContext);
     const [activeTab, setActiveTab] = useState<Tab>("applications");
+    // Display-only state: which panel is visible inside the Applications tab
+    const [activeApplicationSection, setActiveApplicationSection] = useState<ApplicationsSection>("applications");
 
     const [error, setError] = useState<string>("");
     // const [success, setSuccess] = useState<string>("");
@@ -670,9 +674,54 @@ const CustomizePage: React.FC = () => {
         setAppearanceModified(false);
     };
 
+    // ===== VIEW CONFIG (display only) =====
+    const tabs: { key: Tab; label: string; icon: string }[] = [
+        { key: "applications", label: "Applications", icon: "material-symbols-light:apps-outline" },
+        { key: "themes", label: "Themes", icon: "material-symbols-light:palette-outline" },
+        { key: "appearance", label: "Appearance", icon: "material-symbols-light:brush-outline" },
+    ];
+
+    const applicationSections: { key: ApplicationsSection; label: string; description: string; icon: string; count: number }[] = [
+        {
+            key: "applications",
+            label: "Applications",
+            description: "View, add & edit apps",
+            icon: "material-symbols-light:apps-outline",
+            count: applicationContext?.applications.length ?? 0,
+        },
+        {
+            key: "branches",
+            label: "Branches",
+            description: "View, add & edit branches",
+            icon: "material-symbols-light:corporate-fare-outline",
+            count: applicationContext?.branches.length ?? 0,
+        },
+        {
+            key: "shops",
+            label: "Shops",
+            description: "View, add & edit shops",
+            icon: "material-symbols-light:storefront-outline",
+            count: applicationContext?.shops.length ?? 0,
+        },
+        {
+            key: "shop-links",
+            label: "Shop Links",
+            description: "Attach shops to apps",
+            icon: "material-symbols-light:add-link-outline",
+            count: 0,
+        },
+    ];
+
+    const primaryBtnClass =
+        "inline-flex items-center gap-2 rounded-xl bg-[#c53030] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#9b2226] focus:outline-none focus:ring-2 focus:ring-red-200";
+    const ghostBtnClass =
+        "inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-red-200 hover:text-[#c53030] hover:bg-red-50";
+    const dangerBtnClass =
+        "inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50";
+
     // ===== RENDER =====
     return (
-        <div className="flex flex-col whitespace-normal p-4">
+        <div className="flex flex-col whitespace-normal p-4 md:p-6">
             {showError && (
                 <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                     {error}
@@ -681,302 +730,481 @@ const CustomizePage: React.FC = () => {
 
             {/* Tabs Navigation */}
             <section className="mb-6">
-                <div className="flex gap-2 border-b border-gray-200">
-                    <button
-                        onClick={() => setActiveTab("applications")}
-                        className={`px-4 py-2 font-medium text-sm transition ${
-                            activeTab === "applications"
-                                ? "border-b-2 border-red-600 text-red-600"
-                                : "text-gray-600 hover:text-gray-900"
-                        }`}
-                    >
-                        Applications
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("themes")}
-                        className={`px-4 py-2 font-medium text-sm transition ${
-                            activeTab === "themes"
-                                ? "border-b-2 border-red-600 text-red-600"
-                                : "text-gray-600 hover:text-gray-900"
-                        }`}
-                    >
-                        Themes
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("appearance")}
-                        className={`px-4 py-2 font-medium text-sm transition ${
-                            activeTab === "appearance"
-                                ? "border-b-2 border-red-600 text-red-600"
-                                : "text-gray-600 hover:text-gray-900"
-                        }`}
-                    >
-                        Appearance
-                    </button>
+                <div className="inline-flex flex-wrap gap-1 rounded-2xl border border-gray-200 bg-gray-50 p-1.5">
+                    {tabs.map((tab) => {
+                        const isActive = activeTab === tab.key;
+                        return (
+                            <button
+                                key={tab.key}
+                                onClick={() => setActiveTab(tab.key)}
+                                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition ${
+                                    isActive
+                                        ? "bg-[#c53030] text-white shadow-sm"
+                                        : "text-gray-600 hover:bg-white hover:text-[#c53030]"
+                                }`}
+                            >
+                                <Icon icon={tab.icon} className="h-4 w-4" />
+                                {tab.label}
+                            </button>
+                        );
+                    })}
                 </div>
             </section>
 
             {/* APPLICATIONS TAB */}
             {activeTab === "applications" && (
                 <section className="space-y-4">
-                    <div className="bg-white border border-red-100 rounded-xl p-5">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    {/* Overview banner */}
+                    <div className="relative overflow-hidden rounded-2xl border border-red-100 bg-white p-5">
+                        <div className="pointer-events-none absolute -top-24 -right-16 h-52 w-52 rounded-full bg-red-50" />
+                        <div className="pointer-events-none absolute -bottom-28 right-32 h-44 w-44 rounded-full bg-red-100/40" />
+                        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                             <div>
-                                <h2 className="text-xl font-semibold text-gray-800">Applications</h2>
-                                <p className="text-sm text-gray-500 mt-1">Create and manage your applications.</p>
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-100 bg-red-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#c53030]">
+                                    <Icon icon="material-symbols-light:tune" className="h-3.5 w-3.5" />
+                                    Customize
+                                </span>
+                                <h2 className="mt-2 text-xl font-semibold text-gray-800">Applications</h2>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Manage applications, branches and shops from the panels below — no endless scrolling.
+                                </p>
                             </div>
-                            <button
-                                onClick={() => {
-                                    resetAppForm();
-                                    setShowAddAppModal(true);
-                                }}
-                                style={{
-                                    background: "#c53030",
-                                    color: "#fff",
-                                    padding: "10px 20px",
-                                    borderRadius: "10px",
-                                    fontWeight: 600,
-                                    border: "2px solid #c53030",
-                                }}
-                            >
-                                Add Application
-                            </button>
+                            <div className="flex flex-wrap gap-2 sm:gap-3">
+                                {applicationSections
+                                    .filter((section) => section.key !== "shop-links")
+                                    .map((section) => (
+                                        <div
+                                            key={`stat-${section.key}`}
+                                            className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white/90 px-4 py-2.5 shadow-sm"
+                                        >
+                                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-[#c53030]">
+                                                <Icon icon={section.icon} className="h-5 w-5" />
+                                            </span>
+                                            <div>
+                                                <p className="text-lg font-semibold leading-none text-gray-800">{section.count}</p>
+                                                <p className="mt-1 text-xs text-gray-500">{section.label}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
                         </div>
                     </div>
 
-                    {applicationContext?.applications.length === 0 ? (
-                        <div className="bg-white border border-gray-200 rounded-xl p-6 text-center text-gray-500">
-                            No applications available.
-                        </div>
-                    ) : (
-                        applicationContext?.applications.map((app) => (
-                            <div key={app.ApplicationId} className="bg-white border border-gray-200 rounded-xl p-4">
-                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                    <div className="flex-1">
-                                        <p className="text-sm text-gray-500">Application Code</p>
-                                        <h3 className="text-lg font-semibold text-gray-800">{app.ApplicationCode}</h3>
-                                        <p className="text-sm text-gray-600 mt-1">{app.ApplicationName}</p>
-                                        <p className="text-xs text-gray-500 mt-1">Theme: {app.Theme?.ThemeCode}</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => openEditAppModal(app)}
-                                            className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    {/* Section switcher */}
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                        {applicationSections.map((section) => {
+                            const isActive = activeApplicationSection === section.key;
+                            return (
+                                <button
+                                    key={section.key}
+                                    type="button"
+                                    onClick={() => setActiveApplicationSection(section.key)}
+                                    className={`group flex items-center gap-3 rounded-2xl border p-4 text-left transition ${
+                                        isActive
+                                            ? "border-red-200 bg-red-50 shadow-sm"
+                                            : "border-gray-200 bg-white hover:border-red-200 hover:bg-red-50/50"
+                                    }`}
+                                >
+                                    <span
+                                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${
+                                            isActive ? "bg-[#c53030] text-white shadow-sm" : "bg-red-50 text-[#c53030] group-hover:bg-white"
+                                        }`}
+                                    >
+                                        <Icon icon={section.icon} className="h-5 w-5" />
+                                    </span>
+                                    <span className="min-w-0 flex-1">
+                                        <span
+                                            className={`block text-sm font-semibold ${
+                                                isActive ? "text-[#c53030]" : "text-gray-800"
+                                            }`}
                                         >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteApp(app.ApplicationId)}
-                                            className="px-4 py-2 rounded-lg border border-red-300 text-sm font-medium text-red-600 hover:bg-red-50"
+                                            {section.label}
+                                        </span>
+                                        <span className="mt-0.5 block truncate text-xs text-gray-500">{section.description}</span>
+                                    </span>
+                                    {section.key !== "shop-links" && (
+                                        <span
+                                            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold transition ${
+                                                isActive
+                                                    ? "bg-[#c53030] text-white"
+                                                    : "bg-gray-100 text-gray-500 group-hover:bg-red-50 group-hover:text-[#c53030]"
+                                            }`}
                                         >
-                                            Delete
-                                        </button>
-                                    </div>
+                                            {section.count}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* PANEL: Applications */}
+                    {activeApplicationSection === "applications" && (
+                        <div className="rounded-2xl border border-gray-200 bg-white">
+                            <div className="flex flex-col gap-3 border-b border-gray-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-800">Applications</h3>
+                                    <p className="text-sm text-gray-500">Create and manage your applications.</p>
                                 </div>
+                                <button
+                                    onClick={() => {
+                                        resetAppForm();
+                                        setShowAddAppModal(true);
+                                    }}
+                                    className={primaryBtnClass}
+                                >
+                                    <Icon icon="material-symbols-light:add-outline" className="h-4 w-4" />
+                                    Add Application
+                                </button>
                             </div>
-                        ))
+                            <div className="max-h-[58vh] overflow-y-auto p-5">
+                                {applicationContext?.applications.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-red-200 bg-red-50/40 px-4 py-10 text-center">
+                                        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#c53030] shadow-sm">
+                                            <Icon icon="material-symbols-light:apps-outline" className="h-5 w-5" />
+                                        </span>
+                                        <p className="text-sm font-medium text-gray-700">No applications available.</p>
+                                        <p className="text-xs text-gray-500">Use "Add Application" to create your first one.</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                        {applicationContext?.applications.map((app) => {
+                                            const appColors = (app.ThemeColors ?? "")
+                                                .split(",")
+                                                .map((color) => color.trim())
+                                                .filter(Boolean);
+                                            return (
+                                                <div
+                                                    key={app.ApplicationId}
+                                                    className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:shadow-sm"
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-red-50 text-sm font-semibold text-[#c53030]">
+                                                            {app.ApplicationLogo ? (
+                                                                <img src={app.ApplicationLogo} alt="" className="h-full w-full object-cover" />
+                                                            ) : (
+                                                                (app.ApplicationName || app.ApplicationCode || "?").charAt(0).toUpperCase()
+                                                            )}
+                                                        </span>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="truncate text-sm font-semibold text-gray-800">{app.ApplicationName}</p>
+                                                            <p className="mt-0.5 truncate text-xs text-gray-500">{app.ApplicationCode}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                        <span className="inline-flex items-center rounded-full border border-red-100 bg-red-50 px-2.5 py-1 text-[11px] font-medium text-[#c53030]">
+                                                            Theme: {app.Theme?.ThemeCode}
+                                                        </span>
+                                                        {appColors.slice(0, 4).map((color, index) => (
+                                                            <span
+                                                                key={`${app.ApplicationId}-color-${index}`}
+                                                                title={color}
+                                                                className="h-4 w-4 rounded-full border border-gray-200"
+                                                                style={{ backgroundColor: color }}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                    <div className="mt-4 flex gap-2 border-t border-gray-100 pt-3">
+                                                        <button onClick={() => openEditAppModal(app)} className={`${ghostBtnClass} flex-1`}>
+                                                            Edit
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteApp(app.ApplicationId)}
+                                                            className={`${dangerBtnClass} flex-1`}
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     )}
 
-                    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
-                        <h3 className="text-lg font-semibold text-gray-800">Application Shops</h3>
-                        <p className="text-sm text-gray-500">Add or remove a shop from an application.</p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <select
-                                value={appShopFormData.ApplicationId}
-                                onChange={(e) => setAppShopFormData((prev) => ({ ...prev, ApplicationId: e.target.value }))}
-                                className="rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
-                            >
-                                <option value="">Select Application</option>
-                                {(applicationContext?.applications ?? []).map((app) => (
-                                    <option key={app.ApplicationId} value={String(app.ApplicationId)}>
-                                        {app.ApplicationName}
-                                    </option>
-                                ))}
-                            </select>
-                            <select
-                                value={appShopFormData.ShopId}
-                                onChange={(e) => setAppShopFormData((prev) => ({ ...prev, ShopId: e.target.value }))}
-                                className="rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
-                            >
-                                <option value="">Select Shop</option>
-                                {(applicationContext?.shops ?? []).map((shop) => (
-                                    <option key={shop.ShopId} value={shop.ShopId}>
-                                        {shop.ShopName}
-                                    </option>
-                                ))}
-                            </select>
-                            <div className="flex gap-2">
+                    {/* PANEL: Branches */}
+                    {activeApplicationSection === "branches" && (
+                        <div className="rounded-2xl border border-gray-200 bg-white">
+                            <div className="flex flex-col gap-3 border-b border-gray-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-800">Branches</h3>
+                                    <p className="text-sm text-gray-500">Create, update and delete branches.</p>
+                                </div>
                                 <button
-                                    onClick={handleAddShopToApplication}
-                                    className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    onClick={() => {
+                                        const userId = authContext?.user?.id;
+                                        console.log("User ID:", userId);
+                                        setBranchFormData((prev) => ({ ...prev, BranchManager: Number(userId) || 0 }))
+                                        resetBranchForm();
+                                        setShowBranchModal(true);
+                                    }}
+                                    className={primaryBtnClass}
                                 >
+                                    <Icon icon="material-symbols-light:add-outline" className="h-4 w-4" />
+                                    Add Branch
+                                </button>
+                            </div>
+                            <div className="max-h-[58vh] overflow-y-auto p-5">
+                                {(applicationContext?.branches ?? []).length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-red-200 bg-red-50/40 px-4 py-10 text-center">
+                                        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#c53030] shadow-sm">
+                                            <Icon icon="material-symbols-light:corporate-fare-outline" className="h-5 w-5" />
+                                        </span>
+                                        <p className="text-sm font-medium text-gray-700">No branches found.</p>
+                                        <p className="text-xs text-gray-500">Use "Add Branch" to create your first one.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {(applicationContext?.branches ?? []).map((branch) => (
+                                            <div
+                                                key={branch.BranchId}
+                                                className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-3 transition hover:border-red-200 hover:bg-red-50/30"
+                                            >
+                                                <div className="flex min-w-0 items-center gap-3">
+                                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-[#c53030]">
+                                                        <Icon icon="material-symbols-light:location-on-outline" className="h-4 w-4" />
+                                                    </span>
+                                                    <div className="min-w-0">
+                                                        <p className="truncate text-sm font-medium text-gray-800">{branch.Branch}</p>
+                                                        <p className="truncate text-xs text-gray-500">
+                                                            {branch.Location} • {branch.PhoneNumber}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex shrink-0 gap-2">
+                                                    <button
+                                                        onClick={() => openEditBranchModal(String(branch.BranchId))}
+                                                        className={ghostBtnClass}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteBranch(String(branch.BranchId))}
+                                                        className={dangerBtnClass}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* PANEL: Shops */}
+                    {activeApplicationSection === "shops" && (
+                        <div className="rounded-2xl border border-gray-200 bg-white">
+                            <div className="flex flex-col gap-3 border-b border-gray-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-800">Shops</h3>
+                                    <p className="text-sm text-gray-500">Select a shop to expand and manage its branches.</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        resetShopForm();
+                                        setShowShopModal(true);
+                                    }}
+                                    className={primaryBtnClass}
+                                >
+                                    <Icon icon="material-symbols-light:add-outline" className="h-4 w-4" />
                                     Add Shop
                                 </button>
-                                <button
-                                    onClick={handleRemoveShopFromApplication}
-                                    className="px-4 py-2 rounded-lg border border-red-300 text-sm font-medium text-red-600 hover:bg-red-50"
-                                >
-                                    Remove Shop
-                                </button>
                             </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-800">Branches</h3>
-                                <p className="text-sm text-gray-500">Create, update and delete branches.</p>
-                            </div>
-                            <button
-                                onClick={() => {
-                                    const userId = authContext?.user?.id;
-                                    console.log("User ID:", userId);
-                                    setBranchFormData((prev) => ({ ...prev, BranchManager: Number(userId) || 0 }))
-                                    resetBranchForm();
-                                    setShowBranchModal(true);
-                                }}
-                                className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-                                style={{ backgroundColor: "#c53030" }}
-                            >
-                                Add Branch
-                            </button>
-                        </div>
-                        {(applicationContext?.branches ?? []).length === 0 ? (
-                            <div className="rounded-lg border border-gray-200 p-4 text-sm text-gray-500">No branches found.</div>
-                        ) : (
-                            (applicationContext?.branches ?? []).map((branch) => (
-                                <div key={branch.BranchId} className="rounded-lg border border-gray-200 p-3 flex items-center justify-between gap-3">
-                                    <div>
-                                        <p className="font-medium text-gray-800">{branch.Branch}</p>
-                                        <p className="text-xs text-gray-500">{branch.Location} • {branch.PhoneNumber}</p>
+                            <div className="max-h-[58vh] overflow-y-auto p-5">
+                                {(applicationContext?.shops ?? []).length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-red-200 bg-red-50/40 px-4 py-10 text-center">
+                                        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#c53030] shadow-sm">
+                                            <Icon icon="material-symbols-light:storefront-outline" className="h-5 w-5" />
+                                        </span>
+                                        <p className="text-sm font-medium text-gray-700">No shops found.</p>
+                                        <p className="text-xs text-gray-500">Use "Add Shop" to create your first one.</p>
                                     </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {(applicationContext?.shops ?? []).map((shop) => {
+                                            const isExpanded = expandedShopId === shop.ShopId;
+                                            return (
+                                                <div
+                                                    key={shop.ShopId}
+                                                    className={`overflow-hidden rounded-xl border transition ${
+                                                        isExpanded
+                                                            ? "border-red-200 bg-red-50/30"
+                                                            : "border-gray-200 bg-white hover:border-red-200"
+                                                    }`}
+                                                >
+                                                    <button
+                                                        onClick={() => setExpandedShopId(isExpanded ? null : shop.ShopId)}
+                                                        className="flex w-full items-center justify-between gap-3 p-4 text-left"
+                                                    >
+                                                        <div className="flex min-w-0 items-center gap-3">
+                                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-[#c53030]">
+                                                                <Icon icon="material-symbols-light:storefront-outline" className="h-4 w-4" />
+                                                            </span>
+                                                            <div className="min-w-0">
+                                                                <p className="truncate text-sm font-medium text-gray-800">{shop.ShopName}</p>
+                                                                <p className="truncate text-xs text-gray-500">
+                                                                    {shop.ShopLocation} • {shop.PhoneNumber}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <span
+                                                            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition ${
+                                                                isExpanded
+                                                                    ? "bg-[#c53030] text-white"
+                                                                    : "bg-gray-100 text-gray-500"
+                                                            }`}
+                                                        >
+                                                            {isExpanded ? "Hide" : "Show"}
+                                                            <Icon
+                                                                icon={
+                                                                    isExpanded
+                                                                        ? "material-symbols-light:keyboard-arrow-up"
+                                                                        : "material-symbols-light:keyboard-arrow-down"
+                                                                }
+                                                                className="h-4 w-4"
+                                                            />
+                                                        </span>
+                                                    </button>
+                                                    {isExpanded && (
+                                                        <div className="space-y-3 border-t border-red-100 bg-white/70 px-4 pb-4 pt-3">
+                                                            <div className="flex gap-2">
+                                                                <button onClick={() => openEditShopModal(shop.ShopId)} className={ghostBtnClass}>
+                                                                    Edit Shop
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteShop(shop.ShopId)}
+                                                                    className={dangerBtnClass}
+                                                                >
+                                                                    Delete Shop
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                                                                <select
+                                                                    value={shopBranchSelection[shop.ShopId] ?? ""}
+                                                                    onChange={(e) =>
+                                                                        setShopBranchSelection((prev) => ({ ...prev, [shop.ShopId]: e.target.value }))
+                                                                    }
+                                                                    className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100"
+                                                                >
+                                                                    <option value="">Select branch</option>
+                                                                    {(applicationContext?.branches ?? []).map((branch) => (
+                                                                        <option key={branch.BranchId} value={String(branch.BranchId)}>
+                                                                            {branch.Branch}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                                <button
+                                                                    onClick={() => handleAddBranchToShop(shop.ShopId)}
+                                                                    className={`${ghostBtnClass} md:col-span-2`}
+                                                                >
+                                                                    Add Branch To Shop
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="space-y-2">
+                                                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                                                                    Assigned branches
+                                                                </p>
+                                                                {(shop.ShopBranches ?? []).length === 0 ? (
+                                                                    <p className="text-sm text-gray-500">
+                                                                        No branches assigned to this shop.
+                                                                    </p>
+                                                                ) : (
+                                                                    (shop.ShopBranches ?? []).map((shopBranch) => (
+                                                                        <div
+                                                                            key={`${shop.ShopId}-${shopBranch.BranchId}`}
+                                                                            className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2"
+                                                                        >
+                                                                            <span className="truncate text-sm text-gray-700">
+                                                                                {shopBranch.ShopBranch?.Branch ?? `Branch ${shopBranch.BranchId}`}
+                                                                            </span>
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    handleRemoveBranchFromShop(shop.ShopId, shopBranch.BranchId)
+                                                                                }
+                                                                                className="shrink-0 rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50"
+                                                                            >
+                                                                                Remove
+                                                                            </button>
+                                                                        </div>
+                                                                    ))
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* PANEL: Shop Links */}
+                    {activeApplicationSection === "shop-links" && (
+                        <div className="rounded-2xl border border-gray-200 bg-white">
+                            <div className="border-b border-gray-100 p-5">
+                                <h3 className="text-lg font-semibold text-gray-800">Application Shops</h3>
+                                <p className="text-sm text-gray-500">Add or remove a shop from an application.</p>
+                            </div>
+                            <div className="p-5">
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                    <select
+                                        value={appShopFormData.ApplicationId}
+                                        onChange={(e) => setAppShopFormData((prev) => ({ ...prev, ApplicationId: e.target.value }))}
+                                        className="rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100"
+                                    >
+                                        <option value="">Select Application</option>
+                                        {(applicationContext?.applications ?? []).map((app) => (
+                                            <option key={app.ApplicationId} value={String(app.ApplicationId)}>
+                                                {app.ApplicationName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        value={appShopFormData.ShopId}
+                                        onChange={(e) => setAppShopFormData((prev) => ({ ...prev, ShopId: e.target.value }))}
+                                        className="rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100"
+                                    >
+                                        <option value="">Select Shop</option>
+                                        {(applicationContext?.shops ?? []).map((shop) => (
+                                            <option key={shop.ShopId} value={shop.ShopId}>
+                                                {shop.ShopName}
+                                            </option>
+                                        ))}
+                                    </select>
                                     <div className="flex gap-2">
-                                        <button
-                                            onClick={() => openEditBranchModal(String(branch.BranchId))}
-                                            className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                        >
-                                            Edit
+                                        <button onClick={handleAddShopToApplication} className={`${ghostBtnClass} flex-1`}>
+                                            Add Shop
                                         </button>
-                                        <button
-                                            onClick={() => handleDeleteBranch(String(branch.BranchId))}
-                                            className="px-3 py-2 rounded-lg border border-red-300 text-sm font-medium text-red-600 hover:bg-red-50"
-                                        >
-                                            Delete
+                                        <button onClick={handleRemoveShopFromApplication} className={`${dangerBtnClass} flex-1`}>
+                                            Remove Shop
                                         </button>
                                     </div>
                                 </div>
-                            ))
-                        )}
-                    </div>
-
-                    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-800">Shops</h3>
-                                <p className="text-sm text-gray-500">Select a shop to expand and manage its branches.</p>
                             </div>
-                            <button
-                                onClick={() => {
-                                    resetShopForm();
-                                    setShowShopModal(true);
-                                }}
-                                className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-                                style={{ backgroundColor: "#c53030" }}
-                            >
-                                Add Shop
-                            </button>
                         </div>
-
-                        {(applicationContext?.shops ?? []).length === 0 ? (
-                            <div className="rounded-lg border border-gray-200 p-4 text-sm text-gray-500">No shops found.</div>
-                        ) : (
-                            (applicationContext?.shops ?? []).map((shop) => {
-                                const isExpanded = expandedShopId === shop.ShopId;
-                                return (
-                                    <div key={shop.ShopId} className="rounded-lg border border-gray-200">
-                                        <button
-                                            onClick={() => setExpandedShopId(isExpanded ? null : shop.ShopId)}
-                                            className="w-full text-left p-4 flex items-center justify-between"
-                                        >
-                                            <div>
-                                                <p className="font-medium text-gray-800">{shop.ShopName}</p>
-                                                <p className="text-xs text-gray-500">{shop.ShopLocation} • {shop.PhoneNumber}</p>
-                                            </div>
-                                            <span className="text-sm text-gray-500">{isExpanded ? "Hide" : "Show"}</span>
-                                        </button>
-                                        {isExpanded && (
-                                            <div className="px-4 pb-4 space-y-3 border-t border-gray-200">
-                                                <div className="pt-3 flex gap-2">
-                                                    <button
-                                                        onClick={() => openEditShopModal(shop.ShopId)}
-                                                        className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                                    >
-                                                        Edit Shop
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteShop(shop.ShopId)}
-                                                        className="px-3 py-2 rounded-lg border border-red-300 text-sm font-medium text-red-600 hover:bg-red-50"
-                                                    >
-                                                        Delete Shop
-                                                    </button>
-                                                </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2">
-                                                    <select
-                                                        value={shopBranchSelection[shop.ShopId] ?? ""}
-                                                        onChange={(e) => setShopBranchSelection((prev) => ({ ...prev, [shop.ShopId]: e.target.value }))}
-                                                        className="rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
-                                                    >
-                                                        <option value="">Select branch</option>
-                                                        {(applicationContext?.branches ?? []).map((branch) => (
-                                                            <option key={branch.BranchId} value={String(branch.BranchId)}>
-                                                                {branch.Branch}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    <button
-                                                        onClick={() => handleAddBranchToShop(shop.ShopId)}
-                                                        className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                                    >
-                                                        Add Branch To Shop
-                                                    </button>
-                                                </div>
-
-                                                <div className="space-y-2">
-                                                    <p className="text-xs text-gray-500">Assigned branches</p>
-                                                    {(shop.ShopBranches ?? []).length === 0 ? (
-                                                        <p className="text-sm text-gray-500">No branches assigned to this shop.</p>
-                                                    ) : (
-                                                        (shop.ShopBranches ?? []).map((shopBranch) => (
-                                                            <div key={`${shop.ShopId}-${shopBranch.BranchId}`} className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2">
-                                                                <span className="text-sm text-gray-700">{shopBranch.ShopBranch?.Branch ?? `Branch ${shopBranch.BranchId}`}</span>
-                                                                <button
-                                                                    onClick={() => handleRemoveBranchFromShop(shop.ShopId, shopBranch.BranchId)}
-                                                                    className="px-3 py-1 rounded-lg border border-red-300 text-xs font-medium text-red-600 hover:bg-red-50"
-                                                                >
-                                                                    Remove
-                                                                </button>
-                                                            </div>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
+                    )}
                 </section>
             )}
 
             {/* THEMES TAB */}
             {activeTab === "themes" && (
                 <section className="space-y-4">
-                    <div className="bg-white border border-red-100 rounded-xl p-5">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="rounded-2xl border border-gray-200 bg-white">
+                        <div className="flex flex-col gap-3 border-b border-gray-100 p-5 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h2 className="text-xl font-semibold text-gray-800">Themes</h2>
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-100 bg-red-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#c53030]">
+                                    <Icon icon="material-symbols-light:palette-outline" className="h-3.5 w-3.5" />
+                                    Themes
+                                </span>
+                                <h2 className="mt-2 text-xl font-semibold text-gray-800">Themes</h2>
                                 <p className="text-sm text-gray-500 mt-1">Create and manage your application themes.</p>
                             </div>
                             <button
@@ -984,67 +1212,71 @@ const CustomizePage: React.FC = () => {
                                     resetThemeForm();
                                     setShowAddThemeModal(true);
                                 }}
-                                style={{
-                                    background: "#c53030",
-                                    color: "#fff",
-                                    padding: "10px 20px",
-                                    borderRadius: "10px",
-                                    fontWeight: 600,
-                                    border: "2px solid #c53030",
-                                }}
+                                className={primaryBtnClass}
                             >
+                                <Icon icon="material-symbols-light:add-outline" className="h-4 w-4" />
                                 Add Theme
                             </button>
                         </div>
-                    </div>
 
-                    {applicationContext?.themes.length === 0 ? (
-                        <div className="bg-white border border-gray-200 rounded-xl p-6 text-center text-gray-500">
-                            No themes available.
-                        </div>
-                    ) : (
-                        applicationContext?.themes.map((theme) => (
-                            <div key={theme.ThemeId} className="bg-white border border-gray-200 rounded-xl p-4">
-                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                    <div className="flex-1">
-                                        <p className="text-sm text-gray-500">Theme Code</p>
-                                        <h3 className="text-lg font-semibold text-gray-800">{theme.ThemeCode}</h3>
-                                        <p className="text-sm text-gray-600 mt-1">{theme.ThemeName}</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => openEditThemeModal(theme)}
-                                            className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteTheme(theme.ThemeId)}
-                                            className="px-4 py-2 rounded-lg border border-red-300 text-sm font-medium text-red-600 hover:bg-red-50"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
+                        <div className="max-h-[60vh] overflow-y-auto p-5">
+                            {applicationContext?.themes.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-red-200 bg-red-50/40 px-4 py-10 text-center">
+                                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#c53030] shadow-sm">
+                                        <Icon icon="material-symbols-light:palette-outline" className="h-5 w-5" />
+                                    </span>
+                                    <p className="text-sm font-medium text-gray-700">No themes available.</p>
+                                    <p className="text-xs text-gray-500">Use "Add Theme" to create your first one.</p>
                                 </div>
-                            </div>
-                        ))
-                    )}
+                            ) : (
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                    {applicationContext?.themes.map((theme) => (
+                                        <div
+                                            key={theme.ThemeId}
+                                            className="flex flex-col rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:shadow-sm"
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-[#c53030]">
+                                                    <Icon icon="material-symbols-light:format-paint-outline" className="h-5 w-5" />
+                                                </span>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate text-sm font-semibold text-gray-800">{theme.ThemeName}</p>
+                                                    <p className="mt-0.5 truncate text-xs text-gray-500">Theme Code: {theme.ThemeCode}</p>
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 flex gap-2 border-t border-gray-100 pt-3">
+                                                <button onClick={() => openEditThemeModal(theme)} className={`${ghostBtnClass} flex-1`}>
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteTheme(theme.ThemeId)}
+                                                    className={`${dangerBtnClass} flex-1`}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </section>
             )}
 
             {/* APPEARANCE TAB */}
             {activeTab === "appearance" && (
                 <section className="space-y-4">
-                    <div className="bg-white border border-red-100 rounded-xl p-5">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div>
-                                <h2 className="text-xl font-semibold text-gray-800">Appearance</h2>
-                                <p className="text-sm text-gray-500 mt-1">Customize your application's visual appearance.</p>
-                            </div>
-                        </div>
+                    <div className="rounded-2xl border border-red-100 bg-white p-5">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-red-100 bg-red-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#c53030]">
+                            <Icon icon="material-symbols-light:brush-outline" className="h-3.5 w-3.5" />
+                            Appearance
+                        </span>
+                        <h2 className="mt-2 text-xl font-semibold text-gray-800">Appearance</h2>
+                        <p className="text-sm text-gray-500 mt-1">Customize your application's visual appearance.</p>
                     </div>
 
-                    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+                    <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-3">
                         <div>
                             <h3 className="text-lg font-semibold text-gray-800">Application</h3>
                             <p className="text-sm text-gray-500 mt-1">
@@ -1075,7 +1307,7 @@ const CustomizePage: React.FC = () => {
                     )}
 
                     {selectedAppearanceApplication && (
-                    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-6">
+                    <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-6">
                         {/* Theme Colors */}
                         <div>
                             <h3 className="text-lg font-semibold text-gray-800 mb-4">Theme Colors</h3>

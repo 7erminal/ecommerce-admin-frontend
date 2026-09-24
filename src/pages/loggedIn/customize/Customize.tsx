@@ -106,7 +106,14 @@ const CustomizePage: React.FC = () => {
         applicationContext?.fetchThemes();
         applicationContext?.fetchShops();
         applicationContext?.fetchBranches();
+        applicationContext?.fetchApplicationShops();
     }, []);
+
+    useEffect(() => {
+        if (activeApplicationSection === "shop-links") {
+            applicationContext?.fetchApplicationShops();
+        }
+    }, [activeApplicationSection]);
 
     useEffect(() => {
         const apps = applicationContext?.applications ?? [];
@@ -623,6 +630,7 @@ const CustomizePage: React.FC = () => {
 
         setError("");
         setShowError(false);
+        applicationContext?.fetchApplicationShops();
     };
 
     const handleRemoveShopFromApplication = async () => {
@@ -641,6 +649,7 @@ const CustomizePage: React.FC = () => {
 
         setError("");
         setShowError(false);
+        applicationContext?.fetchApplicationShops();
     };
 
     // ===== APPEARANCE HANDLERS =====
@@ -709,7 +718,7 @@ const CustomizePage: React.FC = () => {
             label: "Shop Links",
             description: "Attach shops to apps",
             icon: "material-symbols-light:add-link-outline",
-            count: 0,
+            count: applicationContext?.applicationShops.length ?? 0,
         },
     ];
 
@@ -1181,6 +1190,56 @@ const CustomizePage: React.FC = () => {
                                             Remove Shop
                                         </button>
                                     </div>
+                                </div>
+
+                                <div className="mt-5 border-t border-gray-100 pt-5">
+                                    <div className="mb-3 flex items-center justify-between gap-2">
+                                        <p className="text-sm font-semibold text-gray-800">Current Application Shop Links</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => applicationContext?.fetchApplicationShops()}
+                                            className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+                                        >
+                                            Refresh
+                                        </button>
+                                    </div>
+
+                                    {(applicationContext?.applicationShops ?? []).length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-red-200 bg-red-50/40 px-4 py-8 text-center">
+                                            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#c53030] shadow-sm">
+                                                <Icon icon="material-symbols-light:link" className="h-5 w-5" />
+                                            </span>
+                                            <p className="text-sm font-medium text-gray-700">No application-shop links found.</p>
+                                            <p className="text-xs text-gray-500">Use the controls above to attach a shop to an application.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {(applicationContext?.applicationShops ?? []).map((appShop) => {
+                                                const linkedShop = (applicationContext?.shops ?? []).find((shop) => shop.ShopId === appShop.ShopId);
+                                                return (
+                                                    <div
+                                                        key={`${appShop.Application?.ApplicationId ?? appShop.Application?.ApplicationCode}-${appShop.ShopId}`}
+                                                        className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 transition hover:border-red-200 hover:bg-red-50/30"
+                                                    >
+                                                        <div className="flex min-w-0 items-center gap-3">
+                                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-[#c53030]">
+                                                                <Icon icon="material-symbols-light:account-tree-outline" className="h-4 w-4" />
+                                                            </span>
+                                                            <div className="min-w-0">
+                                                                <p className="truncate text-sm font-medium text-gray-800">
+                                                                    {appShop.Application?.ApplicationName ?? "Unknown Application"}
+                                                                </p>
+                                                                <p className="truncate text-xs text-gray-500">
+                                                                    Shop: {linkedShop?.ShopName ?? `Shop ${appShop.ShopId}`}
+                                                                    {appShop.Application?.ApplicationCode ? ` • ${appShop.Application.ApplicationCode}` : ""}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

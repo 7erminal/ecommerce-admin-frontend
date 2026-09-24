@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp, ShopResp, BranchResp, ShopRequestDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest } from '../types/applicationTypes';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp, ShopResp, BranchResp, ShopRequestDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopFullResponseData } from '../types/applicationTypes';
 import { API_ENDPOINTS } from '../../src/config/api.config';
 import { applicationService } from '../../src/services/applicationService';
 
@@ -34,6 +34,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [selectedTheme, setSelectedTheme] = useState<ThemeResp | null>(null);
   const [shops, setShops] = useState<Array<ShopResp>>([]);
   const [branches, setBranches] = useState<Array<BranchResp>>([]);
+  const [applicationShops, setApplicationShops] = useState<Array<ApplicationShopFullResponseData>>([]);
 
 
   const clearAll = () => {
@@ -653,6 +654,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
       const response = await applicationService.addApplicationShop(payload);
       if (response.Success === true) {
         await fetchApplications();
+        await fetchApplicationShops();
       }
       return response;
     } catch (err) {
@@ -667,12 +669,27 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
       const response = await applicationService.removeApplicationShop(payload);
       if (response.Success === true) {
         await fetchApplications();
+        await fetchApplicationShops();
       }
       return response;
     } catch (err) {
       console.error('Error removing shop from application: ', err);
       setError('Failed to remove shop from application');
       return { Success: false, StatusDesc: 'Failed to remove shop from application', Result: null };
+    }
+  }
+
+  const fetchApplicationShops = async () => {
+    try {
+      const response = await applicationService.fetchApplicationShops();
+      if (response.Success === true) {
+        setApplicationShops(response.Result || []);
+      }
+      return response;
+    } catch (err) {
+      console.error('Error fetching application shops: ', err);
+      setError('Failed to fetch application shops');
+      return { Success: false, StatusDesc: 'Failed to fetch application shops', Result: [] };
     }
   }
 
@@ -834,6 +851,9 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         removeShopBranch,
         addApplicationShop,
         removeApplicationShop,
+        applicationShops,
+        setApplicationShops,
+        fetchApplicationShops,
       }}
     >
       {children}

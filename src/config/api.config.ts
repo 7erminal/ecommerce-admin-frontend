@@ -33,6 +33,7 @@ export const API_ENDPOINTS = {
   APPLICATIONS: {
     GET_BY_ID: (code: string) => `/v1/app-service/get-application/${code}`,
     GET_ALL: '/v1/app-service/get-applications',
+    GET_SHOPS: '/v1/app-service/get-application-shops',
     ADD_APPLICATION: '/v1/app-service/add-application',
     DELETE_APPLICATION: (id: string) => `/v1/app-service/delete-application/${id}`,
     UPDATE_APPLICATION: (id: string) => `/v1/app-service/update-application/${id}`,

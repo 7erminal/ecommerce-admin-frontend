@@ -1,3 +1,13 @@
+export type ApplicationShopFullResponseData = {
+  Application: ApplicationResp
+  ShopId: string
+}
+
+export type ApplicationShopsResponse = {
+  Success: boolean
+  StatusDesc: string
+  Result: ApplicationShopFullResponseData[]
+}
 import type { Dispatch } from "react"
 
 export type AuthContextProps = {
@@ -569,6 +579,9 @@ export type ApplicationContextProps = {
   removeShopBranch: (payload: ShopBranchRequestDTO) => Promise<ShopResponse>
   addApplicationShop: (payload: ApplicationShopRequest) => Promise<ApplicationResponseDTO>
   removeApplicationShop: (payload: ApplicationShopRequest) => Promise<ApplicationResponseDTO>
+  applicationShops: ApplicationShopFullResponseData[]
+  setApplicationShops: Dispatch<React.SetStateAction<ApplicationShopFullResponseData[]>>
+  fetchApplicationShops: () => Promise<ApplicationShopsResponse>
 }
 
 export interface RegisterParams {

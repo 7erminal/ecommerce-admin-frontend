@@ -49,6 +49,7 @@ export const API_ENDPOINTS = {
     DELETE_SHOP: '/v1/app-service/delete-shop',
   },
   BRANCHES: {
+    GET_BY_ID: (id: string) => `/v1/app-service/get-branch/${id}`,
     GET_ALL: '/v1/app-service/get-branches',
     ADD_BRANCH: '/v1/app-service/add-branch',
     UPDATE_BRANCH: (id: string) => `/v1/app-service/update-branch/${id}`,

@@ -287,6 +287,12 @@ class ApplicationService {
       return response.data;
     }
 
+    async fetchBranchById(id: string): Promise<BranchResponseDTO> {
+      const response = await Api.GET_<BranchResponseDTO>(API_ENDPOINTS.BRANCHES.GET_BY_ID(id));
+      console.log('[fetchBranchById] Response:', response.data);
+      return response.data;
+    }
+
     async fetchBranches(): Promise<BranchesResponseDTO> {
       const response = await Api.GET_<BranchesResponseDTO>(API_ENDPOINTS.BRANCHES.GET_ALL);
       console.log('[fetchBranches] Response:', response.data);

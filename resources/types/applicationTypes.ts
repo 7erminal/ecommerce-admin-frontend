@@ -584,6 +584,7 @@ export type ApplicationContextProps = {
   fetchApplicationShops: () => Promise<ApplicationShopsResponse>
   shop: ShopResp | null
   setShop: Dispatch<React.SetStateAction<ShopResp | null>>
+  fetchBranchById: (id: string) => Promise<BranchResponseDTO>
 }
 
 export interface RegisterParams {
@@ -1153,7 +1154,7 @@ export type BranchesData = {
 
 export type BranchResponseDTO = {
   Success: boolean
-  Result: BranchResp | null
+  Result: BranchData | null
   StatusDesc: string
 }
 

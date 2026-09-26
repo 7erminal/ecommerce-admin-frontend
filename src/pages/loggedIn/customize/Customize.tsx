@@ -513,19 +513,24 @@ const CustomizePage: React.FC = () => {
         setEditingBranchId(null);
     };
 
-    const openEditBranchModal = (branchId: string) => {
+    const openEditBranchModal = async (branchId: string) => {
         const userId = authContext?.user?.id;
         console.log("User ID:", userId);
         // setBranchFormData((prev) => ({ ...prev, BranchManager: Number(userId) || 0 }))
-        const selectedBranch = (applicationContext?.branches ?? []).find((branch) => String(branch.BranchId) === branchId);
-        if (!selectedBranch) {
+        // const selectedBranch = (applicationContext?.branches ?? []).find((branch) => String(branch.BranchId) === branchId);
+        // if (!selectedBranch) {
+        //     return;
+        // }
+        const selectedBranch = await applicationContext?.fetchBranchById(branchId);
+        if (!selectedBranch?.Result) {
             return;
         }
+        const branchData = selectedBranch.Result;
         setBranchFormData({
-            Branch: selectedBranch.Branch,
-            CountryCode: "",
-            PhoneNumber: selectedBranch.PhoneNumber,
-            Location: selectedBranch.Location,
+            Branch: branchData.Branch,
+            CountryCode: branchData.Country.CountryCode,
+            PhoneNumber: branchData.PhoneNumber,
+            Location: branchData.Location,
             BranchManager: 0,
         });
         setEditingBranchId(branchId);

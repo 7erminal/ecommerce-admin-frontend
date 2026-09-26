@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp, ShopResp, BranchResp, ShopRequestDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopFullResponseData } from '../types/applicationTypes';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Branch, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp, ShopResp, BranchResp, ShopRequestDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopFullResponseData, BranchData } from '../types/applicationTypes';
 import { API_ENDPOINTS } from '../../src/config/api.config';
 import { applicationService } from '../../src/services/applicationService';
 
@@ -20,7 +20,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedPurpose, setSelectedPurpose] = useState<Purpose | null>(null);
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
-  const [branch, setBranch] = useState<Branch | null>(null);
+  const [branch, setBranch] = useState<BranchData | null>(null);
   const [orders, setOrders] = useState<Array<Order>>([]);
   const [order, setOrder] = useState<Order | null>(null);
   const [users, setUsers] = useState<Array<User>>([]);
@@ -583,6 +583,20 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }
 
+  const fetchBranchById = async (id: string) => {
+    try {
+      const response = await applicationService.fetchBranchById(id);
+      if (response.Success === true) {
+        setBranch(response.Result || null);
+      }
+      return response;
+    } catch (err) {
+      console.error('Error fetching branch by ID: ', err);
+      setError('Failed to fetch branch by ID');
+      return { Success: false, StatusDesc: 'Failed to fetch branch by ID', Result: null };
+    }
+  }
+
   const addBranch = async (payload: BranchRequestDTO) => {
     try {
       const response = await applicationService.addBranch(payload);
@@ -860,6 +874,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         fetchApplicationShops,
         shop,
         setShop,
+        fetchBranchById
       }}
     >
       {children}

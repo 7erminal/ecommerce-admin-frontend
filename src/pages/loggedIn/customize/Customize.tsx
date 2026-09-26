@@ -598,6 +598,8 @@ const CustomizePage: React.FC = () => {
             return;
         }
 
+        console.log("Branch added to shop successfully");
+        applicationContext?.fetchShop(shopId ?? '');
         setShopBranchSelection((prev) => ({ ...prev, [shopId]: "" }));
         setError("");
         setShowError(false);
@@ -610,6 +612,8 @@ const CustomizePage: React.FC = () => {
             setShowError(true);
             return;
         }
+        console.log("Branch removed from shop successfully");
+        applicationContext?.fetchShop(shopId ?? '');
         setError("");
         setShowError(false);
     };
@@ -1040,7 +1044,14 @@ const CustomizePage: React.FC = () => {
                                                     }`}
                                                 >
                                                     <button
-                                                        onClick={() => setExpandedShopId(isExpanded ? null : shop.ShopId)}
+                                                        onClick={() => {
+                                                            setExpandedShopId(isExpanded ? null : shop.ShopId);
+                                                            console.log(`Shop ${shop.ShopId} expanded: ${!isExpanded}`);
+                                                            if (!isExpanded) {
+                                                                console.log(`Shop ${shop.ShopId} is now expanded`);
+                                                                applicationContext?.fetchShop(shop.ShopId);
+                                                            }
+                                                        }}
                                                         className="flex w-full items-center justify-between gap-3 p-4 text-left"
                                                     >
                                                         <div className="flex min-w-0 items-center gap-3">
@@ -1113,14 +1124,14 @@ const CustomizePage: React.FC = () => {
                                                                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                                                                     Assigned branches
                                                                 </p>
-                                                                {(shop.ShopBranches ?? []).length === 0 ? (
+                                                                {(applicationContext?.shop?.ShopBranches ?? []).length === 0 ? (
                                                                     <p className="text-sm text-gray-500">
                                                                         No branches assigned to this shop.
                                                                     </p>
                                                                 ) : (
-                                                                    (shop.ShopBranches ?? []).map((shopBranch) => (
+                                                                    (applicationContext?.shop?.ShopBranches ?? []).map((shopBranch) => (
                                                                         <div
-                                                                            key={`${shop.ShopId}-${shopBranch.BranchId}`}
+                                                                            key={`${applicationContext?.shop?.ShopId}-${shopBranch.BranchId}`}
                                                                             className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2"
                                                                         >
                                                                             <span className="truncate text-sm text-gray-700">
@@ -1128,7 +1139,7 @@ const CustomizePage: React.FC = () => {
                                                                             </span>
                                                                             <button
                                                                                 onClick={() =>
-                                                                                    handleRemoveBranchFromShop(shop.ShopId, shopBranch.BranchId)
+                                                                                    handleRemoveBranchFromShop(applicationContext?.shop?.ShopId ?? '', shopBranch.BranchId)
                                                                                 }
                                                                                 className="shrink-0 rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50"
                                                                             >

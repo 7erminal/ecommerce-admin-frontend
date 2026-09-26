@@ -582,6 +582,8 @@ export type ApplicationContextProps = {
   applicationShops: ApplicationShopFullResponseData[]
   setApplicationShops: Dispatch<React.SetStateAction<ApplicationShopFullResponseData[]>>
   fetchApplicationShops: () => Promise<ApplicationShopsResponse>
+  shop: ShopResp | null
+  setShop: Dispatch<React.SetStateAction<ShopResp | null>>
 }
 
 export interface RegisterParams {

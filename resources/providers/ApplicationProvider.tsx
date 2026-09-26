@@ -33,6 +33,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [themes, setThemes] = useState<Array<ThemeResp>>([]);
   const [selectedTheme, setSelectedTheme] = useState<ThemeResp | null>(null);
   const [shops, setShops] = useState<Array<ShopResp>>([]);
+  const [shop, setShop] = useState<ShopResp | null>(null);
   const [branches, setBranches] = useState<Array<BranchResp>>([]);
   const [applicationShops, setApplicationShops] = useState<Array<ApplicationShopFullResponseData>>([]);
 
@@ -515,6 +516,9 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const fetchShop = async (id: string) => {
     try {
       const response = await applicationService.fetchShop(id);
+      if (response.Success === true) {
+        setShop(response.Result || null);
+      }
       return response;
     } catch (err) {
       console.error('Error fetching shop: ', err);
@@ -854,6 +858,8 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         applicationShops,
         setApplicationShops,
         fetchApplicationShops,
+        shop,
+        setShop,
       }}
     >
       {children}

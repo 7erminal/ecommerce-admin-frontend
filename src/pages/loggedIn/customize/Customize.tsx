@@ -527,7 +527,7 @@ const CustomizePage: React.FC = () => {
         if (!selectedBranch?.Result) {
             return;
         }
-        const branchData = applicationContext?.branch;
+        const branchData = selectedBranch.Result;
         setBranchFormData({
             Branch: branchData?.Branch ?? "",
             CountryCode: branchData?.Country?.CountryCode ?? "",

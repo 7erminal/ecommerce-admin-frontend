@@ -1135,7 +1135,7 @@ const CustomizePage: React.FC = () => {
                                                                             className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2"
                                                                         >
                                                                             <span className="truncate text-sm text-gray-700">
-                                                                                {shopBranch.ShopBranch?.Branch ?? `Branch ${shopBranch.BranchId}`}
+                                                                                {shopBranch.ShopBranch?.BranchName ?? `Branch ${shopBranch.BranchId}`}
                                                                             </span>
                                                                             <button
                                                                                 onClick={() =>

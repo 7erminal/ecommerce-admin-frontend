@@ -1137,6 +1137,15 @@ export type BranchResp = {
   DateCreated?: string
 }
 
+export type BranchResp2 = {
+  BranchId: number
+  BranchName: string
+  Description?: string
+  Location: string
+  PhoneNumber: string
+  DateCreated?: string
+}
+
 export type BranchesData = {
   Data: BranchResp[]
   Count: number
@@ -1155,7 +1164,7 @@ export type BranchesResponseDTO = {
 }
 
 export type ShopBranchResp = {
-  ShopBranch: BranchResp
+  ShopBranch: BranchResp2
   ShopId: string
   BranchId: string
 }

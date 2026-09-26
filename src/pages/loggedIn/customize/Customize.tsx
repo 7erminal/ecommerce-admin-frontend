@@ -525,12 +525,12 @@ const CustomizePage: React.FC = () => {
         if (!selectedBranch?.Result) {
             return;
         }
-        const branchData = selectedBranch.Result;
+        const branchData = applicationContext?.branch;
         setBranchFormData({
-            Branch: branchData.Branch,
-            CountryCode: branchData.Country.CountryCode,
-            PhoneNumber: branchData.PhoneNumber,
-            Location: branchData.Location,
+            Branch: branchData?.Branch ?? "",
+            CountryCode: branchData?.Country?.CountryCode ?? "",
+            PhoneNumber: branchData?.PhoneNumber ?? "",
+            Location: branchData?.Location ?? "",
             BranchManager: 0,
         });
         setEditingBranchId(branchId);

@@ -521,6 +521,7 @@ const CustomizePage: React.FC = () => {
         // if (!selectedBranch) {
         //     return;
         // }
+        console.log("About to fetch branch")
         const selectedBranch = await applicationContext?.fetchBranchById(branchId);
         if (!selectedBranch?.Result) {
             return;

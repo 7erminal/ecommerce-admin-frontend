@@ -255,7 +255,7 @@ const CustomizePage: React.FC = () => {
             ThemeColors: (appFormData.ThemeColors ?? []).join(","),
             DefaultFontsize: appFormData.DefaultFontsize ?? "14",
             ThemeCode: appFormData.ThemeCode,
-            UpdatedBy: 0,
+            UpdatedBy: Number(authContext!.currentUser!.userId) ?? 0,
         };
 
         const updateResp = await applicationContext?.updateApplication(editingAppId, payload);
@@ -275,11 +275,15 @@ const CustomizePage: React.FC = () => {
             return;
         }
 
+        applicationContext?.fetchApplications()
+
         setError("");
         setShowError(false);
         resetAppForm();
         setEditingAppId(null);
         setShowAddAppModal(false);
+
+        alert("Application updated successfully");
     };
 
     const handleDeleteApp = async (appId: string | undefined) => {

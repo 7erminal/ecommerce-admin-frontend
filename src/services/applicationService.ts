@@ -110,7 +110,7 @@ class ApplicationService {
         Weight: payload.Weight,
         CategoryId: payload.CategoryId
       }
-      const response = await Api.POST_<ItemResponseDTO>(API_ENDPOINTS.ITEMS.UPDATE_ITEM(payload.ProductId.toString()), reformedPayload);
+      const response = await Api.PUT_<ItemResponseDTO>(API_ENDPOINTS.ITEMS.UPDATE_ITEM(payload.ProductId.toString()), reformedPayload);
       return response.data;
     }
 

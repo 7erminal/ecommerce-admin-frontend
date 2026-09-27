@@ -533,7 +533,7 @@ const CustomizePage: React.FC = () => {
             CountryCode: branchData?.Country?.CountryCode ?? "",
             PhoneNumber: branchData?.PhoneNumber ?? "",
             Location: branchData?.Location ?? "",
-            BranchManager: 0,
+            BranchManager: Number(authContext?.currentUser?.userId) || 0,
         });
         setEditingBranchId(branchId);
         setShowBranchModal(true);

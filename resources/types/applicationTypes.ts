@@ -31,6 +31,50 @@ export type Role = {
   Description?: string;
 }
 
+export type Action = {
+  ActionId: string;
+  Action: string;
+  Description?: string;
+}
+
+export type Permission = {
+  PermissionId?: string;
+  RoleId?: string;
+  Role: string;
+  Action: string;
+  PermissionCode: string;
+  Description?: string;
+}
+
+export type AddRole = {
+  Role: string;
+  Description: string;
+}
+
+export type AddPermission = {
+  Role: string;
+  Action: string;
+  PermissionCode: string;
+}
+
+export type RolesResponseDTO = {
+  Success: boolean
+  Result: Array<Role> | null
+  StatusDesc: string
+}
+
+export type ActionsResponseDTO = {
+  Success: boolean
+  Result: Array<Action> | null
+  StatusDesc: string
+}
+
+export type PermissionsResponseDTO = {
+  Success: boolean
+  Result: Array<Permission> | null
+  StatusDesc: string
+}
+
 /**
  * Auth/Token Types
  */
@@ -491,6 +535,13 @@ export type ApplicationContextProps = {
   setActiveMenu: (menuItem: string) => void
   roles: Array<Role>
   fetchRoles: () => Promise<void>
+  addRole: (payload: AddRole) => Promise<StringResponseDTO>
+  actions: Array<Action>
+  fetchActions: () => Promise<void>
+  permissions: Array<Permission>
+  fetchPermissions: () => Promise<void>
+  addPermission: (payload: AddPermission) => Promise<StringResponseDTO>
+  removePermission: (payload: AddPermission) => Promise<StringResponseDTO>
   error: string
   setError: Dispatch<React.SetStateAction<string>>
   features: Array<Feature>,

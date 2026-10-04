@@ -20,6 +20,15 @@ export const API_ENDPOINTS = {
   },
   ROLES: {
     GET_ALL: '/v1/app-service/get-roles/',
+    ADD_ROLE: '/v1/app-service/add-role',
+  },
+  ACTIONS: {
+    GET_ALL: '/v1/app-service/get-actions',
+  },
+  PERMISSIONS: {
+    GET_ALL: '/v1/app-service/get-permissions',
+    ADD_PERMISSION: '/v1/app-service/add-permission',
+    REMOVE_PERMISSION: '/v1/app-service/remove-permission',
   },
   ID_TYPES: {
     GET_ALL: '/v1/app-service/get-id-types',

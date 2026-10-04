@@ -1,8 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp, ShopResp, BranchResp, ShopRequestDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopFullResponseData, BranchData } from '../types/applicationTypes';
-import { API_ENDPOINTS } from '../../src/config/api.config';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp, ShopResp, BranchResp, ShopRequestDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopFullResponseData, BranchData, Action, Permission, AddRole, AddPermission, StringResponseDTO } from '../types/applicationTypes';
 import { applicationService } from '../../src/services/applicationService';
 
 export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -11,6 +10,8 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [categories, setCategories] = useState<Array<Category>>([]);
   const [languages, setLanguages] = useState<Array<Language>>([]);
   const [roles, setRoles] = useState<Array<Role>>([]);
+  const [actions, setActions] = useState<Array<Action>>([]);
+  const [permissions, setPermissions] = useState<Array<Permission>>([]);
   const [activeMenuItem, setActiveMenuItem] = useState<string>('home');
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [features, setFeatures] = useState<Array<Feature>>([]);
@@ -214,13 +215,79 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
 
   const fetchRoles = async () => {
     try {
-      const response = await Api.GET_(API_ENDPOINTS.ROLES.GET_ALL);
-      if (response.status === 200 && response.data.Success === true) {
-        setRoles(response.data.Result);
+      const response = await applicationService.fetchRoles();
+      if (response.Success === true) {
+        setRoles(response.Result ?? []);
       }
     } catch (err) {
       console.error('Error fetching roles: ', err);
       setError('Failed to fetch roles');
+    }
+  };
+
+  const addRole = async (payload: AddRole): Promise<StringResponseDTO> => {
+    try {
+      const response = await applicationService.addRole(payload);
+      if (response.Success === true) {
+        await fetchRoles();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error adding role: ', err);
+      setError('Failed to add role');
+      return { Success: false, StatusDesc: 'Failed to add role', Result: null };
+    }
+  };
+
+  const fetchActions = async () => {
+    try {
+      const response = await applicationService.fetchActions();
+      if (response.Success === true) {
+        setActions(response.Result ?? []);
+      }
+    } catch (err) {
+      console.error('Error fetching actions: ', err);
+      setError('Failed to fetch actions');
+    }
+  };
+
+  const fetchPermissions = async () => {
+    try {
+      const response = await applicationService.fetchPermissions();
+      if (response.Success === true) {
+        setPermissions(response.Result ?? []);
+      }
+    } catch (err) {
+      console.error('Error fetching permissions: ', err);
+      setError('Failed to fetch permissions');
+    }
+  };
+
+  const addPermission = async (payload: AddPermission): Promise<StringResponseDTO> => {
+    try {
+      const response = await applicationService.addPermission(payload);
+      if (response.Success === true) {
+        await fetchPermissions();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error adding permission: ', err);
+      setError('Failed to add permission');
+      return { Success: false, StatusDesc: 'Failed to add permission', Result: null };
+    }
+  };
+
+  const removePermission = async (payload: AddPermission): Promise<StringResponseDTO> => {
+    try {
+      const response = await applicationService.removePermission(payload);
+      if (response.Success === true) {
+        await fetchPermissions();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error removing permission: ', err);
+      setError('Failed to remove permission');
+      return { Success: false, StatusDesc: 'Failed to remove permission', Result: null };
     }
   };
 
@@ -783,6 +850,13 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         setActiveMenu,
         roles,
         fetchRoles,
+        addRole,
+        actions,
+        fetchActions,
+        permissions,
+        fetchPermissions,
+        addPermission,
+        removePermission,
         error,
         setError,
         features,

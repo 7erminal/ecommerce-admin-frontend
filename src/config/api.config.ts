@@ -19,16 +19,15 @@ export const API_ENDPOINTS = {
     DELETE_USER: (id: string) => `/v1/user/${id}`,
   },
   ROLES: {
-    GET_ALL: '/v1/app-service/get-roles/',
-    ADD_ROLE: '/v1/app-service/add-role',
+    GET_ALL: '/v1/user/get-roles/',
+    ADD_ROLE: '/v1/user/add-role',
   },
   ACTIONS: {
-    GET_ALL: '/v1/app-service/get-actions',
+    GET_ALL: '/v1/user/get-actions',
   },
   PERMISSIONS: {
-    GET_ALL: '/v1/app-service/get-permissions',
-    ADD_PERMISSION: '/v1/app-service/add-permission',
-    REMOVE_PERMISSION: '/v1/app-service/remove-permission',
+    GET_ALL: '/v1/user/get-permissions',
+    UPDATE_PERMISSION: '/v1/user/update-role',
   },
   ID_TYPES: {
     GET_ALL: '/v1/app-service/get-id-types',
@@ -85,24 +84,24 @@ export const API_ENDPOINTS = {
     ADD_PURPOSE: '/v1/items/add-purpose',
     DELETE_PURPOSE: (id: string) => `/v1/items/delete-purpose/${id}`,
   },
-    ITEMS: {
-        GET_ALL: '/v1/items/get-items',
-        GET_BY_ID: (id: string) => `/v1/items/get-item/${id}`,
-        ADD_ITEM: '/v1/items/add-sales-product',
-      UPLOAD_IMAGE: '/v1/items/upload-product-image',
-        UPDATE_ITEM: (id: string) => `/v1/items/update-product/${id}`,
-        DELETE_ITEM: (id: string) => `/v1/items/delete-item/${id}`,
-    },
-    ORDERS: {
-        GET_ALL: '/v1/transactions/get-orders',
-        GET_BY_ID: (id: string) => `/v1/transactions/get-order/${id}`,
-        ADD_ORDER: '/v1/transactions/place-order-request',
-    },
-    CUSTOMERS: {
-        GET_ALL: '/v1/customers',
-        GET_BY_ID: (id: string) => `/v1/customers/${id}`,
-        ADD_CUSTOMER: '/v1/customers/',
-    },
+  ITEMS: {
+      GET_ALL: '/v1/items/get-items',
+      GET_BY_ID: (id: string) => `/v1/items/get-item/${id}`,
+      ADD_ITEM: '/v1/items/add-sales-product',
+    UPLOAD_IMAGE: '/v1/items/upload-product-image',
+      UPDATE_ITEM: (id: string) => `/v1/items/update-product/${id}`,
+      DELETE_ITEM: (id: string) => `/v1/items/delete-item/${id}`,
+  },
+  ORDERS: {
+      GET_ALL: '/v1/transactions/get-orders',
+      GET_BY_ID: (id: string) => `/v1/transactions/get-order/${id}`,
+      ADD_ORDER: '/v1/transactions/place-order-request',
+  },
+  CUSTOMERS: {
+      GET_ALL: '/v1/customers',
+      GET_BY_ID: (id: string) => `/v1/customers/${id}`,
+      ADD_CUSTOMER: '/v1/customers/',
+  },
   SYSTEM_CONFIGS: {
     GET_ALL: (id: string) => `/v1/app-service/get-system-details/${id}`,
     UPLOAD_IMAGE: '/v1/app-service/upload-system-image',

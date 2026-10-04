@@ -1,6 +1,6 @@
 import Api from '../../resources/apis';
 import { API_ENDPOINTS } from '../config/api.config';
-import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication, SystemImageUploadResponseDTO, AddTheme, ThemeResponseDTO, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemesResponseDTO, ShopsResponse, ShopResponse, ShopRequestDTO, BranchesResponseDTO, BranchResponseDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopsResponse, RolesResponseDTO, AddRole, ActionsResponseDTO, PermissionsResponseDTO, AddPermission } from '../../resources/types/applicationTypes';
+import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication, SystemImageUploadResponseDTO, AddTheme, ThemeResponseDTO, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemesResponseDTO, ShopsResponse, ShopResponse, ShopRequestDTO, BranchesResponseDTO, BranchResponseDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopsResponse, RolesAllGatewayResponseDTO, AddRole, ActionsResponse, PermissionsResponse, UpdateRolePermissionRequest, RoleGatewayResponseDTO } from '../../resources/types/applicationTypes';
 
 class ApplicationService {
   /**
@@ -185,33 +185,29 @@ class ApplicationService {
       return response.data;
     }
 
-    async fetchRoles(): Promise<RolesResponseDTO> {
-      const response = await Api.GET_<RolesResponseDTO>(API_ENDPOINTS.ROLES.GET_ALL);
+    async fetchRoles(): Promise<RolesAllGatewayResponseDTO> {
+      const response = await Api.GET_<RolesAllGatewayResponseDTO>(API_ENDPOINTS.ROLES.GET_ALL);
       return response.data;
     }
 
-    async addRole(payload: AddRole): Promise<StringResponseDTO> {
-      const response = await Api.POST_<StringResponseDTO>(API_ENDPOINTS.ROLES.ADD_ROLE, payload);
+    async addRole(payload: AddRole): Promise<RoleGatewayResponseDTO> {
+      const response = await Api.POST_<RoleGatewayResponseDTO>(API_ENDPOINTS.ROLES.ADD_ROLE, payload);
       return response.data;
     }
 
-    async fetchActions(): Promise<ActionsResponseDTO> {
-      const response = await Api.GET_<ActionsResponseDTO>(API_ENDPOINTS.ACTIONS.GET_ALL);
+    async fetchActions(): Promise<ActionsResponse> {
+      const response = await Api.GET_<ActionsResponse>(API_ENDPOINTS.ACTIONS.GET_ALL);
       return response.data;
     }
 
-    async fetchPermissions(): Promise<PermissionsResponseDTO> {
-      const response = await Api.GET_<PermissionsResponseDTO>(API_ENDPOINTS.PERMISSIONS.GET_ALL);
+    async fetchPermissions(): Promise<PermissionsResponse> {
+      const response = await Api.GET_<PermissionsResponse>(API_ENDPOINTS.PERMISSIONS.GET_ALL);
       return response.data;
     }
 
-    async addPermission(payload: AddPermission): Promise<StringResponseDTO> {
-      const response = await Api.POST_<StringResponseDTO>(API_ENDPOINTS.PERMISSIONS.ADD_PERMISSION, payload);
-      return response.data;
-    }
-
-    async removePermission(payload: AddPermission): Promise<StringResponseDTO> {
-      const response = await Api.POST_<StringResponseDTO>(API_ENDPOINTS.PERMISSIONS.REMOVE_PERMISSION, payload);
+    /** Adds or removes a permission for a role. `Action` is "ADD" or "REMOVE". */
+    async updateRolePermission(payload: UpdateRolePermissionRequest): Promise<RoleGatewayResponseDTO> {
+      const response = await Api.POST_<RoleGatewayResponseDTO>(API_ENDPOINTS.PERMISSIONS.UPDATE_PERMISSION, payload);
       return response.data;
     }
 

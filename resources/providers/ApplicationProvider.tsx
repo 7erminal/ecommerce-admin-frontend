@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp, ShopResp, BranchResp, ShopRequestDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopFullResponseData, BranchData, Action, Permission, AddRole, AddPermission, StringResponseDTO } from '../types/applicationTypes';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp, ShopResp, BranchResp, ShopRequestDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopFullResponseData, BranchData, ActionData, PermissionData, AddRole, UpdateRolePermissionRequest, RoleGatewayResponseDTO } from '../types/applicationTypes';
 import { applicationService } from '../../src/services/applicationService';
 
 export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -10,8 +10,8 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [categories, setCategories] = useState<Array<Category>>([]);
   const [languages, setLanguages] = useState<Array<Language>>([]);
   const [roles, setRoles] = useState<Array<Role>>([]);
-  const [actions, setActions] = useState<Array<Action>>([]);
-  const [permissions, setPermissions] = useState<Array<Permission>>([]);
+  const [actions, setActions] = useState<Array<ActionData>>([]);
+  const [permissions, setPermissions] = useState<Array<PermissionData>>([]);
   const [activeMenuItem, setActiveMenuItem] = useState<string>('home');
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [features, setFeatures] = useState<Array<Feature>>([]);
@@ -225,7 +225,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   };
 
-  const addRole = async (payload: AddRole): Promise<StringResponseDTO> => {
+  const addRole = async (payload: AddRole): Promise<RoleGatewayResponseDTO> => {
     try {
       const response = await applicationService.addRole(payload);
       if (response.Success === true) {
@@ -263,31 +263,21 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   };
 
-  const addPermission = async (payload: AddPermission): Promise<StringResponseDTO> => {
+  /**
+   * Adds or removes a permission for a role (backend `UpdateRolePermissionRequest`).
+   * Roles are always reloaded afterwards so the nested RolePermissions stay current.
+   */
+  const updateRolePermission = async (payload: UpdateRolePermissionRequest): Promise<RoleGatewayResponseDTO> => {
     try {
-      const response = await applicationService.addPermission(payload);
+      const response = await applicationService.updateRolePermission(payload);
       if (response.Success === true) {
-        await fetchPermissions();
+        await fetchRoles();
       }
       return response;
     } catch (err) {
-      console.error('Error adding permission: ', err);
-      setError('Failed to add permission');
-      return { Success: false, StatusDesc: 'Failed to add permission', Result: null };
-    }
-  };
-
-  const removePermission = async (payload: AddPermission): Promise<StringResponseDTO> => {
-    try {
-      const response = await applicationService.removePermission(payload);
-      if (response.Success === true) {
-        await fetchPermissions();
-      }
-      return response;
-    } catch (err) {
-      console.error('Error removing permission: ', err);
-      setError('Failed to remove permission');
-      return { Success: false, StatusDesc: 'Failed to remove permission', Result: null };
+      console.error(`Error ${payload.Action === 'REMOVE' ? 'removing' : 'adding'} permission: `, err);
+      setError(payload.Action === 'REMOVE' ? 'Failed to remove permission' : 'Failed to add permission');
+      return { Success: false, StatusDesc: 'Failed to update role permission', Result: null };
     }
   };
 
@@ -855,8 +845,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         fetchActions,
         permissions,
         fetchPermissions,
-        addPermission,
-        removePermission,
+        updateRolePermission,
         error,
         setError,
         features,

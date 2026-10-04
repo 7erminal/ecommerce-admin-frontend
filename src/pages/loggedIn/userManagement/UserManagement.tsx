@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Icon } from "@iconify/react";
 import ApplicationContext from "../../../../resources/providers/ApplicationContext";
-import type { AddCustomer, AddUser, AddRole, AddPermission, Role } from "../../../../resources/types/applicationTypes";
+import type { AddCustomer, AddUser, AddRole, Role, RolePermission, RolePermissionAction, UpdateRolePermissionRequest } from "../../../../resources/types/applicationTypes";
 import { Panel, EmptyState, SwitchCard, primaryBtnClass, ghostBtnClass, dangerBtnClass, inputClass, selectClass } from "../../components/PageUi";
 
 type ActiveTab = "users" | "customers" | "roles";
@@ -23,10 +23,10 @@ const UserManagementPage: React.FC = () => {
     const [roleName, setRoleName] = useState("");
     const [roleDescription, setRoleDescription] = useState("");
 
-    // Role permissions state
-    const [permissionRole, setPermissionRole] = useState<Role | null>(null);
+    // Role permissions state (mirrors UpdateRolePermissionRequest)
     const [permissionRoleName, setPermissionRoleName] = useState("");
-    const [permissionAction, setPermissionAction] = useState("");
+    const [permissionVerb, setPermissionVerb] = useState<RolePermissionAction>("ADD");
+    const [permissionActionCode, setPermissionActionCode] = useState("");
     const [permissionCode, setPermissionCode] = useState("");
 
     const users = Array.isArray(applicationContext?.users) ? applicationContext.users : [];
@@ -39,12 +39,18 @@ const UserManagementPage: React.FC = () => {
         () => (activeTab === "users" ? users : activeTab === "customers" ? customers : roles),
         [activeTab, users, customers, roles]
     );
-    const rolePermissions = useMemo(() => {
-        if (!permissionRole) {
-            return [];
-        }
-        return permissions.filter((entry) => String(entry.Role || "").toLowerCase() === permissionRole.Role.toLowerCase());
-    }, [permissionRole, permissions]);
+    /** The role whose permissions are open - always taken from the latest roles list. */
+    const permissionRole = useMemo(
+        () => roles.find((entry) => entry.Role === permissionRoleName) ?? null,
+        [roles, permissionRoleName]
+    );
+    const rolePermissions = useMemo<Array<RolePermission>>(
+        () => (permissionRole && Array.isArray(permissionRole.RolePermissions) ? permissionRole.RolePermissions : []),
+        [permissionRole]
+    );
+    /** Maps a role permission's action name (e.g. "Create") back to its ActionCode. */
+    const actionCodeFor = (actionName?: string) =>
+        actions.find((entry) => entry.Action === actionName)?.ActionCode ?? "";
 
     useEffect(()=>{
         document.title = "User Management";
@@ -82,13 +88,6 @@ const UserManagementPage: React.FC = () => {
             return;
         }
         await applicationContext.fetchRoles();
-    }
-
-    const getPermissions = async () => {
-        if (!applicationContext) {
-            return;
-        }
-        await applicationContext.fetchPermissions();
     }
 
     const resetForm = () => {
@@ -180,60 +179,73 @@ const UserManagementPage: React.FC = () => {
     }
 
     const openPermissions = (role: Role) => {
-        setPermissionRole(role);
         setPermissionRoleName(role.Role);
-        setPermissionAction("");
+        setPermissionVerb("ADD");
+        setPermissionActionCode("");
         setPermissionCode("");
     }
 
     const closePermissions = () => {
-        setPermissionRole(null);
         setPermissionRoleName("");
-        setPermissionAction("");
+        setPermissionVerb("ADD");
+        setPermissionActionCode("");
         setPermissionCode("");
     }
 
-    const handleAddPermission = async () => {
+    const submitRolePermission = async (verb: RolePermissionAction) => {
         if (!applicationContext) {
             return;
         }
 
-        if (!permissionRoleName.trim() || !permissionAction.trim() || !permissionCode.trim()) {
+        if (!permissionRoleName.trim() || !permissionCode.trim()) {
             return;
         }
 
-        setSubmitting("permission");
+        setSubmitting(verb === "REMOVE" ? "permission-remove" : "permission-add");
 
-        const payload: AddPermission = {
+        const payload: UpdateRolePermissionRequest = {
             Role: permissionRoleName.trim(),
-            Action: permissionAction.trim(),
+            Action: verb,
             PermissionCode: permissionCode.trim(),
+            ActionCode: permissionActionCode.trim(),
         };
 
-        const resp = await applicationContext.addPermission(payload);
+        const resp = await applicationContext.updateRolePermission(payload);
         if (resp.Success) {
-            await getPermissions();
-            setPermissionAction("");
+            // Roles carry their permissions, so always reload them.
+            await getRoles();
+            setPermissionActionCode("");
             setPermissionCode("");
         }
 
         setSubmitting("");
     }
 
-    const handleRemovePermission = async (entry: { Role: string; Action: string; PermissionCode: string }) => {
+    const handleUpdatePermission = async () => {
+        await submitRolePermission(permissionVerb);
+    }
+
+    const handleRemovePermission = async (entry: RolePermission) => {
         if (!applicationContext) {
             return;
         }
 
-        setSubmitting(`remove-${entry.Action}-${entry.PermissionCode}`);
+        const permCode = entry.Permission?.PermissionCode ?? "";
+        const removeKey = `remove-${permCode}-${entry.Action?.Action ?? ""}`;
 
-        const resp = await applicationContext.removePermission({
-            Role: entry.Role,
-            Action: entry.Action,
-            PermissionCode: entry.PermissionCode,
-        });
+        setSubmitting(removeKey);
+
+        const payload: UpdateRolePermissionRequest = {
+            Role: entry.Role?.Role ?? permissionRole?.Role ?? permissionRoleName,
+            Action: "REMOVE",
+            PermissionCode: permCode,
+            ActionCode: actionCodeFor(entry.Action?.Action),
+        };
+
+        const resp = await applicationContext.updateRolePermission(payload);
         if (resp.Success) {
-            await getPermissions();
+            // Roles carry their permissions, so always reload them.
+            await getRoles();
         }
 
         setSubmitting("");
@@ -306,12 +318,10 @@ const UserManagementPage: React.FC = () => {
                     ) : activeTab === "roles" ? (
                         <div className="space-y-3">
                             {(currentRecords as Array<Role>).map((entry) => {
-                                const permissionCount = permissions.filter(
-                                    (perm) => String(perm.Role || "").toLowerCase() === String(entry.Role || "").toLowerCase()
-                                ).length;
+                                const rolePermissionCount = Array.isArray(entry.RolePermissions) ? entry.RolePermissions.length : 0;
                                 return (
                                     <div
-                                        key={entry.RoleId || entry.Role}
+                                        key={entry.RoleId}
                                         className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/30"
                                     >
                                         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-[#c53030]">
@@ -321,8 +331,13 @@ const UserManagementPage: React.FC = () => {
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <div className="truncate text-sm font-semibold text-gray-800">{entry.Role}</div>
                                                 <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-[#c53030]">
-                                                    {permissionCount} permission{permissionCount === 1 ? "" : "s"}
+                                                    {rolePermissionCount} permission{rolePermissionCount === 1 ? "" : "s"}
                                                 </span>
+                                                {entry.Active ? null : (
+                                                    <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-500">
+                                                        Inactive
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="truncate text-xs text-gray-500">{entry.Description || "No description provided."}</div>
                                         </div>
@@ -431,37 +446,79 @@ const UserManagementPage: React.FC = () => {
                             <div className="rounded-2xl border border-red-100 bg-red-50/40 p-4">
                                 <div className="mb-3 flex items-center gap-2">
                                     <Icon icon="material-symbols-light:key-outline" className="h-4 w-4 text-[#c53030]" />
-                                    <span className="text-sm font-semibold text-gray-800">Add permission</span>
+                                    <span className="text-sm font-semibold text-gray-800">Update permission</span>
                                 </div>
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                                    <select value={permissionRoleName} onChange={(e) => setPermissionRoleName(e.target.value)} className={selectClass}>
-                                        {roles.map((role) => (
-                                            <option key={role.RoleId || role.Role} value={role.Role}>
-                                                {role.Role}
-                                            </option>
-                                        ))}
-                                        {!roles.some((role) => role.Role === permissionRoleName) ? (
-                                            <option value={permissionRoleName}>{permissionRoleName}</option>
-                                        ) : null}
-                                    </select>
-                                    <select value={permissionAction} onChange={(e) => setPermissionAction(e.target.value)} className={selectClass}>
-                                        <option value="">Select Action *</option>
-                                        {actions.map((entry) => (
-                                            <option key={String(entry.ActionId ?? entry.Action)} value={entry.Action}>
-                                                {entry.Action}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <input value={permissionCode} onChange={(e) => setPermissionCode(e.target.value)} placeholder="Permission Code *" className={inputClass} />
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <label className="mb-1.5 block text-xs font-medium text-gray-500">Role</label>
+                                        <select value={permissionRoleName} onChange={(e) => setPermissionRoleName(e.target.value)} className={selectClass}>
+                                            {roles.map((role) => (
+                                                <option key={role.RoleId} value={role.Role}>
+                                                    {role.Role}
+                                                </option>
+                                            ))}
+                                            {!roles.some((role) => role.Role === permissionRoleName) ? (
+                                                <option value={permissionRoleName}>{permissionRoleName}</option>
+                                            ) : null}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="mb-1.5 block text-xs font-medium text-gray-500">Action</label>
+                                        <select
+                                            value={permissionVerb}
+                                            onChange={(e) => setPermissionVerb(e.target.value as RolePermissionAction)}
+                                            className={selectClass}
+                                        >
+                                            <option value="ADD">ADD</option>
+                                            <option value="REMOVE">REMOVE</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="mb-1.5 block text-xs font-medium text-gray-500">Action Code</label>
+                                        <select
+                                            value={permissionActionCode}
+                                            onChange={(e) => setPermissionActionCode(e.target.value)}
+                                            className={selectClass}
+                                        >
+                                            <option value="">No action</option>
+                                            {actions.map((entry) => (
+                                                <option key={entry.ActionId} value={entry.ActionCode}>
+                                                    {entry.Action}{entry.ActionDescription ? ` — ${entry.ActionDescription}` : ""}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="mb-1.5 block text-xs font-medium text-gray-500">Permission Code</label>
+                                        <input
+                                            list="permission-codes"
+                                            value={permissionCode}
+                                            onChange={(e) => setPermissionCode(e.target.value)}
+                                            placeholder="Permission Code *"
+                                            className={inputClass}
+                                        />
+                                        <datalist id="permission-codes">
+                                            {permissions.map((entry) => (
+                                                <option key={entry.PermissionId} value={entry.PermissionCode}>
+                                                    {entry.PermissionDescription || entry.Permission}
+                                                </option>
+                                            ))}
+                                        </datalist>
+                                    </div>
                                 </div>
                                 <div className="mt-3 flex justify-end">
                                     <button
-                                        onClick={handleAddPermission}
-                                        disabled={submitting === "permission"}
+                                        onClick={handleUpdatePermission}
+                                        disabled={submitting === "permission-add" || submitting === "permission-remove"}
                                         className={primaryBtnClass}
                                     >
-                                        <Icon icon="material-symbols-light:add-outline" className="h-4 w-4" />
-                                        {submitting === "permission" ? "Adding..." : "Add Permission"}
+                                        <Icon
+                                            icon={permissionVerb === "REMOVE" ? "material-symbols-light:remove-circle-outline" : "material-symbols-light:add-outline"}
+                                            className="h-4 w-4"
+                                        />
+                                        {submitting === "permission-add" ? "Adding..."
+                                            : submitting === "permission-remove" ? "Removing..."
+                                            : permissionVerb === "REMOVE" ? "Remove Permission" : "Add Permission"}
                                     </button>
                                 </div>
                             </div>
@@ -478,24 +535,35 @@ const UserManagementPage: React.FC = () => {
                                     />
                                 ) : (
                                     <div className="max-h-56 space-y-2 overflow-y-auto">
-                                        {rolePermissions.map((perm) => (
-                                            <div
-                                                key={`${perm.Action}-${perm.PermissionCode}`}
-                                                className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5"
-                                            >
-                                                <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-[#c53030]">
-                                                    {perm.Action}
-                                                </span>
-                                                <span className="min-w-0 flex-1 truncate text-sm text-gray-700">{perm.PermissionCode}</span>
-                                                <button
-                                                    onClick={() => handleRemovePermission(perm)}
-                                                    disabled={submitting === `remove-${perm.Action}-${perm.PermissionCode}`}
-                                                    className={`${dangerBtnClass} shrink-0 px-3 py-1.5 text-xs`}
+                                        {rolePermissions.map((perm) => {
+                                            const permCode = perm.Permission?.PermissionCode ?? "";
+                                            const removeKey = `remove-${permCode}-${perm.Action?.Action ?? ""}`;
+                                            return (
+                                                <div
+                                                    key={perm.RolePermissionId}
+                                                    className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5"
                                                 >
-                                                    {submitting === `remove-${perm.Action}-${perm.PermissionCode}` ? "Removing..." : "Remove"}
-                                                </button>
-                                            </div>
-                                        ))}
+                                                    <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-[#c53030]">
+                                                        {perm.Action?.Action || "Any"}
+                                                    </span>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="truncate text-sm text-gray-700">
+                                                            {perm.Permission?.Permission || permCode}
+                                                        </div>
+                                                        <div className="truncate text-xs text-gray-400">
+                                                            {permCode}{perm.Permission?.PermissionDescription ? ` • ${perm.Permission.PermissionDescription}` : ""}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleRemovePermission(perm)}
+                                                        disabled={submitting === removeKey}
+                                                        className={`${dangerBtnClass} shrink-0 px-3 py-1.5 text-xs`}
+                                                    >
+                                                        {submitting === removeKey ? "Removing..." : "Remove"}
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>

@@ -25,25 +25,38 @@ export type AuthContextProps = {
   setErrorMessage: Dispatch<React.SetStateAction<string>>
 }
 
-export type Role = {
-  RoleId: string;
-  Role: string;
-  Description?: string;
+/* ===== Roles, Actions & Permissions ===== */
+
+/** Action attached to a role permission (mirrors the backend `Actions` struct). */
+export type Actions = {
+  ActionId: number;
+  Action: string;
+  Description: string;
 }
 
-export type Action = {
-  ActionId: string;
-  Action: string;
-  Description?: string;
-}
-
-export type Permission = {
-  PermissionId?: string;
-  RoleId?: string;
-  Role: string;
-  Action: string;
+/** Permission attached to a role permission (mirrors the backend `Permissions` struct). */
+export type Permissions = {
+  PermissionId: number;
+  Permission: string;
   PermissionCode: string;
-  Description?: string;
+  PermissionDescription: string;
+}
+
+/** One row of `Roles.RolePermissions` (mirrors the backend `Role_permissions` struct). */
+export type RolePermission = {
+  RolePermissionId: number;
+  Role: Role | null;
+  Permission: Permissions | null;
+  Action: Actions | null;
+}
+
+/** A role with its permissions already nested (mirrors the backend `Roles` struct). */
+export type Role = {
+  RoleId: number;
+  Role: string;
+  Description: string;
+  Active: number;
+  RolePermissions: Array<RolePermission>;
 }
 
 export type AddRole = {
@@ -51,27 +64,59 @@ export type AddRole = {
   Description: string;
 }
 
-export type AddPermission = {
+/** The verb the backend expects in `UpdateRolePermissionRequest.Action`. */
+export type RolePermissionAction = "ADD" | "REMOVE";
+
+export type UpdateRolePermissionRequest = {
   Role: string;
-  Action: string;
+  Action: RolePermissionAction;
   PermissionCode: string;
+  ActionCode: string;
 }
 
-export type RolesResponseDTO = {
+export type ActionData = {
+  ActionId: number;
+  Action: string;
+  ActionCode: string;
+  ActionDescription: string;
+  DateCreated?: string;
+  DateModified?: string;
+  CreatedBy?: number;
+  ModifiedBy?: number;
+}
+
+export type PermissionData = {
+  PermissionId: number;
+  Permission: string;
+  PermissionCode: string;
+  PermissionDescription: string;
+  DateCreated?: string;
+  DateModified?: string;
+  CreatedBy?: number;
+  ModifiedBy?: number;
+}
+
+export type RoleGatewayResponseDTO = {
+  Success: boolean
+  Result: Role | null
+  StatusDesc: string
+}
+
+export type RolesAllGatewayResponseDTO = {
   Success: boolean
   Result: Array<Role> | null
   StatusDesc: string
 }
 
-export type ActionsResponseDTO = {
+export type ActionsResponse = {
   Success: boolean
-  Result: Array<Action> | null
+  Result: Array<ActionData> | null
   StatusDesc: string
 }
 
-export type PermissionsResponseDTO = {
+export type PermissionsResponse = {
   Success: boolean
-  Result: Array<Permission> | null
+  Result: Array<PermissionData> | null
   StatusDesc: string
 }
 
@@ -535,13 +580,12 @@ export type ApplicationContextProps = {
   setActiveMenu: (menuItem: string) => void
   roles: Array<Role>
   fetchRoles: () => Promise<void>
-  addRole: (payload: AddRole) => Promise<StringResponseDTO>
-  actions: Array<Action>
+  addRole: (payload: AddRole) => Promise<RoleGatewayResponseDTO>
+  actions: Array<ActionData>
   fetchActions: () => Promise<void>
-  permissions: Array<Permission>
+  permissions: Array<PermissionData>
   fetchPermissions: () => Promise<void>
-  addPermission: (payload: AddPermission) => Promise<StringResponseDTO>
-  removePermission: (payload: AddPermission) => Promise<StringResponseDTO>
+  updateRolePermission: (payload: UpdateRolePermissionRequest) => Promise<RoleGatewayResponseDTO>
   error: string
   setError: Dispatch<React.SetStateAction<string>>
   features: Array<Feature>,

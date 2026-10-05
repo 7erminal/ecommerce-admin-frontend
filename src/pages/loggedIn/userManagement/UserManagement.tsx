@@ -216,6 +216,9 @@ const UserManagementPage: React.FC = () => {
             await getRoles();
             setPermissionActionCode("");
             setPermissionCode("");
+            if (verb === "ADD") {
+                closePermissions();
+            }
         }
 
         setSubmitting("");

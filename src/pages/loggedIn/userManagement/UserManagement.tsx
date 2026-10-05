@@ -148,13 +148,14 @@ const UserManagementPage: React.FC = () => {
                 activeTab === "customers" ? "customer" : "user",
             );
 
-            if (!uploadResp?.Success || !uploadResp.Result) {
+            if (!uploadResp?.Success) {
                 setSubmitting("");
                 alert(uploadResp?.StatusDesc ?? "Failed to upload image");
                 return;
             }
 
-            uploadedImagePath = uploadResp.Result;
+            if(uploadResp.Result && typeof uploadResp.Result === "string")
+                uploadedImagePath = uploadResp.Result;
         }
 
         if (activeTab === "users") {

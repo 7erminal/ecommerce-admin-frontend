@@ -79,6 +79,7 @@ export type ActionData = {
   Action: string;
   ActionCode: string;
   ActionDescription: string;
+  Description?: string;
   DateCreated?: string;
   DateModified?: string;
   CreatedBy?: number;

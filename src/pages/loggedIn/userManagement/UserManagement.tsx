@@ -47,9 +47,11 @@ const UserManagementPage: React.FC = () => {
         () => (permissionRole && Array.isArray(permissionRole.RolePermissions) ? permissionRole.RolePermissions : []),
         [permissionRole]
     );
-    /** Maps a role permission's action name (e.g. "Create") back to its ActionCode. */
-    const actionCodeFor = (actionName?: string) =>
-        actions.find((entry) => entry.Action === actionName)?.ActionCode ?? "";
+    /** Maps a role permission's action name back to its action code/value. */
+    const actionCodeFor = (actionName?: string) => {
+        const matched = actions.find((entry) => entry.Action === actionName);
+        return matched?.ActionCode ?? matched?.Action ?? "";
+    };
 
     useEffect(()=>{
         document.title = "User Management";
@@ -483,11 +485,15 @@ const UserManagementPage: React.FC = () => {
                                             className={selectClass}
                                         >
                                             <option value="">No action</option>
-                                            {actions.map((entry) => (
-                                                <option key={entry.ActionId} value={entry.ActionCode}>
-                                                    {entry.Action}{entry.ActionDescription ? ` — ${entry.ActionDescription}` : ""}
-                                                </option>
-                                            ))}
+                                            {actions.map((entry) => {
+                                                const actionValue = entry.ActionCode || entry.Action || "";
+                                                const actionDescription = entry.ActionDescription || entry.Description || "";
+                                                return (
+                                                    <option key={entry.ActionId} value={actionValue}>
+                                                        {entry.Action}{actionDescription ? ` — ${actionDescription}` : ""}
+                                                    </option>
+                                                );
+                                            })}
                                         </select>
                                     </div>
                                 </div>

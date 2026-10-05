@@ -16,7 +16,7 @@ const UserManagementPage: React.FC = () => {
     const [location, setLocation] = useState("");
     const [idType, setIdType] = useState("");
     const [idNumber, setIdNumber] = useState("");
-    const [imagePath, setImagePath] = useState("");
+    const [imageFile, setImageFile] = useState<File | null>(null);
     const [submitting, setSubmitting] = useState("");
 
     // Role form state
@@ -98,7 +98,7 @@ const UserManagementPage: React.FC = () => {
         setLocation("");
         setIdType("");
         setIdNumber("");
-        setImagePath("");
+        setImageFile(null);
         setRoleName("");
         setRoleDescription("");
     }
@@ -141,6 +141,22 @@ const UserManagementPage: React.FC = () => {
 
         setSubmitting("person");
 
+        let uploadedImagePath = "";
+        if (imageFile) {
+            const uploadResp = await applicationContext.uploadSystemImage(
+                imageFile,
+                activeTab === "customers" ? "customer" : "user",
+            );
+
+            if (!uploadResp?.Success || !uploadResp.Result) {
+                setSubmitting("");
+                alert(uploadResp?.StatusDesc ?? "Failed to upload image");
+                return;
+            }
+
+            uploadedImagePath = uploadResp.Result;
+        }
+
         if (activeTab === "users") {
             const payload: AddUser = {
                 Name: name.trim(),
@@ -149,7 +165,7 @@ const UserManagementPage: React.FC = () => {
                 Location: location.trim(),
                 IdType: idType,
                 IdNumber: idNumber.trim(),
-                ImagePath: imagePath.trim(),
+                ImagePath: uploadedImagePath,
             };
 
             const resp = await applicationContext.addUser(payload);
@@ -165,7 +181,7 @@ const UserManagementPage: React.FC = () => {
                 Location: location.trim(),
                 IdType: idType,
                 IdNumber: idNumber.trim(),
-                ImagePath: imagePath.trim(),
+                ImagePath: uploadedImagePath,
                 Category: "Individual", 
             };
 
@@ -413,7 +429,15 @@ const UserManagementPage: React.FC = () => {
                                         ))}
                                     </select>
                                     <input value={idNumber} onChange={(e) => setIdNumber(e.target.value)} placeholder="ID Number *" className={inputClass} />
-                                    <input value={imagePath} onChange={(e) => setImagePath(e.target.value)} placeholder="Image Path (optional)" className={inputClass} />
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+                                        className={inputClass}
+                                    />
+                                    <p className="text-xs text-gray-500">
+                                        {imageFile ? `Selected image: ${imageFile.name}` : "Optional image upload"}
+                                    </p>
                                 </div>
                             )}
 

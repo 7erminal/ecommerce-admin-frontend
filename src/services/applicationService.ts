@@ -1,6 +1,6 @@
 import Api from '../../resources/apis';
 import { API_ENDPOINTS } from '../config/api.config';
-import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication, SystemImageUploadResponseDTO, AddTheme, ThemeResponseDTO, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemesResponseDTO, ShopsResponse, ShopResponse, ShopRequestDTO, BranchesResponseDTO, BranchResponseDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopsResponse, RolesAllGatewayResponseDTO, AddRole, ActionsResponse, PermissionsResponse, UpdateRolePermissionRequest, RoleGatewayResponseDTO } from '../../resources/types/applicationTypes';
+import type { CategoriesResponseDTO, ItemsResponseDTO, ItemResponseDTO, AddCategory, CategoryResponseDTO, FeaturesResponseDTO, PurposesResponseDTO, AddFeature, AddPurpose, AddItem, FeatureResponseDTO, PurposeResponseDTO, StringResponseDTO, ItemImageUploadResponseDTO, SystemConfigsResponseDTO, EditItem, EditItemPayload, OrdersResponseDTO, OrderResponseDTO, TransactionsResponseDTO, PlaceOrderPayload, CustomerResponse, AddCustomer, CustomersResponse, AddUser, UsersResponseDTO, UserResponse, IdTypesResponseDTO, ApplicationsResponseDTO, ApplicationResponseDTO, AddApplication, UpdateApplication, SystemImageUploadResponseDTO, AddTheme, ThemeResponseDTO, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemesResponseDTO, ShopsResponse, ShopResponse, ShopRequestDTO, BranchesResponseDTO, BranchResponseDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopsResponse, RolesAllGatewayResponseDTO, AddRole, ActionsResponse, PermissionsResponseDTO, UpdateRolePermissionRequest, RoleGatewayResponseDTO } from '../../resources/types/applicationTypes';
 
 class ApplicationService {
   /**
@@ -200,8 +200,8 @@ class ApplicationService {
       return response.data;
     }
 
-    async fetchPermissions(): Promise<PermissionsResponse> {
-      const response = await Api.GET_<PermissionsResponse>(API_ENDPOINTS.PERMISSIONS.GET_ALL);
+    async fetchPermissions(): Promise<PermissionsResponseDTO> {
+      const response = await Api.GET_<PermissionsResponseDTO>(API_ENDPOINTS.PERMISSIONS.GET_ALL);
       return response.data;
     }
 

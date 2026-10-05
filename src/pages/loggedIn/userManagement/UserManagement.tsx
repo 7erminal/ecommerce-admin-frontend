@@ -25,7 +25,6 @@ const UserManagementPage: React.FC = () => {
 
     // Role permissions state (mirrors UpdateRolePermissionRequest)
     const [permissionRoleName, setPermissionRoleName] = useState("");
-    const [permissionVerb, setPermissionVerb] = useState<RolePermissionAction>("ADD");
     const [permissionActionCode, setPermissionActionCode] = useState("");
     const [permissionCode, setPermissionCode] = useState("");
 
@@ -180,18 +179,17 @@ const UserManagementPage: React.FC = () => {
 
     const openPermissions = (role: Role) => {
         setPermissionRoleName(role.Role);
-        setPermissionVerb("ADD");
         setPermissionActionCode("");
         setPermissionCode("");
     }
 
     const closePermissions = () => {
         setPermissionRoleName("");
-        setPermissionVerb("ADD");
         setPermissionActionCode("");
         setPermissionCode("");
     }
 
+    /** Adds or removes a role permission. The verb is implied by the flow, never chosen. */
     const submitRolePermission = async (verb: RolePermissionAction) => {
         if (!applicationContext) {
             return;
@@ -221,8 +219,8 @@ const UserManagementPage: React.FC = () => {
         setSubmitting("");
     }
 
-    const handleUpdatePermission = async () => {
-        await submitRolePermission(permissionVerb);
+    const handleAddPermission = async () => {
+        await submitRolePermission("ADD");
     }
 
     const handleRemovePermission = async (entry: RolePermission) => {
@@ -446,9 +444,9 @@ const UserManagementPage: React.FC = () => {
                             <div className="rounded-2xl border border-red-100 bg-red-50/40 p-4">
                                 <div className="mb-3 flex items-center gap-2">
                                     <Icon icon="material-symbols-light:key-outline" className="h-4 w-4 text-[#c53030]" />
-                                    <span className="text-sm font-semibold text-gray-800">Update permission</span>
+                                    <span className="text-sm font-semibold text-gray-800">Add permission</span>
                                 </div>
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                     <div>
                                         <label className="mb-1.5 block text-xs font-medium text-gray-500">Role</label>
                                         <select value={permissionRoleName} onChange={(e) => setPermissionRoleName(e.target.value)} className={selectClass}>
@@ -463,14 +461,18 @@ const UserManagementPage: React.FC = () => {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="mb-1.5 block text-xs font-medium text-gray-500">Action</label>
+                                        <label className="mb-1.5 block text-xs font-medium text-gray-500">Permission</label>
                                         <select
-                                            value={permissionVerb}
-                                            onChange={(e) => setPermissionVerb(e.target.value as RolePermissionAction)}
+                                            value={permissionCode}
+                                            onChange={(e) => setPermissionCode(e.target.value)}
                                             className={selectClass}
                                         >
-                                            <option value="ADD">ADD</option>
-                                            <option value="REMOVE">REMOVE</option>
+                                            <option value="">Select Permission *</option>
+                                            {permissions.map((entry) => (
+                                                <option key={entry.PermissionId} value={entry.PermissionCode}>
+                                                    {entry.Permission}{entry.PermissionDescription ? ` — ${entry.PermissionDescription}` : ""}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div>
@@ -488,37 +490,15 @@ const UserManagementPage: React.FC = () => {
                                             ))}
                                         </select>
                                     </div>
-                                    <div>
-                                        <label className="mb-1.5 block text-xs font-medium text-gray-500">Permission Code</label>
-                                        <input
-                                            list="permission-codes"
-                                            value={permissionCode}
-                                            onChange={(e) => setPermissionCode(e.target.value)}
-                                            placeholder="Permission Code *"
-                                            className={inputClass}
-                                        />
-                                        <datalist id="permission-codes">
-                                            {permissions.map((entry) => (
-                                                <option key={entry.PermissionId} value={entry.PermissionCode}>
-                                                    {entry.PermissionDescription || entry.Permission}
-                                                </option>
-                                            ))}
-                                        </datalist>
-                                    </div>
                                 </div>
                                 <div className="mt-3 flex justify-end">
                                     <button
-                                        onClick={handleUpdatePermission}
-                                        disabled={submitting === "permission-add" || submitting === "permission-remove"}
+                                        onClick={handleAddPermission}
+                                        disabled={submitting === "permission-add"}
                                         className={primaryBtnClass}
                                     >
-                                        <Icon
-                                            icon={permissionVerb === "REMOVE" ? "material-symbols-light:remove-circle-outline" : "material-symbols-light:add-outline"}
-                                            className="h-4 w-4"
-                                        />
-                                        {submitting === "permission-add" ? "Adding..."
-                                            : submitting === "permission-remove" ? "Removing..."
-                                            : permissionVerb === "REMOVE" ? "Remove Permission" : "Add Permission"}
+                                        <Icon icon="material-symbols-light:add-outline" className="h-4 w-4" />
+                                        {submitting === "permission-add" ? "Adding..." : "Add Permission"}
                                     </button>
                                 </div>
                             </div>

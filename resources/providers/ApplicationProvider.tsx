@@ -254,8 +254,8 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const fetchPermissions = async () => {
     try {
       const response = await applicationService.fetchPermissions();
-      if (response.Success === true) {
-        setPermissions(response.Result ?? []);
+      if (Array.isArray(response.Permissions)) {
+        setPermissions(response.Permissions);
       }
     } catch (err) {
       console.error('Error fetching permissions: ', err);

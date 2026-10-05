@@ -50,7 +50,7 @@ const UserManagementPage: React.FC = () => {
     /** Maps a role permission's action name back to its action code/value. */
     const actionCodeFor = (actionName?: string) => {
         const matched = actions.find((entry) => entry.Action === actionName);
-        return matched?.ActionCode ?? matched?.Action ?? "";
+        return matched?.Action ?? "";
     };
 
     useEffect(()=>{
@@ -486,8 +486,8 @@ const UserManagementPage: React.FC = () => {
                                         >
                                             <option value="">No action</option>
                                             {actions.map((entry) => {
-                                                const actionValue = entry.ActionCode || entry.Action || "";
-                                                const actionDescription = entry.ActionDescription || entry.Description || "";
+                                                const actionValue = entry.Action || "";
+                                                const actionDescription = entry.Description || "";
                                                 return (
                                                     <option key={entry.ActionId} value={actionValue}>
                                                         {entry.Action}{actionDescription ? ` — ${actionDescription}` : ""}

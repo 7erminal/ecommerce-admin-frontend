@@ -77,9 +77,8 @@ export type UpdateRolePermissionRequest = {
 export type ActionData = {
   ActionId: number;
   Action: string;
-  ActionCode: string;
-  ActionDescription: string;
-  Description?: string;
+  Description: string;
+  Active?: number;
   DateCreated?: string;
   DateModified?: string;
   CreatedBy?: number;

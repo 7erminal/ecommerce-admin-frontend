@@ -451,14 +451,14 @@ const UserManagementPage: React.FC = () => {
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                     <div>
                                         <label className="mb-1.5 block text-xs font-medium text-gray-500">Role</label>
-                                        <select value={permissionRoleName} onChange={(e) => setPermissionRoleName(e.target.value)} className={selectClass}>
+                                        <select value={roles.find((role) => role.Role === permissionRoleName)?.RoleId ?? ""} onChange={(e) => setPermissionRoleName(e.target.value)} className={selectClass}>
                                             {roles.map((role) => (
-                                                <option key={role.RoleId} value={role.Role}>
+                                                <option key={role.RoleId} value={role.RoleId}>
                                                     {role.Role}
                                                 </option>
                                             ))}
                                             {!roles.some((role) => role.Role === permissionRoleName) ? (
-                                                <option value={permissionRoleName}>{permissionRoleName}</option>
+                                                <option value={roles.find((role) => role.Role === permissionRoleName)?.RoleId ?? ""}>{permissionRoleName}</option>
                                             ) : null}
                                         </select>
                                     </div>

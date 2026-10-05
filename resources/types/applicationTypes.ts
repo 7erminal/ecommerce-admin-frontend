@@ -116,7 +116,7 @@ export type ActionsResponse = {
 
 export type PermissionsResponseDTO = {
   StatusCode: number
-  Permissions: Array<PermissionData> | null
+  Result: Array<PermissionData> | null
   StatusDesc: string
 }
 

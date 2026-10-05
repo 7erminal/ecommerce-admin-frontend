@@ -428,6 +428,17 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }
 
+  const uploadUserImage = async (file: File, systemName: string) => {
+    try {
+      const response = await applicationService.uploadUserImage(file, systemName);
+      return response;
+    } catch (err) {
+      console.error('Error uploading user image: ', err);
+      setError('Failed to upload user image');
+      return { Success: false, StatusDesc: 'Failed to upload user image', Result: null };
+    }
+  }
+
   const fetchApplications = async () => {
     try {
       const response = await applicationService.fetchApplications();
@@ -898,6 +909,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         setIdTypes,
         fetchIdTypes,
         uploadSystemImage,
+        uploadUserImage,
         applications,
         setApplications,
         selectedApplication,

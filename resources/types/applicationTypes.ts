@@ -640,6 +640,7 @@ export type ApplicationContextProps = {
   setIdTypes: Dispatch<React.SetStateAction<Array<IdType>>>
   fetchIdTypes: ()=> Promise<void>
   uploadSystemImage: (file: File, systemName: string) => Promise<SystemImageUploadResponseDTO>
+  uploadUserImage: (file: File, systemName: string) => Promise<StringResponseDTO>
   applications: Array<ApplicationResp>
   setApplications: Dispatch<React.SetStateAction<Array<ApplicationResp>>>
   selectedApplication: ApplicationResp | null

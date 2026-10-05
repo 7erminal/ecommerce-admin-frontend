@@ -143,7 +143,7 @@ const UserManagementPage: React.FC = () => {
 
         let uploadedImagePath = "";
         if (imageFile) {
-            const uploadResp = await applicationContext.uploadSystemImage(
+            const uploadResp = await applicationContext.uploadUserImage(
                 imageFile,
                 activeTab === "customers" ? "customer" : "user",
             );

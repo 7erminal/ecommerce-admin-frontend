@@ -93,6 +93,14 @@ class ApplicationService {
       return response.data;
     }
 
+    async uploadUserImage(file: File, systemName: string): Promise<StringResponseDTO> {
+      const formData = new FormData();
+      formData.append('Image', file);
+      formData.append('System', systemName);
+      const response = await Api.POST_FORM_DATA<StringResponseDTO>(API_ENDPOINTS.USER.UPLOAD_IMAGE, formData);
+      return response.data;
+    }
+
     async updateItem(payload: EditItem): Promise<ItemResponseDTO> {
       const reformedPayload: EditItemPayload = {
         ProductName: payload.ProductName,

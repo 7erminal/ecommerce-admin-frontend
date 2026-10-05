@@ -24,7 +24,7 @@ const UserManagementPage: React.FC = () => {
     const [roleDescription, setRoleDescription] = useState("");
 
     // Role permissions state (mirrors UpdateRolePermissionRequest)
-    const [permissionRoleName, setPermissionRoleName] = useState("");
+    const [permissionRoleId, setPermissionRoleId] = useState("");
     const [permissionActionCode, setPermissionActionCode] = useState("");
     const [permissionCode, setPermissionCode] = useState("");
 
@@ -40,8 +40,8 @@ const UserManagementPage: React.FC = () => {
     );
     /** The role whose permissions are open - always taken from the latest roles list. */
     const permissionRole = useMemo(
-        () => roles.find((entry) => entry.Role === permissionRoleName) ?? null,
-        [roles, permissionRoleName]
+        () => roles.find((entry) => String(entry.RoleId) === permissionRoleId) ?? null,
+        [roles, permissionRoleId]
     );
     const rolePermissions = useMemo<Array<RolePermission>>(
         () => (permissionRole && Array.isArray(permissionRole.RolePermissions) ? permissionRole.RolePermissions : []),
@@ -180,13 +180,13 @@ const UserManagementPage: React.FC = () => {
     }
 
     const openPermissions = (role: Role) => {
-        setPermissionRoleName(role.Role);
+        setPermissionRoleId(String(role.RoleId));
         setPermissionActionCode("");
         setPermissionCode("");
     }
 
     const closePermissions = () => {
-        setPermissionRoleName("");
+        setPermissionRoleId("");
         setPermissionActionCode("");
         setPermissionCode("");
     }
@@ -197,14 +197,14 @@ const UserManagementPage: React.FC = () => {
             return;
         }
 
-        if (!permissionRoleName.trim() || !permissionCode.trim()) {
+        if (!permissionRoleId.trim() || !permissionCode.trim()) {
             return;
         }
 
         setSubmitting(verb === "REMOVE" ? "permission-remove" : "permission-add");
 
         const payload: UpdateRolePermissionRequest = {
-            Role: permissionRoleName.trim(),
+            RoleId: permissionRoleId.trim(),
             Action: verb,
             PermissionCode: permissionCode.trim(),
             ActionCode: permissionActionCode.trim(),
@@ -236,7 +236,7 @@ const UserManagementPage: React.FC = () => {
         setSubmitting(removeKey);
 
         const payload: UpdateRolePermissionRequest = {
-            Role: entry.Role?.Role ?? permissionRole?.Role ?? permissionRoleName,
+            RoleId: String(entry.Role?.RoleId ?? permissionRole?.RoleId ?? permissionRoleId),
             Action: "REMOVE",
             PermissionCode: permCode,
             ActionCode: actionCodeFor(entry.Action?.Action),
@@ -451,15 +451,12 @@ const UserManagementPage: React.FC = () => {
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                     <div>
                                         <label className="mb-1.5 block text-xs font-medium text-gray-500">Role</label>
-                                        <select value={roles.find((role) => role.Role === permissionRoleName)?.RoleId ?? ""} onChange={(e) => setPermissionRoleName(e.target.value)} className={selectClass}>
+                                        <select value={permissionRoleId} onChange={(e) => setPermissionRoleId(e.target.value)} className={selectClass}>
                                             {roles.map((role) => (
-                                                <option key={role.RoleId} value={role.RoleId}>
+                                                <option key={role.RoleId} value={String(role.RoleId)}>
                                                     {role.Role}
                                                 </option>
                                             ))}
-                                            {!roles.some((role) => role.Role === permissionRoleName) ? (
-                                                <option value={roles.find((role) => role.Role === permissionRoleName)?.RoleId ?? ""}>{permissionRoleName}</option>
-                                            ) : null}
                                         </select>
                                     </div>
                                     <div>

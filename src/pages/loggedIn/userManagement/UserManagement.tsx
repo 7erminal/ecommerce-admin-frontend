@@ -148,6 +148,8 @@ const UserManagementPage: React.FC = () => {
                 activeTab === "customers" ? "customer" : "user",
             );
 
+            console.log("Image upload response:", uploadResp);
+
             if (!uploadResp?.Success) {
                 setSubmitting("");
                 alert(uploadResp?.StatusDesc ?? "Failed to upload image");

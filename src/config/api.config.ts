@@ -17,7 +17,7 @@ export const API_ENDPOINTS = {
     ADD_USER: '/v1/user/',
     UPDATE_USER: (id: string) => `/v1/user/${id}`,
     DELETE_USER: (id: string) => `/v1/user/${id}`,
-    UPLOAD_IMAGE: '/v1/images/upload-image',
+    UPLOAD_IMAGE: '/v1/user/upload-image',
   },
   ROLES: {
     GET_ALL: '/v1/user/get-roles/',

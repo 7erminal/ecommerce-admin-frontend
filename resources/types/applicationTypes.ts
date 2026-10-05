@@ -68,7 +68,7 @@ export type AddRole = {
 export type RolePermissionAction = "ADD" | "REMOVE";
 
 export type UpdateRolePermissionRequest = {
-  RoleId: string;
+  Role: string;
   Action: RolePermissionAction;
   PermissionCode: string;
   ActionCode: string;

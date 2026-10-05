@@ -204,7 +204,7 @@ const UserManagementPage: React.FC = () => {
         setSubmitting(verb === "REMOVE" ? "permission-remove" : "permission-add");
 
         const payload: UpdateRolePermissionRequest = {
-            RoleId: permissionRoleId.trim(),
+            Role: permissionRoleId.trim(),
             Action: verb,
             PermissionCode: permissionCode.trim(),
             ActionCode: permissionActionCode.trim(),
@@ -236,7 +236,7 @@ const UserManagementPage: React.FC = () => {
         setSubmitting(removeKey);
 
         const payload: UpdateRolePermissionRequest = {
-            RoleId: String(entry.Role?.RoleId ?? permissionRole?.RoleId ?? permissionRoleId),
+            Role: String(entry.Role?.RoleId ?? permissionRole?.RoleId ?? permissionRoleId),
             Action: "REMOVE",
             PermissionCode: permCode,
             ActionCode: actionCodeFor(entry.Action?.Action),

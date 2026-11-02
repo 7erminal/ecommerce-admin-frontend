@@ -300,6 +300,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const fetchCustomers = async () => {
     try {
       const response = await applicationService.fetchCustomers();
+      
       if (response.Success === true) {
         setCustomers(response.Result ?? []);
       }
@@ -311,6 +312,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const addUser = async (payload: AddUser) => {
     try {
       const response = await applicationService.addUser(payload);
+      console.log("User added")
       if (response.Success === true) {
         await fetchUsers();
       }

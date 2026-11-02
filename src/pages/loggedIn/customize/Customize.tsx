@@ -1187,7 +1187,7 @@ const CustomizePage: React.FC = () => {
                                     >
                                         <option value="">Select Application</option>
                                         {(applicationContext?.applications ?? []).map((app) => (
-                                            <option key={app.ApplicationId} value={String(app.ApplicationId)}>
+                                            <option key={app.ApplicationId} value={app.ApplicationId}>
                                                 {app.ApplicationName}
                                             </option>
                                         ))}

@@ -717,7 +717,7 @@ const CustomizePage: React.FC = () => {
 
             // 2. Get the first application shop for this application
             const appShops = (applicationContext?.applicationShops ?? []).filter(
-                (shop) => shop.Application?.ApplicationId === selectedAppearanceApplication.ApplicationId
+                (shop) => shop?.ApplicationId === selectedAppearanceApplication.ApplicationId
             );
 
             if (appShops.length > 0) {
@@ -1297,7 +1297,7 @@ const CustomizePage: React.FC = () => {
                                                 const linkedShop = (applicationContext?.shops ?? []).find((shop) => shop.ShopId === appShop.ShopId);
                                                 return (
                                                     <div
-                                                        key={`${appShop.Application?.ApplicationId ?? appShop.Application?.ApplicationCode}-${appShop.ShopId}`}
+                                                        key={`${appShop?.ApplicationId ?? appShop?.ApplicationCode}-${appShop.ShopId}`}
                                                         className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5 transition hover:border-red-200 hover:bg-red-50/30"
                                                     >
                                                         <div className="flex min-w-0 items-center gap-3">
@@ -1306,11 +1306,11 @@ const CustomizePage: React.FC = () => {
                                                             </span>
                                                             <div className="min-w-0">
                                                                 <p className="truncate text-sm font-medium text-gray-800">
-                                                                    {appShop.Application?.ApplicationName ?? "Unknown Application"}
+                                                                    {appShop?.ApplicationName ?? "Unknown Application"}
                                                                 </p>
                                                                 <p className="truncate text-xs text-gray-500">
                                                                     Shop: {linkedShop?.ShopName ?? `Shop ${appShop.ShopId}`}
-                                                                    {appShop.Application?.ApplicationCode ? ` • ${appShop.Application.ApplicationCode}` : ""}
+                                                                    {appShop?.ApplicationCode ? ` • ${appShop.ApplicationCode}` : ""}
                                                                 </p>
                                                             </div>
                                                         </div>

@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import ApplicationContext from './ApplicationContext';
 import Api from '../apis';
-import type { AddCategory, AddFeature, AddItem, AddPurpose, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp, ShopResp, BranchResp, ShopRequestDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, ApplicationShopFullResponseData, BranchData, ActionData, PermissionData, AddRole, UpdateRolePermissionRequest, RoleGatewayResponseDTO } from '../types/applicationTypes';
+import type { AddCategory, AddFeature, AddItem, AddPurpose, Category, EditItem, Feature, Item, Language, Purpose, Role, SystemConfigsResponseDTO, SystemData, Order, PlaceOrderPayload, TransactionsResponseDTO, User, AddCustomer, AddUser, AddApplication, ApplicationResp, UpdateApplication, AddTheme, UpdateApplicationThemePayload, AddThemeConfigPayload, ThemeResp, ShopResp, BranchResp, ShopRequestDTO, BranchRequestDTO, ShopBranchRequestDTO, ApplicationShopRequest, BranchData, ActionData, PermissionData, AddRole, UpdateRolePermissionRequest, RoleGatewayResponseDTO, ApplicationShopResp } from '../types/applicationTypes';
 import { applicationService } from '../../src/services/applicationService';
 
 export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -36,7 +36,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [shops, setShops] = useState<Array<ShopResp>>([]);
   const [shop, setShop] = useState<ShopResp | null>(null);
   const [branches, setBranches] = useState<Array<BranchResp>>([]);
-  const [applicationShops, setApplicationShops] = useState<Array<ApplicationShopFullResponseData>>([]);
+  const [applicationShops, setApplicationShops] = useState<Array<ApplicationShopResp>>([]);
 
 
   const clearAll = () => {

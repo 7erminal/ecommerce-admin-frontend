@@ -1,13 +1,33 @@
 export type ApplicationShopFullResponseData = {
   ApplicationShopId: string
-  Application: ApplicationResp
+  Application: ApplicationShopResp
   ShopId: string
+}
+
+export type ApplicationShopResp = {
+  ApplicationShopId: string
+  ApplicationId: string
+  ApplicationCode: string
+  ApplicationName: string
+  ApplicationLogo: string
+  ShopId: string
+  ShowBanner: boolean
+  BannerImages: string
+  BorderRadius: string
+  ThemeColors: string
+  DefaultFontsize: string
+  ApplicationImage: string
+  DateCreated: string
+  DateModified: string
+  CreatedBy: string
+  ModifiedBy: string
+  Active: number
 }
 
 export type ApplicationShopsResponse = {
   Success: boolean
   StatusDesc: string
-  Result: ApplicationShopFullResponseData[]
+  Result: ApplicationShopResp[]
 }
 import type { Dispatch } from "react"
 
@@ -676,8 +696,8 @@ export type ApplicationContextProps = {
   removeShopBranch: (payload: ShopBranchRequestDTO) => Promise<ShopResponse>
   addApplicationShop: (payload: ApplicationShopRequest) => Promise<ApplicationResponseDTO>
   removeApplicationShop: (payload: ApplicationShopRequest) => Promise<ApplicationResponseDTO>
-  applicationShops: ApplicationShopFullResponseData[]
-  setApplicationShops: Dispatch<React.SetStateAction<ApplicationShopFullResponseData[]>>
+  applicationShops: ApplicationShopResp[]
+  setApplicationShops: Dispatch<React.SetStateAction<ApplicationShopResp[]>>
   fetchApplicationShops: () => Promise<ApplicationShopsResponse>
   shop: ShopResp | null
   setShop: Dispatch<React.SetStateAction<ShopResp | null>>

@@ -704,6 +704,7 @@ const CustomizePage: React.FC = () => {
 
         try {
             // 1. Save theme colors and font size
+            console.log("About to save application theme settings");
             const updateThemeResp = await applicationContext?.updateApplicationThemeSettings({
                 ApplicationId: selectedAppearanceApplication.ApplicationId ?? "",
                 ThemeColors: appearanceSettings.themeColors.join(","),

@@ -1568,7 +1568,7 @@ const CustomizePage: React.FC = () => {
                         <div className="pt-4 border-t border-gray-200">
                             <button
                                 onClick={handleSaveAppearance}
-                                disabled={!appearanceModified}
+                                // disabled={!appearanceModified}
                                 style={{
                                     background: appearanceModified ? "#c53030" : "#ccc",
                                     color: "#fff",

@@ -812,6 +812,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   const updateApplicationThemeSettings = async (payload: { ApplicationId: string, ThemeColors: string, DefaultFontsize: string }) => {
+    console.log("About to save application theme setting for ", payload.ApplicationId, payload);
     try {
       const response = await applicationService.updateApplicationThemeSettings(payload);
       if (response.Success === true) {

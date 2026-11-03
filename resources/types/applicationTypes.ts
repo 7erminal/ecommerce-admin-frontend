@@ -1,4 +1,5 @@
 export type ApplicationShopFullResponseData = {
+  ApplicationShopId: string
   Application: ApplicationResp
   ShopId: string
 }
@@ -681,6 +682,9 @@ export type ApplicationContextProps = {
   shop: ShopResp | null
   setShop: Dispatch<React.SetStateAction<ShopResp | null>>
   fetchBranchById: (id: string) => Promise<BranchResponseDTO>
+  toggleApplicationShopBanner: (payload: { ApplicationShopId: string, ShowBanner: boolean }) => Promise<ApplicationResponseDTO>
+  updateApplicationShopBanner: (payload: { ApplicationShopId: string, BannerImages: string, BorderRadius: number }) => Promise<ApplicationResponseDTO>
+  updateApplicationThemeSettings: (payload: { ApplicationId: string, ThemeColors: string, DefaultFontsize: string }) => Promise<ApplicationResponseDTO>
 }
 
 export interface RegisterParams {

@@ -374,6 +374,24 @@ class ApplicationService {
       console.log('[removeApplicationShop] Response:', response.data);
       return response.data;
     }
+
+    async updateApplicationShopBanner(payload: any): Promise<ApplicationResponseDTO> {
+      const response = await Api.PUT_<ApplicationResponseDTO>(API_ENDPOINTS.APPLICATIONS.UPDATE_SHOP_BANNER, payload);
+      console.log('[updateApplicationShopBanner] Response:', response.data);
+      return response.data;
+    }
+
+    async toggleApplicationShopBanner(payload: any): Promise<ApplicationResponseDTO> {
+      const response = await Api.PUT_<ApplicationResponseDTO>(API_ENDPOINTS.APPLICATIONS.TOGGLE_SHOP_BANNER, payload);
+      console.log('[toggleApplicationShopBanner] Response:', response.data);
+      return response.data;
+    }
+
+    async updateApplicationThemeSettings(payload: any): Promise<ApplicationResponseDTO> {
+      const response = await Api.PUT_<ApplicationResponseDTO>(API_ENDPOINTS.APPLICATIONS.UPDATE_APPLICATION_THEME, payload);
+      console.log('[updateApplicationThemeSettings] Response:', response.data);
+      return response.data;
+    }
 }
 
 export const applicationService = new ApplicationService();

@@ -500,17 +500,17 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   }
 
   const updateApplicationTheme = async (id: string, payload: UpdateApplicationThemePayload) => {
-  try {
-    const response = await applicationService.updateApplicationTheme(id, payload);
-    if (response.Success === true) {
-    await fetchApplications();
+    try {
+      const response = await applicationService.updateApplicationTheme(id, payload);
+      if (response.Success === true) {
+      await fetchApplications();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error updating application theme: ', err);
+      setError('Failed to update application theme');
+      return { Success: false, StatusDesc: 'Failed to update application theme', Result: null };
     }
-    return response;
-  } catch (err) {
-    console.error('Error updating application theme: ', err);
-    setError('Failed to update application theme');
-    return { Success: false, StatusDesc: 'Failed to update application theme', Result: null };
-  }
   }
 
   const deleteApplication = async (id: string) => {
@@ -781,6 +781,50 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }
 
+  const updateApplicationShopBanner = async (payload: any) => {
+    try {
+      const response = await applicationService.updateApplicationShopBanner(payload);
+      if (response.Success === true) {
+        await fetchApplications();
+        await fetchApplicationShops();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error updating application shop banner: ', err);
+      setError('Failed to update application shop banner');
+      return { Success: false, StatusDesc: 'Failed to update application shop banner', Result: null };
+    }
+  }
+
+  const toggleApplicationShopBanner = async (payload: any) => {
+    try {
+      const response = await applicationService.toggleApplicationShopBanner(payload);
+      if (response.Success === true) {
+        await fetchApplications();
+        await fetchApplicationShops();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error toggling application shop banner: ', err);
+      setError('Failed to toggle application shop banner');
+      return { Success: false, StatusDesc: 'Failed to toggle application shop banner', Result: null };
+    }
+  }
+
+  const updateApplicationThemeSettings = async (payload: { ApplicationId: string, ThemeColors: string, DefaultFontsize: string }) => {
+    try {
+      const response = await applicationService.updateApplicationThemeSettings(payload);
+      if (response.Success === true) {
+        await fetchApplications();
+      }
+      return response;
+    } catch (err) {
+      console.error('Error updating application theme settings: ', err);
+      setError('Failed to update application theme settings');
+      return { Success: false, StatusDesc: 'Failed to update application theme settings', Result: null };
+    }
+  }
+
   const deleteItem = async (id: string) => {
     try {
       const response = await applicationService.deleteItem(id);
@@ -949,6 +993,9 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         applicationShops,
         setApplicationShops,
         fetchApplicationShops,
+        updateApplicationShopBanner,
+        toggleApplicationShopBanner,
+        updateApplicationThemeSettings,
         shop,
         setShop,
         fetchBranchById

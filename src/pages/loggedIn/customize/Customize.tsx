@@ -695,8 +695,64 @@ const CustomizePage: React.FC = () => {
 
     const handleSaveAppearance = async () => {
         console.log("Saving appearance settings:", appearanceSettings);
-        // Call API to save appearance settings
-        setAppearanceModified(false);
+        
+        if (!selectedAppearanceApplication) {
+            setError("Please select an application");
+            setShowError(true);
+            return;
+        }
+
+        try {
+            // 1. Save theme colors and font size
+            const updateThemeResp = await applicationContext?.updateApplicationThemeSettings({
+                ApplicationId: selectedAppearanceApplication.ApplicationId ?? "",
+                ThemeColors: appearanceSettings.themeColors.join(","),
+                DefaultFontsize: appearanceSettings.defaultFontSize,
+            });
+
+            if (!updateThemeResp?.Success) {
+                throw new Error(updateThemeResp?.StatusDesc || "Failed to update theme colors");
+            }
+
+            // 2. Get the first application shop for this application
+            const appShops = (applicationContext?.applicationShops ?? []).filter(
+                (shop) => shop.Application?.ApplicationId === selectedAppearanceApplication.ApplicationId
+            );
+
+            if (appShops.length > 0) {
+                const appShop = appShops[0];
+
+                // Update banner images and border radius
+                const updateBannerResp = await applicationContext?.updateApplicationShopBanner({
+                    ApplicationShopId: appShop.ApplicationShopId,
+                    BannerImages: appearanceSettings.bannerImage,
+                    BorderRadius: parseFloat(appearanceSettings.borderRadius),
+                });
+
+                if (!updateBannerResp?.Success) {
+                    throw new Error(updateBannerResp?.StatusDesc || "Failed to update banner");
+                }
+
+                // 3. Toggle show banner
+                const toggleBannerResp = await applicationContext?.toggleApplicationShopBanner({
+                    ApplicationShopId: appShop.ApplicationShopId,
+                    ShowBanner: appearanceSettings.showBanners,
+                });
+
+                if (!toggleBannerResp?.Success) {
+                    throw new Error(toggleBannerResp?.StatusDesc || "Failed to toggle banner");
+                }
+            }
+
+            setError("");
+            setAppearanceModified(false);
+            console.log("Appearance settings saved successfully");
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "Failed to save appearance settings";
+            setError(errorMessage);
+            setShowError(true);
+            console.error("Error saving appearance:", err);
+        }
     };
 
     // ===== VIEW CONFIG (display only) =====

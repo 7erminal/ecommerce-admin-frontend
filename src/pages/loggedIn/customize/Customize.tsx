@@ -166,7 +166,7 @@ const CustomizePage: React.FC = () => {
         }
 
         const themeColors = selectedAppearanceApplication.ThemeColors
-            ? selectedAppearanceApplication.ThemeColors.split(",").map((color) => color.trim()).filter(Boolean)
+            ? selectedAppearanceApplication.ThemeColors.split(",").map((color: string) => color.trim()).filter(Boolean)
             : [];
 
         setAppearanceSettings((prev) => ({
@@ -1469,7 +1469,7 @@ const CustomizePage: React.FC = () => {
                             <div className="mb-3">
                                 <p className="text-xs text-gray-500 mb-2">Current saved colors</p>
                                 <div className="flex flex-wrap gap-2">
-                                    {selectedAppearanceApplication.ThemeColors.split(",").map((color, index) => {
+                                    {selectedAppearanceApplication.ThemeColors.split(",").map((color: string, index: number) => {
                                         const trimmedColor = color.trim();
                                         return (
                                             <span

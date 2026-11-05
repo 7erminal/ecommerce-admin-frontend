@@ -82,7 +82,7 @@ const CustomizePage: React.FC = () => {
     // Appearance state
     const [appearanceSettings, setAppearanceSettings] = useState<AppearanceSettings>({
         themeColors: [],
-        defaultFontSize: "14",
+        defaultFontSize: applicationContext?.selectedApplication?.DefaultFontsize ?? "14",
         bannerImage: "",
         showBanners: true,
         borderRadius: "8",
@@ -93,9 +93,12 @@ const CustomizePage: React.FC = () => {
         ApplicationLogo: undefined,
         ApplicationImage: undefined,
     });
+    const [fetchingAppearanceApp, setFetchingAppearanceApp] = useState(false);
 
     const isSuperAdmin = (authContext?.currentUser?.role ?? "").toUpperCase() === "SUPER_ADMIN";
-    const selectedAppearanceApplication = applicationContext?.selectedApplication ?? null;
+    // Use the fetched application details when available; fall back to selectedApplication
+    const selectedAppearanceApplication =
+        (applicationContext?.application as any) ?? applicationContext?.selectedApplication ?? null;
 
     useEffect(() => {
         document.title = "Customize";
@@ -130,8 +133,14 @@ const CustomizePage: React.FC = () => {
         }
     }, [applicationContext?.applications, applicationContext?.selectedApplication?.ApplicationId]);
 
-    const handleSelectAppearanceApplication = (applicationId: string) => {
+    const handleSelectAppearanceApplication = async (applicationId: string) => {
         if (!isSuperAdmin) {
+            return;
+        }
+
+        if (!applicationId) {
+            applicationContext?.setSelectedApplication(null);
+            applicationContext?.setApplication?.(null);
             return;
         }
 
@@ -140,6 +149,15 @@ const CustomizePage: React.FC = () => {
         );
 
         applicationContext?.setSelectedApplication(selectedApp ?? null);
+
+        setFetchingAppearanceApp(true);
+        try {
+            await applicationContext?.fetchApplication?.(applicationId);
+        } catch (error) {
+            console.error("Error fetching application details:", error);
+        } finally {
+            setFetchingAppearanceApp(false);
+        }
     };
 
     useEffect(() => {
@@ -1417,19 +1435,24 @@ const CustomizePage: React.FC = () => {
                                     : "Your application is selected by default. Only SUPER_ADMIN can change it."}
                             </p>
                         </div>
-                        <select
-                            value={selectedAppearanceApplication?.ApplicationId ?? ""}
-                            onChange={(e) => handleSelectAppearanceApplication(e.target.value)}
-                            disabled={!isSuperAdmin}
-                            className="w-full max-w-md rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white disabled:bg-gray-100 disabled:text-gray-500"
-                        >
-                            <option value="">Select an application</option>
-                            {(applicationContext?.applications ?? []).map((app) => (
-                                <option key={app.ApplicationId} value={app.ApplicationId}>
-                                    {app.ApplicationName}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="flex items-center gap-3">
+                            <select
+                                value={selectedAppearanceApplication?.ApplicationId ?? ""}
+                                onChange={(e) => handleSelectAppearanceApplication(e.target.value)}
+                                disabled={!isSuperAdmin || fetchingAppearanceApp}
+                                className="w-full max-w-md rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white disabled:bg-gray-100 disabled:text-gray-500"
+                            >
+                                <option value="">Select an application</option>
+                                {(applicationContext?.applications ?? []).map((app) => (
+                                    <option key={app.ApplicationId} value={app.ApplicationId}>
+                                        {app.ApplicationName}
+                                    </option>
+                                ))}
+                            </select>
+                            {fetchingAppearanceApp && (
+                                <Icon icon="eos-icons:loading" className="h-5 w-5 text-[#c53030]" />
+                            )}
+                        </div>
                     </div>
 
                     {!selectedAppearanceApplication && (

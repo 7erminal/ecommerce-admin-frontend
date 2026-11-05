@@ -705,6 +705,9 @@ export type ApplicationContextProps = {
   toggleApplicationShopBanner: (payload: { ApplicationShopId: string, ShowBanner: boolean }) => Promise<ApplicationResponseDTO>
   updateApplicationShopBanner: (payload: { ApplicationShopId: string, BannerImages: string, BorderRadius: number }) => Promise<ApplicationResponseDTO>
   updateApplicationThemeSettings: (payload: { ApplicationId: string, ThemeColors: string, DefaultFontsize: string }) => Promise<ApplicationResponseDTO>
+  fetchApplication: (id: string) => Promise<ApplicationResponseDTO>
+  application: ApplicationResp | null
+  setApplication: Dispatch<React.SetStateAction<ApplicationResp | null>>
 }
 
 export interface RegisterParams {

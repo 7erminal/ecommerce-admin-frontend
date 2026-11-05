@@ -37,6 +37,7 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [shop, setShop] = useState<ShopResp | null>(null);
   const [branches, setBranches] = useState<Array<BranchResp>>([]);
   const [applicationShops, setApplicationShops] = useState<Array<ApplicationShopResp>>([]);
+  const [application, setApplication] = useState<ApplicationResp | null>(null);
 
 
   const clearAll = () => {
@@ -446,6 +447,20 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
       const response = await applicationService.fetchApplications();
       if (response.Success === true) {
         setApplications(response.Result?.Data || []);
+      }
+      return response;
+    } catch (err) {
+      console.error('Error fetching applications: ', err);
+      setError('Failed to fetch applications');
+      return { Success: false, StatusDesc: 'Failed to fetch applications', Result: null };
+    }
+  }
+
+  const fetchApplication = async (id: string) => {
+    try {
+      const response = await applicationService.fetchApplication(id);
+      if (response.Success === true) {
+        setApplication(response.Result || null);
       }
       return response;
     } catch (err) {
@@ -999,7 +1014,10 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
         updateApplicationThemeSettings,
         shop,
         setShop,
-        fetchBranchById
+        fetchBranchById,
+        fetchApplication,
+        application,
+        setApplication
       }}
     >
       {children}

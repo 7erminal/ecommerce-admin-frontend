@@ -133,26 +133,26 @@ const CustomizePage: React.FC = () => {
         }
     }, [applicationContext?.applications, applicationContext?.selectedApplication?.ApplicationId]);
 
-    const handleSelectAppearanceApplication = async (applicationId: string) => {
+    const handleSelectAppearanceApplication = async (applicationCode: string) => {
         if (!isSuperAdmin) {
             return;
         }
 
-        if (!applicationId) {
+        if (!applicationCode) {
             applicationContext?.setSelectedApplication(null);
             applicationContext?.setApplication?.(null);
             return;
         }
 
         const selectedApp = (applicationContext?.applications ?? []).find(
-            (app) => String(app.ApplicationId) === applicationId,
+            (app) => String(app.ApplicationId) === applicationCode,
         );
 
         applicationContext?.setSelectedApplication(selectedApp ?? null);
 
         setFetchingAppearanceApp(true);
         try {
-            await applicationContext?.fetchApplication?.(applicationId);
+            await applicationContext?.fetchApplication?.(applicationCode);
         } catch (error) {
             console.error("Error fetching application details:", error);
         } finally {
@@ -1444,7 +1444,7 @@ const CustomizePage: React.FC = () => {
                             >
                                 <option value="">Select an application</option>
                                 {(applicationContext?.applications ?? []).map((app) => (
-                                    <option key={app.ApplicationId} value={app.ApplicationId}>
+                                    <option key={app.ApplicationId} value={app.ApplicationCode}>
                                         {app.ApplicationName}
                                     </option>
                                 ))}

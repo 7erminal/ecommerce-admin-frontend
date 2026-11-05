@@ -456,9 +456,9 @@ export const ApplicationProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }
 
-  const fetchApplication = async (id: string) => {
+  const fetchApplication = async (code: string) => {
     try {
-      const response = await applicationService.fetchApplication(id);
+      const response = await applicationService.fetchApplication(code);
       if (response.Success === true) {
         setApplication(response.Result || null);
       }

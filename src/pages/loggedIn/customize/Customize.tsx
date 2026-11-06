@@ -1437,7 +1437,7 @@ const CustomizePage: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-3">
                             <select
-                                value={selectedAppearanceApplication?.ApplicationId ?? ""}
+                                value={selectedAppearanceApplication?.ApplicationCode ?? ""}
                                 onChange={(e) => handleSelectAppearanceApplication(e.target.value)}
                                 disabled={!isSuperAdmin || fetchingAppearanceApp}
                                 className="w-full max-w-md rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white disabled:bg-gray-100 disabled:text-gray-500"

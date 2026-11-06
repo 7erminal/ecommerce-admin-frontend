@@ -752,8 +752,8 @@ const CustomizePage: React.FC = () => {
             setError("");
             setAppearanceModified(false);
             // Refresh application details
-            if (selectedAppearanceApplication.ApplicationId) {
-                await applicationContext?.fetchApplication?.(selectedAppearanceApplication.ApplicationId);
+            if (applicationContext?.selectedApplication?.ApplicationCode) {
+                await applicationContext?.fetchApplication?.(applicationContext?.selectedApplication?.ApplicationCode);
             }
             console.log("Appearance settings saved successfully");
         } catch (err) {
@@ -802,7 +802,7 @@ const CustomizePage: React.FC = () => {
             }
 
             // Refresh application details to reflect saved state
-            await applicationContext?.fetchApplication?.(selectedAppearanceApplication.ApplicationId);
+            await applicationContext?.fetchApplication?.(applicationContext?.selectedApplication?.ApplicationCode ?? "");
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to save shop appearance";
             setError(errorMessage);

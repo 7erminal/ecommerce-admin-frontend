@@ -813,6 +813,32 @@ const CustomizePage: React.FC = () => {
         }
     };
 
+    const handleShopBannerUpload = async (shopKey: string, files: FileList | null) => {
+        if (!files || files.length === 0) return;
+        const current = shopAppearanceSettings[shopKey]?.bannerImages ?? "";
+        const urls = current ? current.split(",").map((u) => u.trim()).filter(Boolean) : [];
+        try {
+            for (const file of Array.from(files)) {
+                const resp = await applicationContext?.uploadSystemImage(file, "brand");
+                if (resp?.Success && resp.Result) {
+                    urls.push(resp.Result);
+                }
+            }
+            handleShopAppearanceChange(shopKey, "bannerImages", urls.join(","));
+        } catch (err) {
+            console.error("Error uploading banner images:", err);
+            setError("Failed to upload one or more banner images");
+            setShowError(true);
+        }
+    };
+
+    const handleRemoveShopBannerImage = (shopKey: string, index: number) => {
+        const current = shopAppearanceSettings[shopKey]?.bannerImages ?? "";
+        const urls = current ? current.split(",").map((u) => u.trim()).filter(Boolean) : [];
+        urls.splice(index, 1);
+        handleShopAppearanceChange(shopKey, "bannerImages", urls.join(","));
+    };
+
     // ===== VIEW CONFIG (display only) =====
     const tabs: { key: Tab; label: string; icon: string }[] = [
         { key: "applications", label: "Applications", icon: "material-symbols-light:apps-outline" },
@@ -1672,12 +1698,41 @@ const CustomizePage: React.FC = () => {
                                                             {/* Banner Images */}
                                                             <div>
                                                                 <label className="text-sm text-gray-700 block">Banner Image(s)</label>
+                                                                {(() => {
+                                                                    const bannerUrls = (shopSettings.bannerImages ?? "")
+                                                                        .split(",")
+                                                                        .map((u) => u.trim())
+                                                                        .filter(Boolean);
+                                                                    return bannerUrls.length > 0 ? (
+                                                                        <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                                                            {bannerUrls.map((url, idx) => (
+                                                                                <div key={`${shopKey}-banner-${idx}`} className="relative group rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
+                                                                                    <img
+                                                                                        src={url}
+                                                                                        alt={`Banner ${idx + 1}`}
+                                                                                        className="h-20 w-full object-cover"
+                                                                                    />
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => handleRemoveShopBannerImage(shopKey, idx)}
+                                                                                        className="absolute top-1 right-1 inline-flex items-center justify-center rounded-full bg-white/90 border border-red-200 text-red-600 p-1 opacity-90 hover:bg-red-50"
+                                                                                        title="Remove image"
+                                                                                    >
+                                                                                        <Icon icon="material-symbols-light:close" className="h-3.5 w-3.5" />
+                                                                                    </button>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <p className="mt-1 text-xs text-gray-500">No banner images added yet.</p>
+                                                                    );
+                                                                })()}
                                                                 <input
-                                                                    type="text"
-                                                                    value={shopSettings.bannerImages}
-                                                                    onChange={(e) => handleShopAppearanceChange(shopKey, "bannerImages", e.target.value)}
-                                                                    placeholder="Banner image URL(s)"
-                                                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    multiple
+                                                                    onChange={(e) => handleShopBannerUpload(shopKey, e.target.files)}
+                                                                    className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                                                                 />
                                                             </div>
 

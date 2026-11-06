@@ -802,6 +802,7 @@ const CustomizePage: React.FC = () => {
             }
 
             // Refresh application details to reflect saved state
+            console.log("About to fetch application with code:", applicationContext?.selectedApplication?.ApplicationCode);
             await applicationContext?.fetchApplication?.(applicationContext?.selectedApplication?.ApplicationCode ?? "");
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to save shop appearance";

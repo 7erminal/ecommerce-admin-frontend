@@ -94,6 +94,9 @@ const CustomizePage: React.FC = () => {
         ApplicationImage: undefined,
     });
     const [fetchingAppearanceApp, setFetchingAppearanceApp] = useState(false);
+    const [expandedAppearanceShopId, setExpandedAppearanceShopId] = useState<string | null>(null);
+    const [shopAppearanceSettings, setShopAppearanceSettings] = useState<Record<string, { showBanner: boolean; bannerImages: string; borderRadius: string }>>({});
+    const [savingShopAppearanceId, setSavingShopAppearanceId] = useState<string | null>(null);
 
     const isSuperAdmin = (authContext?.currentUser?.role ?? "").toUpperCase() === "SUPER_ADMIN";
     // Use the fetched application details when available; fall back to selectedApplication
@@ -173,11 +176,24 @@ const CustomizePage: React.FC = () => {
             ...prev,
             themeColors,
             defaultFontSize: selectedAppearanceApplication.DefaultFontsize?.toString() ?? "14",
-            showBanners: selectedAppearanceApplication.Theme?.ThemeConfig?.[0]?.ShowBanner ?? true,
-            borderRadius: selectedAppearanceApplication.Theme?.ThemeConfig?.[0]?.BorderRadius?.toString() ?? "8",
         }));
         setAppearanceModified(false);
-    }, [selectedAppearanceApplication?.ApplicationId]);
+
+        // Initialize per-shop banner settings from fetched application details
+        const shops = (selectedAppearanceApplication as any)?.Shops ?? [];
+        const shopSettings: Record<string, { showBanner: boolean; bannerImages: string; borderRadius: string }> = {};
+        shops.forEach((shop: any) => {
+            const key = String(shop.ApplicationShopId ?? shop.ShopId ?? "");
+            if (!key) return;
+            shopSettings[key] = {
+                showBanner: shop.ShowBanner ?? true,
+                bannerImages: shop.BannerImages ?? "",
+                borderRadius: shop.BorderRadius?.toString() ?? "8",
+            };
+        });
+        setShopAppearanceSettings(shopSettings);
+        setExpandedAppearanceShopId(null);
+    }, [selectedAppearanceApplication?.ApplicationId, (selectedAppearanceApplication as any)?.Shops?.length]);
 
 
     // ===== APPLICATION HANDLERS =====
@@ -721,7 +737,7 @@ const CustomizePage: React.FC = () => {
         }
 
         try {
-            // 1. Save theme colors and font size
+            // Save application-level theme colors and font size
             console.log("About to save application theme settings");
             const updateThemeResp = await applicationContext?.updateApplicationThemeSettings({
                 ApplicationId: selectedAppearanceApplication.ApplicationId ?? "",
@@ -733,44 +749,67 @@ const CustomizePage: React.FC = () => {
                 throw new Error(updateThemeResp?.StatusDesc || "Failed to update theme colors");
             }
 
-            // 2. Get the first application shop for this application
-            const appShops = (applicationContext?.applicationShops ?? []).filter(
-                (shop) => shop?.ApplicationId === selectedAppearanceApplication.ApplicationId
-            );
-
-            if (appShops.length > 0) {
-                const appShop = appShops[0];
-
-                // Update banner images and border radius
-                const updateBannerResp = await applicationContext?.updateApplicationShopBanner({
-                    ApplicationShopId: appShop.ApplicationShopId,
-                    BannerImages: appearanceSettings.bannerImage,
-                    BorderRadius: parseFloat(appearanceSettings.borderRadius),
-                });
-
-                if (!updateBannerResp?.Success) {
-                    throw new Error(updateBannerResp?.StatusDesc || "Failed to update banner");
-                }
-
-                // 3. Toggle show banner
-                const toggleBannerResp = await applicationContext?.toggleApplicationShopBanner({
-                    ApplicationShopId: appShop.ApplicationShopId,
-                    ShowBanner: appearanceSettings.showBanners,
-                });
-
-                if (!toggleBannerResp?.Success) {
-                    throw new Error(toggleBannerResp?.StatusDesc || "Failed to toggle banner");
-                }
-            }
-
             setError("");
             setAppearanceModified(false);
+            // Refresh application details
+            if (selectedAppearanceApplication.ApplicationId) {
+                await applicationContext?.fetchApplication?.(selectedAppearanceApplication.ApplicationId);
+            }
             console.log("Appearance settings saved successfully");
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to save appearance settings";
             setError(errorMessage);
             setShowError(true);
             console.error("Error saving appearance:", err);
+        }
+    };
+
+    const handleShopAppearanceChange = (shopKey: string, field: "showBanner" | "bannerImages" | "borderRadius", value: string | boolean) => {
+        setShopAppearanceSettings((prev) => ({
+            ...prev,
+            [shopKey]: {
+                ...(prev[shopKey] ?? { showBanner: true, bannerImages: "", borderRadius: "8" }),
+                [field]: value,
+            },
+        }));
+    };
+
+    const handleSaveShopAppearance = async (shopKey: string) => {
+        if (!selectedAppearanceApplication?.ApplicationId) return;
+        const settings = shopAppearanceSettings[shopKey];
+        if (!settings) return;
+
+        setSavingShopAppearanceId(shopKey);
+        setError("");
+        try {
+            const updateBannerResp = await applicationContext?.updateApplicationShopBanner({
+                ApplicationShopId: shopKey,
+                BannerImages: settings.bannerImages,
+                BorderRadius: parseFloat(settings.borderRadius) || 0,
+            });
+
+            if (!updateBannerResp?.Success) {
+                throw new Error(updateBannerResp?.StatusDesc || "Failed to update banner");
+            }
+
+            const toggleBannerResp = await applicationContext?.toggleApplicationShopBanner({
+                ApplicationShopId: shopKey,
+                ShowBanner: settings.showBanner,
+            });
+
+            if (!toggleBannerResp?.Success) {
+                throw new Error(toggleBannerResp?.StatusDesc || "Failed to toggle banner");
+            }
+
+            // Refresh application details to reflect saved state
+            await applicationContext?.fetchApplication?.(selectedAppearanceApplication.ApplicationId);
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "Failed to save shop appearance";
+            setError(errorMessage);
+            setShowError(true);
+            console.error("Error saving shop appearance:", err);
+        } finally {
+            setSavingShopAppearanceId(null);
         }
     };
 
@@ -1462,152 +1501,237 @@ const CustomizePage: React.FC = () => {
                     )}
 
                     {selectedAppearanceApplication && (
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-6">
-                        {/* Theme Colors */}
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4">Theme Colors</h3>
-                            <div className="mb-3">
-                                <p className="text-xs text-gray-500 mb-2">Current saved colors</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {selectedAppearanceApplication.ThemeColors.split(",").map((color: string, index: number) => {
-                                        const trimmedColor = color.trim();
-                                        return (
-                                            <span
-                                                key={`saved-color-${index}`}
-                                                className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
-                                            >
-                                                <span className="inline-block h-3 w-3 rounded-full border border-gray-300" style={{ backgroundColor: trimmedColor }} />
-                                                {trimmedColor}
-                                            </span>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                            <p className="text-xs text-gray-500 mb-2">Edit colors (preview before save)</p>
-                            <div className="space-y-3">
-                                {appearanceSettings.themeColors.map((color, index) => (
-                                    <div key={index} className="flex items-center gap-3">
-                                        <div className="flex items-center gap-2 flex-1">
-                                            <label className="text-sm text-gray-700">Color {index + 1}</label>
-                                            <input
-                                                type="color"
-                                                value={color}
-                                                onChange={(e) => handleThemeColorChange(index, e.target.value)}
-                                                className="w-12 h-10 rounded cursor-pointer"
-                                            />
-                                            <input
-                                                type="text"
-                                                value={color}
-                                                onChange={(e) => handleThemeColorChange(index, e.target.value)}
-                                                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                                                placeholder="#000000"
-                                            />
+                        <>
+                            {/* Application-level settings */}
+                            <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-6">
+                                {/* Theme Colors */}
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Theme Colors</h3>
+                                    <div className="mb-3">
+                                        <p className="text-xs text-gray-500 mb-2">Current saved colors</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(selectedAppearanceApplication.ThemeColors ?? "").split(",").filter(Boolean).map((color: string, index: number) => {
+                                                const trimmedColor = color.trim();
+                                                return (
+                                                    <span
+                                                        key={`saved-color-${index}`}
+                                                        className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-700"
+                                                    >
+                                                        <span className="inline-block h-3 w-3 rounded-full border border-gray-300" style={{ backgroundColor: trimmedColor }} />
+                                                        {trimmedColor}
+                                                    </span>
+                                                );
+                                            })}
                                         </div>
-                                        {appearanceSettings.themeColors.length > 1 && (
+                                    </div>
+                                    <p className="text-xs text-gray-500 mb-2">Edit colors (preview before save)</p>
+                                    <div className="space-y-3">
+                                        {appearanceSettings.themeColors.map((color, index) => (
+                                            <div key={index} className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2 flex-1">
+                                                    <label className="text-sm text-gray-700">Color {index + 1}</label>
+                                                    <input
+                                                        type="color"
+                                                        value={color}
+                                                        onChange={(e) => handleThemeColorChange(index, e.target.value)}
+                                                        className="w-12 h-10 rounded cursor-pointer"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={color}
+                                                        onChange={(e) => handleThemeColorChange(index, e.target.value)}
+                                                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                                        placeholder="#000000"
+                                                    />
+                                                </div>
+                                                {appearanceSettings.themeColors.length > 1 && (
+                                                    <button
+                                                        onClick={() => removeThemeColor(index)}
+                                                        className="px-3 py-2 rounded-lg border border-red-300 text-sm font-medium text-red-600 hover:bg-red-50"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        {appearanceSettings.themeColors.length < 2 && (
                                             <button
-                                                onClick={() => removeThemeColor(index)}
-                                                className="px-3 py-2 rounded-lg border border-red-300 text-sm font-medium text-red-600 hover:bg-red-50"
+                                                onClick={addThemeColor}
+                                                className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
                                             >
-                                                Remove
+                                                Add Color
                                             </button>
                                         )}
                                     </div>
-                                ))}
-                                {appearanceSettings.themeColors.length < 2 && (
-                                    <button
-                                        onClick={addThemeColor}
-                                        className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                </div>
+
+                                {/* Font Size */}
+                                <div>
+                                    <label className="text-sm text-gray-700 block">Default Font Size (px)</label>
+                                    <input
+                                        type="number"
+                                        min={10}
+                                        max={32}
+                                        value={appearanceSettings.defaultFontSize}
+                                        onChange={(e) => handleAppearanceChange("defaultFontSize", e.target.value)}
+                                        className="mt-1 w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                    />
+                                </div>
+
+                                {/* Template Selection */}
+                                <div>
+                                    <label className="text-sm text-gray-700 block">Template</label>
+                                    <select
+                                        value={appearanceSettings.template}
+                                        onChange={(e) => handleAppearanceChange("template", e.target.value)}
+                                        className="mt-1 w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
                                     >
-                                        Add Color
+                                        <option value="modern">Modern</option>
+                                        <option value="classic">Classic</option>
+                                        <option value="minimal">Minimal</option>
+                                        <option value="bold">Bold</option>
+                                    </select>
+                                </div>
+
+                                {/* Save Button - application settings */}
+                                <div className="pt-4 border-t border-gray-200">
+                                    <button
+                                        onClick={handleSaveAppearance}
+                                        style={{
+                                            background: appearanceModified ? "#c53030" : "#ccc",
+                                            color: "#fff",
+                                            padding: "10px 20px",
+                                            borderRadius: "10px",
+                                            fontWeight: 600,
+                                            border: "2px solid",
+                                            borderColor: appearanceModified ? "#c53030" : "#ccc",
+                                            cursor: appearanceModified ? "pointer" : "not-allowed",
+                                        }}
+                                    >
+                                        Save Application Settings
                                     </button>
+                                </div>
+                            </div>
+
+                            {/* Shop-level appearance settings */}
+                            <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                                <h3 className="text-lg font-semibold text-gray-800">Shop Appearance</h3>
+                                <p className="text-sm text-gray-500 mt-1 mb-4">
+                                    Banner images, visibility, and border radius are set per shop. Select a shop to edit its settings.
+                                </p>
+                                {((selectedAppearanceApplication as any)?.Shops ?? []).length === 0 ? (
+                                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
+                                        No shops found for this application.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {((selectedAppearanceApplication as any)?.Shops ?? []).map((shop: any) => {
+                                            const shopKey = String(shop.ApplicationShopId ?? shop.ShopId ?? "");
+                                            const isExpanded = expandedAppearanceShopId === shopKey;
+                                            const shopSettings = shopAppearanceSettings[shopKey] ?? {
+                                                showBanner: shop.ShowBanner ?? true,
+                                                bannerImages: shop.BannerImages ?? "",
+                                                borderRadius: shop.BorderRadius?.toString() ?? "8",
+                                            };
+                                            return (
+                                                <div
+                                                    key={shopKey}
+                                                    className={`overflow-hidden rounded-xl border transition ${
+                                                        isExpanded ? "border-red-200 bg-red-50/30" : "border-gray-200 bg-white hover:border-red-200"
+                                                    }`}
+                                                >
+                                                    <button
+                                                        onClick={() => setExpandedAppearanceShopId(isExpanded ? null : shopKey)}
+                                                        className="flex w-full items-center justify-between gap-3 p-4 text-left"
+                                                    >
+                                                        <div className="flex min-w-0 items-center gap-3">
+                                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-[#c53030]">
+                                                                <Icon icon="material-symbols-light:storefront-outline" className="h-4 w-4" />
+                                                            </span>
+                                                            <div className="min-w-0">
+                                                                <p className="truncate text-sm font-medium text-gray-800">{shop.ShopName}</p>
+                                                                <p className="truncate text-xs text-gray-500">
+                                                                    {shop.ShopLocation ?? ""}{shop.PhoneNumber ? ` • ${shop.PhoneNumber}` : ""}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <span
+                                                            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition ${
+                                                                isExpanded ? "bg-[#c53030] text-white" : "bg-gray-100 text-gray-500"
+                                                            }`}
+                                                        >
+                                                            {isExpanded ? "Hide" : "Show"}
+                                                            <Icon
+                                                                icon={isExpanded ? "material-symbols-light:keyboard-arrow-up" : "material-symbols-light:keyboard-arrow-down"}
+                                                                className="h-4 w-4"
+                                                            />
+                                                        </span>
+                                                    </button>
+                                                    {isExpanded && (
+                                                        <div className="space-y-4 border-t border-red-100 bg-white/70 px-4 pb-4 pt-3">
+                                                            {/* Banner Images */}
+                                                            <div>
+                                                                <label className="text-sm text-gray-700 block">Banner Image(s)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={shopSettings.bannerImages}
+                                                                    onChange={(e) => handleShopAppearanceChange(shopKey, "bannerImages", e.target.value)}
+                                                                    placeholder="Banner image URL(s)"
+                                                                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                                                />
+                                                            </div>
+
+                                                            {/* Show Banners Toggle */}
+                                                            <div className="flex items-center gap-3">
+                                                                <label className="text-sm text-gray-700">Show Banners</label>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={!!shopSettings.showBanner}
+                                                                    onChange={(e) => handleShopAppearanceChange(shopKey, "showBanner", e.target.checked)}
+                                                                    className="w-5 h-5 rounded cursor-pointer"
+                                                                />
+                                                            </div>
+
+                                                            {/* Border Radius */}
+                                                            <div>
+                                                                <label className="text-sm text-gray-700 block">Border Radius (px)</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    max={50}
+                                                                    value={shopSettings.borderRadius}
+                                                                    onChange={(e) => handleShopAppearanceChange(shopKey, "borderRadius", e.target.value)}
+                                                                    className="mt-1 w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                                                                />
+                                                            </div>
+
+                                                            <div className="pt-2">
+                                                                <button
+                                                                    onClick={() => handleSaveShopAppearance(shopKey)}
+                                                                    disabled={savingShopAppearanceId === shopKey}
+                                                                    style={{
+                                                                        background: savingShopAppearanceId === shopKey ? "#ccc" : "#c53030",
+                                                                        color: "#fff",
+                                                                        padding: "8px 16px",
+                                                                        borderRadius: "10px",
+                                                                        fontWeight: 600,
+                                                                        border: "2px solid",
+                                                                        borderColor: savingShopAppearanceId === shopKey ? "#ccc" : "#c53030",
+                                                                        cursor: savingShopAppearanceId === shopKey ? "not-allowed" : "pointer",
+                                                                    }}
+                                                                >
+                                                                    {savingShopAppearanceId === shopKey ? "Saving..." : "Save Shop Settings"}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 )}
                             </div>
-                        </div>
-
-                        {/* Font Size */}
-                        <div>
-                            <label className="text-sm text-gray-700 block">Default Font Size (px)</label>
-                            <input
-                                type="number"
-                                min={10}
-                                max={32}
-                                value={appearanceSettings.defaultFontSize}
-                                onChange={(e) => handleAppearanceChange("defaultFontSize", e.target.value)}
-                                className="mt-1 w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                            />
-                        </div>
-
-                        {/* Banner Image */}
-                        <div>
-                            <label className="text-sm text-gray-700 block">Banner Image(s)</label>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                onChange={(e) => handleAppearanceChange("bannerImage", e.target.files ?? [])}
-                                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                            />
-                        </div>
-
-                        {/* Show Banners Toggle */}
-                        <div className="flex items-center gap-3">
-                            <label className="text-sm text-gray-700">Show Banners</label>
-                            <input
-                                type="checkbox"
-                                checked={appearanceSettings.showBanners}
-                                onChange={(e) => handleAppearanceChange("showBanners", e.target.checked)}
-                                className="w-5 h-5 rounded cursor-pointer"
-                            />
-                        </div>
-
-                        {/* Border Radius */}
-                        <div>
-                            <label className="text-sm text-gray-700 block">Border Radius (px)</label>
-                            <input
-                                type="number"
-                                min={0}
-                                max={50}
-                                value={appearanceSettings.borderRadius}
-                                onChange={(e) => handleAppearanceChange("borderRadius", e.target.value)}
-                                className="mt-1 w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                            />
-                        </div>
-
-                        {/* Template Selection */}
-                        <div>
-                            <label className="text-sm text-gray-700 block">Template</label>
-                            <select
-                                value={appearanceSettings.template}
-                                onChange={(e) => handleAppearanceChange("template", e.target.value)}
-                                className="mt-1 w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white"
-                            >
-                                <option value="modern">Modern</option>
-                                <option value="classic">Classic</option>
-                                <option value="minimal">Minimal</option>
-                                <option value="bold">Bold</option>
-                            </select>
-                        </div>
-
-                        {/* Save Button */}
-                        <div className="pt-4 border-t border-gray-200">
-                            <button
-                                onClick={handleSaveAppearance}
-                                // disabled={!appearanceModified}
-                                style={{
-                                    background: appearanceModified ? "#c53030" : "#ccc",
-                                    color: "#fff",
-                                    padding: "10px 20px",
-                                    borderRadius: "10px",
-                                    fontWeight: 600,
-                                    border: "2px solid",
-                                    borderColor: appearanceModified ? "#c53030" : "#ccc",
-                                    cursor: appearanceModified ? "pointer" : "not-allowed",
-                                }}
-                            >
-                                Save Changes
-                            </button>
-                        </div>
-                    </div>
+                        </>
                     )}
                 </section>
             )}

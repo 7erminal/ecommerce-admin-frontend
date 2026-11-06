@@ -1294,6 +1294,7 @@ export type ShopBranchResp = {
 }
 
 export type ShopResp = {
+  ApplicationShopId?: string
   ShopId: string
   ShopName: string
   ShopDescription: string
@@ -1303,6 +1304,12 @@ export type ShopResp = {
   Email: string
   Image: string
   ShopLocation: string
+  ShowBanner?: boolean
+  BannerImages?: string
+  BorderRadius?: string
+  ThemeColors?: string
+  DefaultFontsize?: string
+  ApplicationImage?: string
   DateCreated?: string
   DateModified?: string
   CreatedBy?: number

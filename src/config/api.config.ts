@@ -22,6 +22,8 @@ export const API_ENDPOINTS = {
   ROLES: {
     GET_ALL: '/v1/user/get-roles/',
     ADD_ROLE: '/v1/user/add-role',
+    UPDATE_ROLE: (id: string) => `/v1/user/update-role/${id}`,
+    DELETE_ROLE: (id: string) => `/v1/user/delete-role/${id}`,
   },
   ACTIONS: {
     GET_ALL: '/v1/user/get-actions',

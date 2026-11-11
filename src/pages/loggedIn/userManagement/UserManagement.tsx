@@ -18,6 +18,7 @@ const UserManagementPage: React.FC = () => {
     const [idNumber, setIdNumber] = useState("");
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [submitting, setSubmitting] = useState("");
+    const [roleId, setRoleId] = useState("");
 
     // Role form state
     const [roleName, setRoleName] = useState("");
@@ -99,12 +100,17 @@ const UserManagementPage: React.FC = () => {
         setIdType("");
         setIdNumber("");
         setImageFile(null);
+        setRoleId("");
         setRoleName("");
         setRoleDescription("");
     }
 
-    const openAddModal = () => {
+    const openAddModal = async () => {
         resetForm();
+        // If adding a user and roles are empty, fetch them
+        if (activeTab === "users" && roles.length === 0) {
+            await getRoles();
+        }
         setShowModal(true);
     }
 
@@ -135,7 +141,7 @@ const UserManagementPage: React.FC = () => {
             return;
         }
 
-        if (!name.trim() || !email.trim() || !phoneNumber.trim() || !location.trim() || !idType.trim() || !idNumber.trim()) {
+        if (!name.trim() || !email.trim() || !phoneNumber.trim() || !location.trim() || !idType.trim() || !idNumber.trim() || !roleId.trim()) {
             return;
         }
 
@@ -169,6 +175,7 @@ const UserManagementPage: React.FC = () => {
                 IdType: idType,
                 IdNumber: idNumber.trim(),
                 ImagePath: uploadedImagePath,
+                RoleId: roleId,
             };
 
             const resp = await applicationContext.addUser(payload);
@@ -432,6 +439,20 @@ const UserManagementPage: React.FC = () => {
                                         ))}
                                     </select>
                                     <input value={idNumber} onChange={(e) => setIdNumber(e.target.value)} placeholder="ID Number *" className={inputClass} />
+                                    <select value={roleId} onChange={(e) => setRoleId(e.target.value)} className={selectClass}>
+                                        <option value="">Select Role *</option>
+                                        {roles.length > 0 ? (
+                                            roles.map((entry) => (
+                                                <option key={String(entry.RoleId)} value={String(entry.RoleId)}>
+                                                    {entry.Role}
+                                                </option>
+                                            ))
+                                        ) : (
+                                            <option value="" disabled>
+                                                No roles available
+                                            </option>
+                                        )}
+                                    </select>
                                     <input
                                         type="file"
                                         accept="image/*"

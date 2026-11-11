@@ -505,6 +505,7 @@ export type AddUser = {
   IdType: string
   IdNumber: string
   ImagePath: string
+  RoleId: string
 }
 
 // type CustomerGateway struct {

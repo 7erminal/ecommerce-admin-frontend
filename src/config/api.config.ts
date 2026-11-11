@@ -13,10 +13,10 @@ export const API_ENDPOINTS = {
   },
   USER: {
     GET_SESSION: '/v1/user/get-user-session',
-    GET_ALL: '/v1/user',
-    ADD_USER: '/v1/user/',
-    UPDATE_USER: (id: string) => `/v1/user/${id}`,
-    DELETE_USER: (id: string) => `/v1/user/${id}`,
+    GET_ALL: '/v1/user/get-users',
+    ADD_USER: '/v1/user/add-user',
+    UPDATE_USER: (id: string) => `/v1/user/update-user/${id}`,
+    DELETE_USER: (id: string) => `/v1/user/delete-user/${id}`,
     UPLOAD_IMAGE: '/v1/user/upload-image',
   },
   ROLES: {
